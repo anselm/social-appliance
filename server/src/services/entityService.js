@@ -93,8 +93,8 @@ export class EntityService {
       query.ends = { $lte: filters.ends };
     }
     
-    const limit = Math.min(filters.limit || 20, 100);
-    const offset = filters.offset || 0;
+    const limit = Math.min(parseInt(filters.limit) || 20, 100);
+    const offset = parseInt(filters.offset) || 0;
     
     const cursor = db.collection('entities')
       .find(query)
