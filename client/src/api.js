@@ -1,55 +1,70 @@
-import axios from 'axios';
-
 export class APIClient {
   constructor(baseURL = 'http://localhost:3000/api') {
-    this.client = axios.create({
-      baseURL,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    this.baseURL = baseURL;
     this.currentUser = null;
   }
 
+  async request(path, options = {}) {
+    const url = `${this.baseURL}${path}`;
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
+      const error = await response.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+
+    return response.json();
+  }
+
   async createUser(data) {
-    const response = await this.client.post('/users', data);
-    return response.data;
+    return this.request('/users', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
   }
 
   async createGroup(data) {
-    const response = await this.client.post('/groups', data);
-    return response.data;
+    return this.request('/groups', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
   }
 
   async createPost(data) {
-    const response = await this.client.post('/posts', data);
-    return response.data;
+    return this.request('/posts', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
   }
 
   async getEntityBySlug(slug) {
-    try {
-      const response = await this.client.get(`/entities/slug/${encodeURIComponent(slug)}`);
-      return response.data;
-    } catch (error) {
-      if (error.response?.status === 404) {
-        return null;
-      }
-      throw error;
-    }
+    return this.request(`/entities/slug/${encodeURIComponent(slug)}`);
   }
 
   async queryEntities(filters) {
-    const response = await this.client.get('/entities', { params: filters });
-    return response.data;
+    const params = new URLSearchParams(filters);
+    return this.request(`/entities?${params}`);
   }
 
   async updateEntity(id, data) {
-    const response = await this.client.put(`/entities/${id}`, data);
-    return response.data;
+    return this.request(`/entities/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
   }
 
   async deleteEntity(id) {
-    const response = await this.client.delete(`/entities/${id}`);
-    return response.data;
+    return this.request(`/entities/${id}`, {
+      method: 'DELETE'
+    });
   }
 }
