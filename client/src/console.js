@@ -145,9 +145,8 @@ export class ConsoleClient {
     let entities;
     
     if (this.currentPath === '/') {
-      // List root level entities
+      // List root level entities (all types)
       entities = await this.api.queryEntities({ 
-        type: 'group',
         limit: 50 
       });
     } else {
@@ -171,9 +170,13 @@ export class ConsoleClient {
 
     console.log(chalk.yellow('\nEntities:'));
     entities.forEach(entity => {
-      const icon = entity.type === 'group' ? '📁' : '📄';
+      const icon = entity.type === 'group' ? '📁' : 
+                   entity.type === 'party' ? '👤' : 
+                   entity.type === 'place' ? '📍' : 
+                   entity.type === 'thing' ? '📦' : 
+                   entity.type === 'agent' ? '🤖' : '📄';
       const name = entity.slug || entity.id.slice(0, 8);
-      console.log(`  ${icon} ${chalk.cyan(name)} - ${entity.title || '(untitled)'}`);
+      console.log(`  ${icon} ${chalk.cyan(name)} [${entity.type}] - ${entity.title || '(untitled)'}`);
     });
     console.log();
   }
@@ -353,7 +356,8 @@ export class ConsoleClient {
     console.log(chalk.gray(`Showing ${entities.length} entities:\n`));
     
     entities.forEach(entity => {
-      console.log(chalk.cyan(`[${entity.type}] ${entity.id}`));
+      console.log(chalk.cyan(`${entity.id}`));
+      console.log(`  Type: ${entity.type}`);
       if (entity.slug) console.log(`  Slug: ${entity.slug}`);
       if (entity.title) console.log(`  Title: ${entity.title}`);
       if (entity.sponsorId) console.log(`  Sponsor: ${entity.sponsorId}`);
