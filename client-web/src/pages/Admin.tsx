@@ -19,14 +19,22 @@ interface Stats {
   byType: Record<string, number>
 }
 
+interface EntityWithChildren extends Entity {
+  children?: EntityWithChildren[]
+  expanded?: boolean
+}
+
 export default function Admin() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<'entities' | 'create' | 'stats'>('entities')
   const [entities, setEntities] = useState<Entity[]>([])
+  const [treeEntities, setTreeEntities] = useState<EntityWithChildren[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [stats, setStats] = useState<Stats | null>(null)
+  const [editingEntity, setEditingEntity] = useState<Entity | null>(null)
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
   
   // Create entity form
   const [newEntity, setNewEntity] = useState({
@@ -49,17 +57,54 @@ export default function Admin() {
   const loadEntities = async () => {
     setLoading(true)
     try {
-      const filters: any = { limit: 100 }
+      const filters: any = { limit: 1000 }
       if (typeFilter) filters.type = typeFilter
       if (searchQuery) filters.slugPrefix = searchQuery
       
       const data = await api.queryEntities(filters)
       setEntities(data)
+      
+      // Build tree structure
+      const tree = buildTree(data)
+      setTreeEntities(tree)
     } catch (error) {
       console.error('Failed to load entities:', error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const buildTree = (entities: Entity[]): EntityWithChildren[] => {
+    const entityMap = new Map<string, EntityWithChildren>()
+    const roots: EntityWithChildren[] = []
+    
+    // First pass: create all entities
+    entities.forEach(entity => {
+      entityMap.set(entity.id, { ...entity, children: [] })
+    })
+    
+    // Second pass: build tree structure
+    entities.forEach(entity => {
+      const node = entityMap.get(entity.id)!
+      if (entity.parentId && entityMap.has(entity.parentId)) {
+        const parent = entityMap.get(entity.parentId)!
+        parent.children!.push(node)
+      } else {
+        roots.push(node)
+      }
+    })
+    
+    return roots
+  }
+
+  const toggleExpanded = (entityId: string) => {
+    const newExpanded = new Set(expandedNodes)
+    if (newExpanded.has(entityId)) {
+      newExpanded.delete(entityId)
+    } else {
+      newExpanded.add(entityId)
+    }
+    setExpandedNodes(newExpanded)
   }
 
   const loadStats = async () => {
@@ -135,6 +180,91 @@ export default function Admin() {
     }
   }
 
+  const handleEditEntity = (entity: Entity) => {
+    setEditingEntity({ ...entity })
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editingEntity) return
+    
+    try {
+      await api.updateEntity(editingEntity.id, {
+        title: editingEntity.title,
+        content: editingEntity.content,
+        slug: editingEntity.slug
+      })
+      setEditingEntity(null)
+      loadEntities()
+    } catch (error) {
+      console.error('Failed to update entity:', error)
+      alert('Failed to update entity')
+    }
+  }
+
+  const renderEntityTree = (entities: EntityWithChildren[], level = 0) => {
+    return entities.map(entity => {
+      const hasChildren = entity.children && entity.children.length > 0
+      const isExpanded = expandedNodes.has(entity.id)
+      
+      return (
+        <div key={entity.id}>
+          <div 
+            className="border border-white/20 p-3 text-xs hover:bg-white/5"
+            style={{ marginLeft: `${level * 20}px` }}
+          >
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  {hasChildren && (
+                    <button
+                      onClick={() => toggleExpanded(entity.id)}
+                      className="text-white/60 hover:text-white"
+                    >
+                      {isExpanded ? '▼' : '▶'}
+                    </button>
+                  )}
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-white/60">[{entity.type}]</span>
+                    <span className="font-mono">{entity.slug || entity.id}</span>
+                  </div>
+                </div>
+                {entity.title && (
+                  <div className="text-white/80 mt-1">Title: {entity.title}</div>
+                )}
+                {entity.parentId && (
+                  <div className="text-white/60 text-xs">Parent: {entity.parentId}</div>
+                )}
+                <div className="text-white/60 text-xs mt-1">
+                  ID: {entity.id}
+                </div>
+                <div className="text-white/60 text-xs">
+                  Created: {new Date(entity.createdAt).toLocaleString()}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleEditEntity(entity)}
+                  className="text-blue-500 hover:text-blue-400"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeleteEntity(entity.id)}
+                  className="text-red-500 hover:text-red-400"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+          {hasChildren && isExpanded && (
+            <div>{renderEntityTree(entity.children!, level + 1)}</div>
+          )}
+        </div>
+      )
+    })
+  }
+
   return (
     <div>
       <h1 className="text-xs uppercase tracking-wider mb-6">Admin Panel</h1>
@@ -205,34 +335,103 @@ export default function Admin() {
           {loading ? (
             <div className="text-xs text-white/60">Loading...</div>
           ) : (
-            <div className="space-y-2">
-              {entities.map((entity) => (
-                <div key={entity.id} className="border border-white/20 p-3 text-xs">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-white/60">[{entity.type}]</span>
-                        <span className="font-mono">{entity.slug || entity.id}</span>
+            <div className="space-y-1">
+              {searchQuery || typeFilter ? (
+                // Show flat list when filtering
+                entities.map((entity) => (
+                  <div key={entity.id} className="border border-white/20 p-3 text-xs">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-baseline gap-2 mb-1">
+                          <span className="text-white/60">[{entity.type}]</span>
+                          <span className="font-mono">{entity.slug || entity.id}</span>
+                        </div>
+                        {entity.title && (
+                          <div className="text-white/80">Title: {entity.title}</div>
+                        )}
+                        {entity.parentId && (
+                          <div className="text-white/60 text-xs">Parent: {entity.parentId}</div>
+                        )}
+                        <div className="text-white/60 text-xs mt-1">
+                          ID: {entity.id}
+                        </div>
+                        <div className="text-white/60 text-xs">
+                          Created: {new Date(entity.createdAt).toLocaleString()}
+                        </div>
                       </div>
-                      {entity.title && (
-                        <div className="text-white/80">Title: {entity.title}</div>
-                      )}
-                      <div className="text-white/60 mt-1">
-                        ID: {entity.id}
-                      </div>
-                      <div className="text-white/60">
-                        Created: {new Date(entity.createdAt).toLocaleString()}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditEntity(entity)}
+                          className="text-blue-500 hover:text-blue-400"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEntity(entity.id)}
+                          className="text-red-500 hover:text-red-400"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
+                  </div>
+                ))
+              ) : (
+                // Show tree view when not filtering
+                renderEntityTree(treeEntities)
+              )}
+            </div>
+          )}
+
+          {/* Edit Modal */}
+          {editingEntity && (
+            <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4">
+              <div className="bg-black border border-white/20 p-6 max-w-md w-full">
+                <h3 className="text-xs uppercase tracking-wider mb-4">Edit Entity</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs text-white/60 mb-1">Slug</label>
+                    <input
+                      type="text"
+                      value={editingEntity.slug || ''}
+                      onChange={(e) => setEditingEntity({ ...editingEntity, slug: e.target.value })}
+                      className="w-full bg-black border border-white/20 px-2 py-1 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-white/60 mb-1">Title</label>
+                    <input
+                      type="text"
+                      value={editingEntity.title || ''}
+                      onChange={(e) => setEditingEntity({ ...editingEntity, title: e.target.value })}
+                      className="w-full bg-black border border-white/20 px-2 py-1 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-white/60 mb-1">Content</label>
+                    <textarea
+                      value={editingEntity.content || ''}
+                      onChange={(e) => setEditingEntity({ ...editingEntity, content: e.target.value })}
+                      className="w-full bg-black border border-white/20 px-2 py-1 text-sm"
+                      rows={4}
+                    />
+                  </div>
+                  <div className="flex gap-2">
                     <button
-                      onClick={() => handleDeleteEntity(entity.id)}
-                      className="text-red-500 hover:text-red-400 ml-4"
+                      onClick={handleSaveEdit}
+                      className="border border-white/20 px-3 py-1 text-xs uppercase tracking-wider hover:bg-white hover:text-black"
                     >
-                      Delete
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setEditingEntity(null)}
+                      className="text-xs uppercase tracking-wider text-white/60 hover:text-white"
+                    >
+                      Cancel
                     </button>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
           )}
         </div>
