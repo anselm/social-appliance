@@ -51,7 +51,8 @@ const EntitySchema = {
   radius: number || undefined,
   begins: new Date().toISOString() || undefined,
   ends: new Date().toISOString() || undefined,
-  sponsorId: UUID,
+  sponsorId: UUID,  // The party (user) that created/sponsored this entity
+  parentId: UUID || null,  // The hierarchical parent entity
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };

@@ -209,18 +209,19 @@ export class ConsoleClient {
     const slug = readlineSync.question('Slug (optional): ');
     const content = readlineSync.question('Content: ');
 
-    let sponsorId = null;
+    let parentId = null;
     if (this.currentPath !== '/') {
       const parent = await this.api.getEntityBySlug(this.currentPath.slice(1));
       if (parent) {
-        sponsorId = parent.id;
+        parentId = parent.id;
       }
     }
 
     const data = {
       title,
       content,
-      sponsorId,
+      parentId,
+      sponsorId: this.currentUser?.id,
       auth: this.currentUser?.id
     };
 

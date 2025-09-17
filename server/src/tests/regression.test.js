@@ -32,7 +32,8 @@ async function runTests() {
     const post1 = await api.createPost({
       title: 'Test Post',
       content: 'This is a test post',
-      sponsorId: group.id
+      parentId: group.id,
+      sponsorId: user.id
     });
     console.log('✓ Post created:', post1.id);
     
@@ -64,9 +65,10 @@ async function runTests() {
     const childPost = await api.createPost({
       title: 'Reply Post',
       content: 'This is a reply',
-      sponsorId: post1.id
+      parentId: post1.id,
+      sponsorId: user.id
     });
-    console.log('✓ Child post created with parent:', childPost.sponsorId);
+    console.log('✓ Child post created with parent:', childPost.parentId);
     
     // Test 7: Query posts near location
     console.log('\nTest 7: Querying posts near location...');

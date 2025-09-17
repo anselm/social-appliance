@@ -18,6 +18,7 @@ export class Entity {
     this.begins = data.begins || undefined;
     this.ends = data.ends || undefined;
     this.sponsorId = data.sponsorId || null;
+    this.parentId = data.parentId || null;
     this.createdAt = data.createdAt || new Date().toISOString();
     this.updatedAt = data.updatedAt || new Date().toISOString();
   }

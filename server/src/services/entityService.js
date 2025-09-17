@@ -70,7 +70,8 @@ export class EntityService {
     
     // Build query based on filters
     if (filters.type) query.type = filters.type;
-    if (filters.parentId) query.sponsorId = filters.parentId;
+    if (filters.parentId) query.parentId = filters.parentId;
+    if (filters.sponsorId) query.sponsorId = filters.sponsorId;
     if (filters.slug) query.slug = filters.slug;
     
     // Location-based query
