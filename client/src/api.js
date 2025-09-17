@@ -7,25 +7,57 @@ export class APIClient {
     this.currentUser = null;
   }
 
-  async request(path, options = {}) {
+  async request(path, options = {}, retries = 3) {
     const url = `${this.baseURL}${path}`;
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      }
-    });
+    let lastError;
+    
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+          },
+          // Add timeout to prevent hanging
+          signal: AbortSignal.timeout(30000) // 30 second timeout
+        });
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
+        if (!response.ok) {
+          if (response.status === 404) {
+            return null;
+          }
+          const error = await response.json().catch(() => ({ error: 'Request failed' }));
+          throw new Error(error.error || `HTTP ${response.status}`);
+        }
+
+        return response.json();
+      } catch (error) {
+        lastError = error;
+        
+        // Check if it's a connection error that we should retry
+        const isRetryableError = 
+          error.code === 'ECONNRESET' || 
+          error.code === 'ECONNREFUSED' ||
+          error.code === 'ETIMEDOUT' ||
+          error.message?.includes('socket hang up') ||
+          error.message?.includes('fetch failed') ||
+          error.name === 'AbortError';
+        
+        if (isRetryableError && attempt < retries) {
+          // Exponential backoff: 1s, 2s, 4s
+          const delay = Math.pow(2, attempt) * 1000;
+          console.log(`Connection error, retrying in ${delay/1000}s... (attempt ${attempt + 1}/${retries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        
+        // If not retryable or out of retries, throw the error
+        throw error;
       }
-      const error = await response.json().catch(() => ({ error: 'Request failed' }));
-      throw new Error(error.error || `HTTP ${response.status}`);
     }
-
-    return response.json();
+    
+    throw lastError;
   }
 
   async createUser(data) {

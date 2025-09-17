@@ -9,9 +9,31 @@ export class ConsoleClient {
     this.currentUser = null;
   }
 
+  async testConnection() {
+    try {
+      // Try a simple query to test the connection
+      await this.api.queryEntities({ limit: 1 });
+      return true;
+    } catch (error) {
+      if (error.code === 'ECONNREFUSED') {
+        console.error(chalk.red('\n⚠️  Cannot connect to server at http://localhost:3000'));
+        console.error(chalk.yellow('Please make sure the server is running with: cd server && npm start\n'));
+        return false;
+      }
+      // Other errors might be OK (e.g., permission errors)
+      return true;
+    }
+  }
+
   async run() {
     console.log(chalk.green('Welcome to Social Appliance Console'));
     console.log(chalk.gray('Type "help" for available commands\n'));
+
+    // Test connection on startup
+    const connected = await this.testConnection();
+    if (!connected) {
+      process.exit(1);
+    }
 
     while (true) {
       const prompt = chalk.blue(`${this.currentUser ? `[${this.currentUser.slug}]` : '[guest]'} ${this.currentPath} > `);
@@ -21,7 +43,13 @@ export class ConsoleClient {
       try {
         await this.executeCommand(command, args);
       } catch (error) {
-        console.error(chalk.red('Error:'), error.message);
+        if (error.code === 'ECONNREFUSED') {
+          console.error(chalk.red('Error: Cannot connect to server. Is the server running on http://localhost:3000?'));
+        } else if (error.message?.includes('fetch failed') || error.code === 'ECONNRESET') {
+          console.error(chalk.red('Error: Connection to server lost. Please try again.'));
+        } else {
+          console.error(chalk.red('Error:'), error.message);
+        }
       }
     }
   }
