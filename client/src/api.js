@@ -1,3 +1,6 @@
+// Use native fetch if available, otherwise use node-fetch
+import fetch from 'node-fetch';
+
 export class APIClient {
   constructor(baseURL = 'http://localhost:3000/api') {
     this.baseURL = baseURL;
