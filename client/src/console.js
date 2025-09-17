@@ -112,11 +112,12 @@ export class ConsoleClient {
       return;
     }
 
+    const slug = readlineSync.question('Slug (leave empty to use username): ') || username;
     const title = readlineSync.question('Full name: ');
     const content = readlineSync.question('Bio: ');
 
     const user = await this.api.createUser({
-      slug: username,
+      slug,
       title,
       content
     });
