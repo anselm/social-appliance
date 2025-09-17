@@ -73,6 +73,9 @@ export class EntityService {
     if (filters.parentId) query.parentId = filters.parentId;
     if (filters.sponsorId) query.sponsorId = filters.sponsorId;
     if (filters.slug) query.slug = filters.slug;
+    if (filters.slugPrefix) {
+      query.slug = { $regex: `^${filters.slugPrefix}`, $options: 'i' };
+    }
     
     // Location-based query
     if (filters.latitude && filters.longitude && filters.radius) {

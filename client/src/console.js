@@ -64,6 +64,14 @@ export class ConsoleClient {
         await this.delete(args[0]);
         break;
       
+      case 'dump':
+        await this.dump(args[0]);
+        break;
+      
+      case 'query':
+        await this.query(args[0]);
+        break;
+      
       case 'exit':
       case 'quit':
         console.log(chalk.yellow('Goodbye!'));
@@ -87,6 +95,8 @@ export class ConsoleClient {
     console.log('  edit <slug>             - Edit an entity');
     console.log('  view <slug>             - View entity details');
     console.log('  delete <slug>           - Delete an entity');
+    console.log('  dump [page]             - Dump all entities (paginated)');
+    console.log('  query <prefix>          - Query entities by slug prefix');
     console.log('  exit/quit               - Exit the console\n');
   }
 
@@ -302,5 +312,63 @@ export class ConsoleClient {
       await this.api.deleteEntity(entity.id);
       console.log(chalk.green('Entity deleted'));
     }
+  }
+
+  async dump(pageStr) {
+    const page = parseInt(pageStr) || 1;
+    const limit = 20;
+    const offset = (page - 1) * limit;
+
+    console.log(chalk.yellow(`\nDumping entities (page ${page}):`));
+    
+    const entities = await this.api.queryEntities({ limit, offset });
+    
+    if (entities.length === 0) {
+      console.log(chalk.gray('No more entities'));
+      return;
+    }
+
+    console.log(chalk.gray(`Showing ${entities.length} entities:\n`));
+    
+    entities.forEach(entity => {
+      console.log(chalk.cyan(`[${entity.type}] ${entity.slug || entity.id}`));
+      console.log(`  ID: ${entity.id}`);
+      if (entity.title) console.log(`  Title: ${entity.title}`);
+      if (entity.sponsorId) console.log(`  Sponsor: ${entity.sponsorId}`);
+      if (entity.parentId) console.log(`  Parent: ${entity.parentId}`);
+      console.log(`  Created: ${entity.createdAt}`);
+      console.log();
+    });
+
+    if (entities.length === limit) {
+      console.log(chalk.gray(`Use "dump ${page + 1}" to see the next page`));
+    }
+  }
+
+  async query(prefix) {
+    if (!prefix) {
+      console.log(chalk.red('Please provide a slug prefix to search for'));
+      return;
+    }
+
+    console.log(chalk.yellow(`\nQuerying entities with slug prefix: ${prefix}`));
+    
+    const entities = await this.api.queryEntities({ 
+      slugPrefix: prefix,
+      limit: 100 
+    });
+
+    if (entities.length === 0) {
+      console.log(chalk.gray('No entities found with that prefix'));
+      return;
+    }
+
+    console.log(chalk.gray(`Found ${entities.length} entities:\n`));
+    
+    entities.forEach(entity => {
+      const icon = entity.type === 'group' ? '📁' : entity.type === 'party' ? '👤' : '📄';
+      console.log(`  ${icon} ${chalk.cyan(entity.slug)} - ${entity.title || '(untitled)'}`);
+    });
+    console.log();
   }
 }

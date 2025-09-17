@@ -51,7 +51,12 @@ export class APIClient {
   }
 
   async queryEntities(filters) {
-    const params = new URLSearchParams(filters);
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        params.append(key, value);
+      }
+    });
     return this.request(`/entities?${params}`);
   }
 
