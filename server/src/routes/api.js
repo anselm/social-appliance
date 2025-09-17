@@ -1,0 +1,111 @@
+import express from 'express';
+import { API } from '../api/index.js';
+
+const router = express.Router();
+const api = new API();
+
+// Entity routes
+router.post('/entities', async (req, res) => {
+  try {
+    const entity = await api.createEntity(req.body, req.userId);
+    res.json(entity);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.get('/entities/:id', async (req, res) => {
+  try {
+    const entity = await api.getEntity(req.params.id, req.userId);
+    res.json(entity);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+});
+
+router.get('/entities/slug/:slug', async (req, res) => {
+  try {
+    const entity = await api.getEntityBySlug(req.params.slug, req.userId);
+    res.json(entity);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+});
+
+router.put('/entities/:id', async (req, res) => {
+  try {
+    const entity = await api.updateEntity(req.params.id, req.body, req.userId);
+    res.json(entity);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.delete('/entities/:id', async (req, res) => {
+  try {
+    const success = await api.deleteEntity(req.params.id, req.userId);
+    res.json({ success });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.get('/entities', async (req, res) => {
+  try {
+    const entities = await api.queryEntities(req.query, req.userId);
+    res.json(entities);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Convenience routes
+router.post('/users', async (req, res) => {
+  try {
+    const user = await api.createUser(req.body, req.userId);
+    res.json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.post('/groups', async (req, res) => {
+  try {
+    const group = await api.createGroup(req.body, req.userId);
+    res.json(group);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.post('/posts', async (req, res) => {
+  try {
+    const post = await api.createPost(req.body, req.userId);
+    res.json(post);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Relationship routes
+router.post('/relationships', async (req, res) => {
+  try {
+    const relationship = await api.createRelationship(req.body, req.userId);
+    res.json(relationship);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.get('/entities/:id/relationships', async (req, res) => {
+  try {
+    const direction = req.query.direction || 'from';
+    const type = req.query.type || null;
+    const relationships = await api.getRelationships(req.params.id, direction, type);
+    res.json(relationships);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+export default router;
