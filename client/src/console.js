@@ -64,6 +64,10 @@ export class ConsoleClient {
         await this.delete(args[0]);
         break;
       
+      case 'rawdelete':
+        await this.rawDelete(args[0]);
+        break;
+      
       case 'dump':
         await this.dump(args[0]);
         break;
@@ -94,7 +98,8 @@ export class ConsoleClient {
     console.log('  create <type> <title>   - Create new entity (group/post)');
     console.log('  edit <slug>             - Edit an entity');
     console.log('  view <slug>             - View entity details');
-    console.log('  delete <slug>           - Delete an entity');
+    console.log('  delete <slug>           - Delete an entity by slug');
+    console.log('  rawdelete <id>          - Delete an entity by raw ID');
     console.log('  dump [page]             - Dump all entities (paginated)');
     console.log('  query <prefix>          - Query entities by slug prefix');
     console.log('  exit/quit               - Exit the console\n');
@@ -297,7 +302,7 @@ export class ConsoleClient {
 
   async delete(slug) {
     if (!slug) {
-      console.log(chalk.red('Please provide entity slug or ID'));
+      console.log(chalk.red('Please provide entity slug'));
       return;
     }
 
@@ -311,6 +316,23 @@ export class ConsoleClient {
     if (confirm) {
       await this.api.deleteEntity(entity.id);
       console.log(chalk.green('Entity deleted'));
+    }
+  }
+
+  async rawDelete(id) {
+    if (!id) {
+      console.log(chalk.red('Please provide entity ID'));
+      return;
+    }
+
+    const confirm = readlineSync.keyInYN(`Delete entity with ID "${id}"?`);
+    if (confirm) {
+      try {
+        await this.api.deleteEntity(id);
+        console.log(chalk.green('Entity deleted'));
+      } catch (error) {
+        console.log(chalk.red('Failed to delete entity'));
+      }
     }
   }
 
@@ -331,8 +353,8 @@ export class ConsoleClient {
     console.log(chalk.gray(`Showing ${entities.length} entities:\n`));
     
     entities.forEach(entity => {
-      console.log(chalk.cyan(`[${entity.type}] ${entity.slug || entity.id}`));
-      console.log(`  ID: ${entity.id}`);
+      console.log(chalk.cyan(`[${entity.type}] ${entity.id}`));
+      if (entity.slug) console.log(`  Slug: ${entity.slug}`);
       if (entity.title) console.log(`  Title: ${entity.title}`);
       if (entity.sponsorId) console.log(`  Sponsor: ${entity.sponsorId}`);
       if (entity.parentId) console.log(`  Parent: ${entity.parentId}`);
