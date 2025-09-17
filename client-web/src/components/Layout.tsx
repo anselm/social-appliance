@@ -19,6 +19,9 @@ export default function Layout({ children }: LayoutProps) {
           <nav className="flex items-center gap-4 text-xs">
             {user ? (
               <>
+                <Link to="/admin" className="hover:underline">
+                  admin
+                </Link>
                 <span className="text-white/60">[{user.slug}]</span>
                 <button onClick={logout} className="hover:underline">
                   logout
