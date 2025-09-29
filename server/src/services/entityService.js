@@ -3,6 +3,9 @@ import { Entity } from '../models/entity.js';
 import { EntityTypes } from '../config/constants.js';
 
 export class EntityService {
+  async getDB() {
+    return getDB();
+  }
   async create(entityData) {
     const db = await getDB();
     const entity = new Entity(entityData);
