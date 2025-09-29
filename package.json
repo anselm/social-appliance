@@ -1,0 +1,22 @@
+{
+  "name": "social-appliance",
+  "version": "1.0.0",
+  "description": "Social Appliance monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm start",
+    "client": "cd client-web && npm run dev",
+    "install": "npm run install:server && npm run install:client",
+    "install:server": "cd server && npm install",
+    "install:client": "cd client-web && npm install",
+    "start": "npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "workspaces": [
+    "server",
+    "client-web"
+  ]
+}
