@@ -13,10 +13,24 @@ export async function connectDB() {
   if (db) return db;
   
   try {
-    client = new MongoClient(uri);
+    // Parse the URI to check if it includes authentication
+    const options = {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    };
+    
+    // If using MongoDB Atlas or authenticated MongoDB, the URI should include credentials
+    // Format: mongodb://username:password@host:port/database?authSource=admin
+    // Or for Atlas: mongodb+srv://username:password@cluster.mongodb.net/database
+    
+    client = new MongoClient(uri, options);
     await client.connect();
+    
+    // Test the connection
+    await client.db('admin').command({ ping: 1 });
+    
     db = client.db(dbName);
-    console.log('Connected to MongoDB');
+    console.log('Connected to MongoDB successfully');
     return db;
   } catch (error) {
     console.error('MongoDB connection error:', error);

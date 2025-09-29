@@ -11,7 +11,15 @@
 
 3. Create a `.env` file with your configuration:
    ```
+   # For local MongoDB without authentication:
    MONGODB_URI=mongodb://localhost:27017
+   
+   # For MongoDB with authentication:
+   # MONGODB_URI=mongodb://username:password@localhost:27017/social_appliance?authSource=admin
+   
+   # For MongoDB Atlas:
+   # MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/social_appliance
+   
    DB_NAME=social_appliance
    PORT=3000
    ```
