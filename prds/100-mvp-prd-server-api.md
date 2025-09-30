@@ -61,7 +61,7 @@ const EntitySchema = {
   updatedAt: new Date().toISOString(),
 };
 
-2) SLUGS. There is an idea of a 'slug' in an entity. Entities may request (on an api request to create or update an entity) to have a wiki like optional "slug" that is similar to a uuid and represents the entity uniquely. The application overall will use a wiki-like URL structure for content ('/portland-mushroom-foragers-group', '/john-smith') where slugs are handed out on a first-come first serve basis at the root level. A request for an arbitrary slug is granted if it is not taken, and also if parent nodes have open permissions. For example the request for a slug '/john-smith/my-fun-sub-group' may not be granted unless the caller has permission to add sub objects to '/john-smith'. Permissions is discussed later.
+2) SLUGS. There is an idea of a 'slug' in an entity. Entities may request (on an api request to create or update an entity) to have a wiki like optional "slug" that is similar to a uuid and represents the entity uniquely. The application overall will use a wiki-like URL structure for content ('/portland-mushroom-foragers-group/funarea', '/john-smith') where slugs are handed out on a first-come first serve basis at the root level. Slugs can have multiple slashes and are paths. A request for an arbitrary slug is granted if it is not taken, and also if parent nodes have open permissions. For example the request for a slug '/john-smith/my-fun-sub-group' may not be granted unless the caller has permission to add sub objects to '/john-smith'. Permissions is discussed later.
 
 3) PARENT. Entities can have a parent property. This is noted since it slightly competes with relationships below. It is up to the application to decide which to use for which situation.
 

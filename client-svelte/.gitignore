@@ -1,3 +1,6 @@
+.aider*
+.env
+
 # Logs
 logs
 *.log
