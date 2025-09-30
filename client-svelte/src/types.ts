@@ -10,6 +10,8 @@ export interface Entity {
   type: string
   title?: string
   content?: string
+  depiction?: string
+  view?: string
   createdAt: string
   updatedAt: string
   sponsorId?: string
