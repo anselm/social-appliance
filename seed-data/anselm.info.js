@@ -110,5 +110,3 @@ export const essayPost2 = {
   createdAt: '2024-03-05T16:00:00.000Z'
 };
 
-// Export as array for convenience
-export default [anselm, anselmPhotos, anselmEssays, photoPost1, photoPost2, photoPost3, essayPost1, essayPost2];

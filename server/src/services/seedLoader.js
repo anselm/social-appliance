@@ -60,16 +60,9 @@ export class SeedLoader {
       const fileUrl = pathToFileURL(filePath).href;
       const module = await import(fileUrl);
       
-      // Process default export
-      if (module.default) {
-        await this.processExport(module.default, filePath);
-      }
-      
-      // Process named exports
+      // Process all exports (including default)
       for (const [key, value] of Object.entries(module)) {
-        if (key !== 'default') {
-          await this.processExport(value, filePath, key);
-        }
+        await this.processExport(value, filePath, key);
       }
     } catch (error) {
       console.error(`❌ Error processing ${filePath}:`, error.message);

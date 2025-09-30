@@ -62,4 +62,3 @@ export const photoPost4 = {
   createdAt: '2024-03-13T11:00:00.000Z'
 };
 
-export default [photographyGroup, photoPost1, photoPost2, photoPost3, photoPost4];

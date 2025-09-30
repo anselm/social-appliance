@@ -56,4 +56,3 @@ export const baliPost3 = {
   createdAt: '2024-03-07T15:00:00.000Z'
 };
 
-export default [baliGroup, baliPost1, baliPost2, baliPost3];

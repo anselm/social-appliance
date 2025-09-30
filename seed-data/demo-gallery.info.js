@@ -62,4 +62,3 @@ export const galleryPost4 = {
   updatedAt: '2024-02-05T11:00:00.000Z'
 };
 
-export default [galleryGroup, galleryPost1, galleryPost2, galleryPost3, galleryPost4];

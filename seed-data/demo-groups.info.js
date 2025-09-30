@@ -12,4 +12,3 @@ export const demoGroup = {
   permissions: ['public:view']
 };
 
-export default [demoGroup];

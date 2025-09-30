@@ -49,4 +49,3 @@ export const newsPost3 = {
   updatedAt: '2024-02-04T10:00:00.000Z'
 };
 
-export default [newsGroup, newsPost1, newsPost2, newsPost3];

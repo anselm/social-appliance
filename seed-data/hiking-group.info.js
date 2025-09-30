@@ -56,4 +56,3 @@ export const hikingPost3 = {
   updatedAt: '2024-03-03T08:00:00.000Z'
 };
 
-export default [hikingGroup, hikingPost1, hikingPost2, hikingPost3];
