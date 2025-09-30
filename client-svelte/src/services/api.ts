@@ -43,7 +43,9 @@ export const api = {
   },
 
   async getEntityBySlug(slug: string) {
-    return this.request(`/entities/slug/${encodeURIComponent(slug)}`)
+    const response = await this.request(`/entities/slug/${encodeURIComponent(slug)}`)
+    console.log(`API response for slug "${slug}":`, response)
+    return response
   },
 
   async queryEntities(filters: Record<string, any>) {

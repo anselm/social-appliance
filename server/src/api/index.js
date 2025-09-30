@@ -39,12 +39,16 @@ export class API {
   async getEntityBySlug(slug, userId = null) {
     const entity = await this.entityService.findBySlug(slug);
     if (!entity) {
-      throw new Error('Entity not found');
+      const error = new Error(`Entity not found: ${slug}`);
+      error.status = 404;
+      throw error;
     }
     
     const canView = await this.permissionService.canView(userId, entity.id);
     if (!canView) {
-      throw new Error('Permission denied');
+      const error = new Error('Permission denied');
+      error.status = 403;
+      throw error;
     }
     
     return entity;
