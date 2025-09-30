@@ -26,15 +26,18 @@
     try {
       // Ensure slug has leading slash
       const querySlug = slug.startsWith('/') ? slug : `/${slug}`
+      console.log('Loading entity with slug:', querySlug)
       const entityData = await api.getEntityBySlug(querySlug)
       entity = entityData
       
       if (entityData) {
+        console.log('Found entity:', entityData)
         // Load children (posts, sub-groups, etc.)
         const childrenData = await api.queryEntities({ 
           parentId: entityData.id,
           limit: 100 
         })
+        console.log('Found children:', childrenData)
         children = childrenData
       }
     } catch (error) {

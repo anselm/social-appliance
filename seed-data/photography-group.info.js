@@ -23,7 +23,8 @@ export const photoPost1 = {
   parentId: 'group-photo-001',
   sponsorId: 'admin-001',
   tags: ['golden-hour', 'tips', 'lighting'],
-  createdAt: '2024-03-10T16:00:00.000Z'
+  createdAt: '2024-03-10T16:00:00.000Z',
+  updatedAt: '2024-03-10T16:00:00.000Z'
 };
 
 export const photoPost2 = {
@@ -35,7 +36,8 @@ export const photoPost2 = {
   depiction: 'https://images.unsplash.com/photo-1514214246283-d427a95c5d2f?w=800&h=600&fit=crop',
   parentId: 'group-photo-001',
   tags: ['street-photography', 'urban', 'candid'],
-  createdAt: '2024-03-11T10:00:00.000Z'
+  createdAt: '2024-03-11T10:00:00.000Z',
+  updatedAt: '2024-03-11T10:00:00.000Z'
 };
 
 export const photoPost3 = {
@@ -47,7 +49,8 @@ export const photoPost3 = {
   depiction: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&h=600&fit=crop',
   parentId: 'group-photo-001',
   tags: ['editing', 'lightroom', 'photoshop', 'workflow'],
-  createdAt: '2024-03-12T14:00:00.000Z'
+  createdAt: '2024-03-12T14:00:00.000Z',
+  updatedAt: '2024-03-12T14:00:00.000Z'
 };
 
 export const photoPost4 = {
@@ -59,6 +62,7 @@ export const photoPost4 = {
   depiction: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
   parentId: 'group-photo-001',
   tags: ['portrait', 'lighting', 'studio', 'techniques'],
-  createdAt: '2024-03-13T11:00:00.000Z'
+  createdAt: '2024-03-13T11:00:00.000Z',
+  updatedAt: '2024-03-13T11:00:00.000Z'
 };
 

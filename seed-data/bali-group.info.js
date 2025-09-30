@@ -29,7 +29,8 @@ export const baliPost1 = {
   latitude: -8.6478,
   longitude: 115.1385,
   radius: 2000,
-  createdAt: '2024-03-05T11:30:00.000Z'
+  createdAt: '2024-03-05T11:30:00.000Z',
+  updatedAt: '2024-03-05T11:30:00.000Z'
 };
 
 export const baliPost2 = {
@@ -41,7 +42,8 @@ export const baliPost2 = {
   depiction: 'https://images.unsplash.com/photo-1558005530-a7958896ec60?w=800&h=600&fit=crop',
   parentId: 'group-bali-001',
   tags: ['visa', 'immigration', 'digital-nomad', 'guide'],
-  createdAt: '2024-03-06T09:00:00.000Z'
+  createdAt: '2024-03-06T09:00:00.000Z',
+  updatedAt: '2024-03-06T09:00:00.000Z'
 };
 
 export const baliPost3 = {
@@ -53,6 +55,7 @@ export const baliPost3 = {
   depiction: 'https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=800&h=600&fit=crop',
   parentId: 'group-bali-001',
   tags: ['temple', 'culture', 'etiquette', 'respect'],
-  createdAt: '2024-03-07T15:00:00.000Z'
+  createdAt: '2024-03-07T15:00:00.000Z',
+  updatedAt: '2024-03-07T15:00:00.000Z'
 };
 
