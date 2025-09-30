@@ -65,6 +65,9 @@ export const api = {
       console.log(`API making request to: ${fullPath}`)
       const response = await this.request(fullPath)
       console.log(`API response for slug "${slug}" (encoded: "${encodedSlug}"):`, response)
+      if (response && response.view) {
+        console.log(`Entity has view style: ${response.view}`)
+      }
       return response
     } catch (error: any) {
       console.error(`Failed to get entity by slug "${slug}":`, error)

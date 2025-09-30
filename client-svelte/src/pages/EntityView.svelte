@@ -65,6 +65,8 @@
       
       entity = entityData
       console.log('Found entity:', entityData)
+      console.log('Entity view style:', entityData.view)
+      console.log('Entity type:', entityData.type)
       
       // Load children (posts, sub-groups, etc.)
       try {
@@ -204,10 +206,13 @@
         
         {#if entity.type === 'group'}
           {#if entity.view === 'grid'}
+            <div class="debug-view-info text-xs text-yellow-400 mb-2">Using GRID view</div>
             <GroupViewGrid {children} />
           {:else if entity.view === 'cards'}
+            <div class="debug-view-info text-xs text-yellow-400 mb-2">Using CARDS view</div>
             <GroupViewCards {children} />
           {:else}
+            <div class="debug-view-info text-xs text-yellow-400 mb-2">Using LIST view (default)</div>
             <GroupViewList {children} />
           {/if}
         {:else}
