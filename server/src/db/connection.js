@@ -13,27 +13,30 @@ export async function connectDB() {
   if (db) return db;
   
   try {
-    // Parse the URI to check if it includes authentication
-    const options = {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    };
+    // MongoDB driver v4+ doesn't need these options
+    const options = {};
     
     // If using MongoDB Atlas or authenticated MongoDB, the URI should include credentials
     // Format: mongodb://username:password@host:port/database?authSource=admin
     // Or for Atlas: mongodb+srv://username:password@cluster.mongodb.net/database
     
+    console.log('Connecting to MongoDB at:', uri.replace(/\/\/([^:]+):([^@]+)@/, '//$1:****@'));
+    
     client = new MongoClient(uri, options);
     await client.connect();
     
-    // Test the connection
-    await client.db('admin').command({ ping: 1 });
+    // Test the connection - use the target database, not admin
+    await client.db(dbName).command({ ping: 1 });
     
     db = client.db(dbName);
-    console.log('Connected to MongoDB successfully');
+    console.log(`Connected to MongoDB successfully (database: ${dbName})`);
     return db;
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('MongoDB connection error:', error.message);
+    if (error.code === 18) {
+      console.error('Authentication failed. Please check your MongoDB credentials in the .env file.');
+      console.error('Expected format: MONGODB_URI=mongodb://username:password@host:port/database');
+    }
     throw error;
   }
 }
