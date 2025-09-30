@@ -2,20 +2,7 @@
 
 A console-based social network with a MongoDB-powered backend, implementing a wiki-like structure with entities and relationships.
 
-## Architecture
-
-- **Backend**: Express.js API server with MongoDB
-- **Client**: Console-based interface for interacting with the API
-- **Database**: MongoDB with two collections: entities and relationships
-
-## Setup
-
-### Prerequisites
-
-- Node.js (v14+)
-- MongoDB (running locally or remote URI)
-
-### Installation
+## Running
 
 1. Install server dependencies:
 ```bash
@@ -29,29 +16,40 @@ cd client
 npm install
 ```
 
-3. Configure environment (optional):
+3. Configure environment:
 Edit `server/.env` to set your MongoDB connection string and port.
 
-### Running the Application
-
-1. Start MongoDB (if running locally):
+4. Start MongoDB (if running locally):
 ```bash
 mongod
+brew services start mongodb-community
 ```
 
-2. Start the server:
+5. Start the server:
 ```bash
 cd server
 npm start
 ```
 
-3. In another terminal, start the console client:
+6. In another terminal, start the console client:
 ```bash
-cd client
+cd client-console
 npm start
 ```
 
-## Console Commands
+7. In another terminal, start the console web:
+```bash
+cd client-web
+npm start
+```
+
+8. Tests can be run also
+```bash
+cd server
+npm test
+```
+
+## Console Commands for console mode
 
 - `help` - Show available commands
 - `register <username>` - Create a new user account
@@ -63,39 +61,3 @@ npm start
 - `view <slug>` - View entity details
 - `delete <slug>` - Delete an entity
 - `exit` - Exit the console
-
-## Running Tests
-
-Run the regression tests:
-```bash
-cd server
-npm test
-```
-
-## API Endpoints
-
-- `POST /api/users` - Create a user
-- `POST /api/groups` - Create a group
-- `POST /api/posts` - Create a post
-- `GET /api/entities/:id` - Get entity by ID
-- `GET /api/entities/slug/:slug` - Get entity by slug
-- `PUT /api/entities/:id` - Update entity
-- `DELETE /api/entities/:id` - Delete entity
-- `GET /api/entities` - Query entities with filters
-
-## Entity Types
-
-- **PARTY** - User accounts
-- **GROUP** - Groups/communities
-- **POST** - Posts and comments
-- **PLACE** - Location-based entities
-- **THING** - Generic objects
-- **AGENT** - Automated agents
-
-## Features
-
-- Wiki-like slug system for human-readable URLs
-- Hierarchical structure with parent-child relationships
-- Location-based queries
-- Flexible entity system
-- Permission system (stub implementation)
