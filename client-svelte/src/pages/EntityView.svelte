@@ -4,6 +4,9 @@
   import { auth } from '../stores/auth'
   import PostItem from '../components/PostItem.svelte'
   import PostForm from '../components/PostForm.svelte'
+  import GroupViewGrid from '../components/GroupViewGrid.svelte'
+  import GroupViewList from '../components/GroupViewList.svelte'
+  import GroupViewCards from '../components/GroupViewCards.svelte'
   import type { Entity } from '../types'
 
   export let slug: string
@@ -102,26 +105,42 @@
 
     {#if children.length > 0}
       <div class="space-y-4">
-        <h2 class="text-xs uppercase tracking-wider text-white/60">
-          {entity.type === 'group' ? 'Posts' : 'Children'}
-        </h2>
-        {#each children as child}
-          {#if child.type === 'post'}
-            <PostItem post={child} />
-          {:else}
-            <div class="border-b border-white/10 pb-4">
-              <a href="{child.slug || `/${child.id}`}" class="hover:underline">
-                <div class="flex items-baseline gap-2">
-                  <span class="text-xs text-white/60">[{child.type}]</span>
-                  <span class="text-sm font-medium">{child.title || child.slug || 'Untitled'}</span>
-                </div>
-              </a>
-              {#if child.content}
-                <p class="text-xs text-white/60 mt-1 line-clamp-2">{child.content}</p>
-              {/if}
-            </div>
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs uppercase tracking-wider text-white/60">
+            {entity.type === 'group' ? 'Posts' : 'Children'}
+          </h2>
+          {#if entity.view}
+            <span class="text-xs text-white/40">View: {entity.view}</span>
           {/if}
-        {/each}
+        </div>
+        
+        {#if entity.type === 'group'}
+          {#if entity.view === 'grid'}
+            <GroupViewGrid {children} />
+          {:else if entity.view === 'cards'}
+            <GroupViewCards {children} />
+          {:else}
+            <GroupViewList {children} />
+          {/if}
+        {:else}
+          {#each children as child}
+            {#if child.type === 'post'}
+              <PostItem post={child} />
+            {:else}
+              <div class="border-b border-white/10 pb-4">
+                <a href="{child.slug || `/${child.id}`}" class="hover:underline">
+                  <div class="flex items-baseline gap-2">
+                    <span class="text-xs text-white/60">[{child.type}]</span>
+                    <span class="text-sm font-medium">{child.title || child.slug || 'Untitled'}</span>
+                  </div>
+                </a>
+                {#if child.content}
+                  <p class="text-xs text-white/60 mt-1 line-clamp-2">{child.content}</p>
+                {/if}
+              </div>
+            {/if}
+          {/each}
+        {/if}
       </div>
     {/if}
   </div>

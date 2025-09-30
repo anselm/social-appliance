@@ -5,6 +5,7 @@ export default {
   type: 'group',
   title: 'Root Group',
   content: 'The root container for all entities in the system',
+  view: 'grid',
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
   permissions: ['public:view'],
