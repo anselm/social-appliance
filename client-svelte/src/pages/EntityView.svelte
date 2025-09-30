@@ -21,7 +21,9 @@
 
   async function loadEntity() {
     try {
-      const entityData = await api.getEntityBySlug(slug)
+      // Ensure slug has leading slash
+      const querySlug = slug.startsWith('/') ? slug : `/${slug}`
+      const entityData = await api.getEntityBySlug(querySlug)
       entity = entityData
       
       if (entityData) {
@@ -108,7 +110,7 @@
             <PostItem post={child} />
           {:else}
             <div class="border-b border-white/10 pb-4">
-              <a href="/{child.slug || child.id}" class="hover:underline">
+              <a href="{child.slug || `/${child.id}`}" class="hover:underline">
                 <div class="flex items-baseline gap-2">
                   <span class="text-xs text-white/60">[{child.type}]</span>
                   <span class="text-sm font-medium">{child.title || child.slug || 'Untitled'}</span>

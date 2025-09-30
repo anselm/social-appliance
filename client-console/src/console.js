@@ -139,7 +139,9 @@ export class ConsoleClient {
       return;
     }
 
-    const user = await this.api.getEntityBySlug(username);
+    // Ensure username has leading slash for query
+    const querySlug = username.startsWith('/') ? username : `/${username}`;
+    const user = await this.api.getEntityBySlug(querySlug);
     if (!user || user.type !== 'party') {
       console.log(chalk.red('User not found'));
       return;
@@ -179,7 +181,7 @@ export class ConsoleClient {
       });
     } else {
       // Get current entity and list its children
-      const current = await this.api.getEntityBySlug(this.currentPath.slice(1));
+      const current = await this.api.getEntityBySlug(this.currentPath);
       if (!current) {
         console.log(chalk.red('Current path not found'));
         return;
@@ -224,7 +226,7 @@ export class ConsoleClient {
 
     if (path.startsWith('/')) {
       // Absolute path
-      const entity = await this.api.getEntityBySlug(path.slice(1));
+      const entity = await this.api.getEntityBySlug(path);
       if (!entity) {
         console.log(chalk.red('Path not found'));
         return;
@@ -233,7 +235,7 @@ export class ConsoleClient {
     } else {
       // Relative path
       const newPath = this.currentPath === '/' ? `/${path}` : `${this.currentPath}/${path}`;
-      const entity = await this.api.getEntityBySlug(newPath.slice(1));
+      const entity = await this.api.getEntityBySlug(newPath);
       if (!entity) {
         console.log(chalk.red('Path not found'));
         return;
@@ -258,7 +260,7 @@ export class ConsoleClient {
 
     let parentId = null;
     if (this.currentPath !== '/') {
-      const parent = await this.api.getEntityBySlug(this.currentPath.slice(1));
+      const parent = await this.api.getEntityBySlug(this.currentPath);
       if (parent) {
         parentId = parent.id;
       }
@@ -273,7 +275,7 @@ export class ConsoleClient {
     };
 
     if (slug) {
-      data.slug = this.currentPath === '/' ? slug : `${this.currentPath.slice(1)}/${slug}`;
+      data.slug = this.currentPath === '/' ? `/${slug}` : `${this.currentPath}/${slug}`;
     }
 
     let entity;
@@ -292,7 +294,9 @@ export class ConsoleClient {
       return;
     }
 
-    const entity = await this.api.getEntityBySlug(slug);
+    // Ensure slug has leading slash
+    const querySlug = slug.startsWith('/') ? slug : `/${slug}`;
+    const entity = await this.api.getEntityBySlug(querySlug);
     if (!entity) {
       console.log(chalk.red('Entity not found'));
       return;
@@ -314,7 +318,9 @@ export class ConsoleClient {
       return;
     }
 
-    const entity = await this.api.getEntityBySlug(slug);
+    // Ensure slug has leading slash
+    const querySlug = slug.startsWith('/') ? slug : `/${slug}`;
+    const entity = await this.api.getEntityBySlug(querySlug);
     if (!entity) {
       console.log(chalk.red('Entity not found'));
       return;
@@ -337,7 +343,9 @@ export class ConsoleClient {
       return;
     }
 
-    const entity = await this.api.getEntityBySlug(slug);
+    // Ensure slug has leading slash
+    const querySlug = slug.startsWith('/') ? slug : `/${slug}`;
+    const entity = await this.api.getEntityBySlug(querySlug);
     if (!entity) {
       console.log(chalk.red('Entity not found'));
       return;

@@ -31,7 +31,9 @@ export default function EntityView() {
 
   const loadEntity = async () => {
     try {
-      const entityData = await api.getEntityBySlug(slug!)
+      // Ensure slug has leading slash
+      const querySlug = slug!.startsWith('/') ? slug! : `/${slug!}`
+      const entityData = await api.getEntityBySlug(querySlug)
       setEntity(entityData)
       
       if (entityData) {
@@ -160,7 +162,7 @@ export default function EntityView() {
               </div>
             ) : (
               <div key={child.id} className="border-b border-white/10 pb-4">
-                <a href={`/${child.slug || child.id}`} className="hover:underline">
+                <a href={child.slug || `/${child.id}`} className="hover:underline">
                   <div className="flex items-baseline gap-2">
                     <span className="text-xs text-white/60">[{child.type}]</span>
                     <span className="text-sm font-medium">{child.title || child.slug || 'Untitled'}</span>
