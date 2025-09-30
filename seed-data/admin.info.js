@@ -1,7 +1,7 @@
 // Admin user entity
 export default {
   id: 'admin-001',
-  slug: 'admin',
+  slug: '/admin',
   type: 'party',
   title: 'System Administrator',
   content: 'The system administrator account with full permissions',

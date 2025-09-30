@@ -2,6 +2,7 @@
 const posts = [
   {
     id: 'post-hike-001',
+    slug: '/hiking/weekend-tamalpais',
     type: 'post',
     title: 'Weekend hike to Mount Tamalpais',
     content: 'Planning a group hike this Saturday morning. Who wants to join?',
@@ -15,6 +16,7 @@ const posts = [
   },
   {
     id: 'post-bali-001',
+    slug: '/bali/canggu-cafes',
     type: 'post',
     title: 'Best cafes in Canggu for digital nomads',
     content: 'Here are my top 5 cafes with good wifi and great coffee in Canggu area.',
@@ -28,6 +30,7 @@ const posts = [
   },
   {
     id: 'post-photo-001',
+    slug: '/photography/golden-hour-tips',
     type: 'post',
     title: 'Golden hour photography tips',
     content: 'The golden hour is the best time for photography. Here are some tips to make the most of it.',

@@ -1,7 +1,7 @@
 // Sample group entities
 export const hikingGroup = {
   id: 'group-hiking-001',
-  slug: 'hiking',
+  slug: '/hiking',
   type: 'group',
   title: 'Hiking Enthusiasts',
   content: 'A community for people who love hiking and outdoor adventures',
@@ -11,7 +11,7 @@ export const hikingGroup = {
 
 export const baliGroup = {
   id: 'group-bali-001',
-  slug: 'bali',
+  slug: '/bali',
   type: 'group',
   title: 'Bali Community',
   content: 'Connect with people interested in Bali - travel, culture, and living',
@@ -24,7 +24,7 @@ export const baliGroup = {
 
 export const photographyGroup = {
   id: 'group-photo-001',
-  slug: 'photography',
+  slug: '/photography',
   type: 'group',
   title: 'Photography Club',
   content: 'Share your photos, get feedback, and learn photography techniques',
