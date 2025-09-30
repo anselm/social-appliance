@@ -8,7 +8,8 @@ export const photographyGroup = {
   view: 'grid',
   depiction: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=1200&h=600&fit=crop',
   tags: ['photography', 'art', 'camera', 'creative'],
-  createdAt: '2024-02-01T14:00:00.000Z'
+  createdAt: '2024-02-01T14:00:00.000Z',
+  updatedAt: '2024-02-01T14:00:00.000Z'
 };
 
 // Photography posts

@@ -11,7 +11,8 @@ export const baliGroup = {
   latitude: -8.4095,
   longitude: 115.1889,
   radius: 50000, // 50km radius covering most of Bali
-  createdAt: '2024-01-20T08:00:00.000Z'
+  createdAt: '2024-01-20T08:00:00.000Z',
+  updatedAt: '2024-01-20T08:00:00.000Z'
 };
 
 // Bali posts

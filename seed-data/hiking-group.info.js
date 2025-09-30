@@ -8,7 +8,8 @@ export const hikingGroup = {
   view: 'list',
   depiction: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=1200&h=600&fit=crop',
   tags: ['outdoors', 'hiking', 'nature', 'fitness'],
-  createdAt: '2024-01-15T10:00:00.000Z'
+  createdAt: '2024-01-15T10:00:00.000Z',
+  updatedAt: '2024-01-15T10:00:00.000Z'
 };
 
 // Hiking posts
@@ -25,7 +26,8 @@ export const hikingPost1 = {
   latitude: 37.9235,
   longitude: -122.5965,
   radius: 5000,
-  createdAt: '2024-03-01T09:00:00.000Z'
+  createdAt: '2024-03-01T09:00:00.000Z',
+  updatedAt: '2024-03-01T09:00:00.000Z'
 };
 
 export const hikingPost2 = {
@@ -34,9 +36,11 @@ export const hikingPost2 = {
   type: 'post',
   title: 'Essential Hiking Gear for Beginners',
   content: 'Starting your hiking journey? Here is a comprehensive list of essential gear you will need for safe and enjoyable hikes.',
+  depiction: 'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop',
   parentId: 'group-hiking-001',
   tags: ['gear', 'beginners', 'equipment'],
-  createdAt: '2024-03-02T14:00:00.000Z'
+  createdAt: '2024-03-02T14:00:00.000Z',
+  updatedAt: '2024-03-02T14:00:00.000Z'
 };
 
 export const hikingPost3 = {
@@ -45,9 +49,11 @@ export const hikingPost3 = {
   type: 'post',
   title: 'Trail Conditions Update - Bay Area',
   content: 'Recent rain has made some trails muddy and slippery. Please be careful and wear appropriate footwear. Avoid steep trails until they dry out.',
+  depiction: 'https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?w=800&h=600&fit=crop',
   parentId: 'group-hiking-001',
   tags: ['trail-conditions', 'safety', 'bay-area'],
-  createdAt: '2024-03-03T08:00:00.000Z'
+  createdAt: '2024-03-03T08:00:00.000Z',
+  updatedAt: '2024-03-03T08:00:00.000Z'
 };
 
 export default [hikingGroup, hikingPost1, hikingPost2, hikingPost3];
