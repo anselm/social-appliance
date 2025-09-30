@@ -52,10 +52,13 @@ export const api = {
 
   async getEntityBySlug(slug: string) {
     try {
+      console.log(`API getEntityBySlug called with: "${slug}"`)
       // Don't encode the entire slug - split by / and encode each segment
       const segments = slug.split('/').filter(s => s)
       const encodedSlug = segments.map(s => encodeURIComponent(s)).join('/')
-      const response = await this.request(`/entities/slug/${encodedSlug}`)
+      const fullPath = `/entities/slug/${encodedSlug}`
+      console.log(`API making request to: ${fullPath}`)
+      const response = await this.request(fullPath)
       console.log(`API response for slug "${slug}" (encoded: "${encodedSlug}"):`, response)
       return response
     } catch (error: any) {
