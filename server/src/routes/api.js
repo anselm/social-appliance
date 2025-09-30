@@ -28,7 +28,6 @@ router.get('/entities/slug/*', async (req, res) => {
   try {
     // Get the full slug path after /entities/slug/
     const slug = '/' + (req.params[0] || '');
-    console.log(`API route: Looking up slug: "${slug}"`);
     
     const entity = await api.getEntityBySlug(slug, req.userId);
     if (!entity) {
@@ -38,7 +37,6 @@ router.get('/entities/slug/*', async (req, res) => {
     res.json(entity);
   } catch (error) {
     const status = error.status || 404;
-    console.error(`Error getting entity by slug ${req.params[0]}:`, error.message);
     res.status(status).json({ error: error.message });
   }
 });

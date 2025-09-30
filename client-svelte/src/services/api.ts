@@ -3,7 +3,6 @@ const API_BASE = '/api'
 export const api = {
   async request(path: string, options: RequestInit = {}) {
     const fullUrl = `${API_BASE}${path}`
-    console.log(`API request: ${options.method || 'GET'} ${fullUrl}`)
     
     const response = await fetch(fullUrl, {
       ...options,
@@ -13,7 +12,6 @@ export const api = {
       },
     })
     
-    console.log(`API response: ${response.status} ${response.statusText}`)
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Request failed' }))
@@ -57,17 +55,11 @@ export const api = {
 
   async getEntityBySlug(slug: string) {
     try {
-      console.log(`API getEntityBySlug called with: "${slug}"`)
       // Don't encode the entire slug - split by / and encode each segment
       const segments = slug.split('/').filter(s => s)
       const encodedSlug = segments.map(s => encodeURIComponent(s)).join('/')
       const fullPath = `/entities/slug/${encodedSlug}`
-      console.log(`API making request to: ${fullPath}`)
       const response = await this.request(fullPath)
-      console.log(`API response for slug "${slug}" (encoded: "${encodedSlug}"):`, response)
-      if (response && response.view) {
-        console.log(`Entity has view style: ${response.view}`)
-      }
       return response
     } catch (error: any) {
       console.error(`Failed to get entity by slug "${slug}":`, error)

@@ -7,8 +7,6 @@
   import GroupViewGrid from '../components/GroupViewGrid.svelte'
   import GroupViewList from '../components/GroupViewList.svelte'
   import GroupViewCards from '../components/GroupViewCards.svelte'
-  import DebugRouter from '../components/DebugRouter.svelte'
-  import DirectEntityLoader from '../components/DirectEntityLoader.svelte'
   import type { Entity } from '../types'
 
   export let wildcard: string = ''
@@ -18,7 +16,6 @@
   
   $: {
     slug = wildcard
-    console.log('EntityView: wildcard changed to:', wildcard)
   }
 
   let entity: Entity | null = null
@@ -27,21 +24,14 @@
   let showNewPost = false
   let error: string | null = null
 
-  // Log when component is created
-  console.log('EntityView component created with wildcard:', wildcard)
-
   onMount(async () => {
-    console.log('EntityView onMount called with slug:', slug)
     if (slug) {
       await loadEntity()
-    } else {
-      console.log('EntityView: No slug provided!')
     }
   })
 
   // Watch for slug changes
   $: if (slug) {
-    console.log('EntityView: slug changed to:', slug)
     loadEntity()
   }
 
@@ -54,8 +44,6 @@
     try {
       // Ensure slug has leading slash
       const querySlug = slug.startsWith('/') ? slug : `/${slug}`
-      console.log('EntityView: Loading entity with slug:', querySlug)
-      console.log('EntityView: Raw slug prop:', slug)
       
       const entityData = await api.getEntityBySlug(querySlug)
       
@@ -64,9 +52,6 @@
       }
       
       entity = entityData
-      console.log('Found entity:', entityData)
-      console.log('Entity view style:', entityData.view)
-      console.log('Entity type:', entityData.type)
       
       // Load children (posts, sub-groups, etc.)
       try {
@@ -74,7 +59,6 @@
           parentId: entityData.id,
           limit: 100 
         })
-        console.log('Found children:', childrenData)
         children = childrenData || []
       } catch (childErr) {
         console.error('Failed to load children:', childErr)
@@ -121,35 +105,8 @@
     return type.charAt(0).toUpperCase() + type.slice(1)
   }
 
-  // Manual test function
-  async function testManualLoad() {
-    const testSlug = window.prompt('Enter slug to test:', '/blah/is/not/real')
-    if (testSlug) {
-      console.log('Manual test: Loading slug:', testSlug)
-      try {
-        const result = await api.getEntityBySlug(testSlug)
-        console.log('Manual test: Success!', result)
-        alert('Success! Check console for details')
-      } catch (err: any) {
-        console.error('Manual test: Error:', err)
-        alert(`Error: ${err.message}`)
-      }
-    }
-  }
 </script>
 
-<!-- Debug components -->
-<DebugRouter />
-{#if slug}
-  <DirectEntityLoader {slug} />
-{/if}
-
-<button 
-  on:click={testManualLoad}
-  class="fixed top-4 right-4 bg-yellow-500 text-black px-2 py-1 text-xs"
->
-  Test API
-</button>
 
 {#if loading}
   <div class="text-xs text-white/60">Loading...</div>
@@ -206,13 +163,10 @@
         
         {#if entity.type === 'group'}
           {#if entity.view === 'grid'}
-            <div class="debug-view-info text-xs text-yellow-400 mb-2">Using GRID view</div>
             <GroupViewGrid {children} />
           {:else if entity.view === 'cards'}
-            <div class="debug-view-info text-xs text-yellow-400 mb-2">Using CARDS view</div>
             <GroupViewCards {children} />
           {:else}
-            <div class="debug-view-info text-xs text-yellow-400 mb-2">Using LIST view (default)</div>
             <GroupViewList {children} />
           {/if}
         {:else}
