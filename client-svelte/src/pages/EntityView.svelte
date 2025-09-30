@@ -11,16 +11,14 @@
   import DirectEntityLoader from '../components/DirectEntityLoader.svelte'
   import type { Entity } from '../types'
 
-  export let location: any
-  export let params: any = {}
+  export let wildcard: string = ''
 
-  // Extract the full path from location
-  let slug: string = ''
+  // Use the wildcard parameter directly as the slug
+  let slug: string = wildcard
   
   $: {
-    // Get the pathname and remove leading slash
-    slug = location.pathname.substring(1)
-    console.log('EntityView: location changed, extracted slug:', slug)
+    slug = wildcard
+    console.log('EntityView: wildcard changed to:', wildcard)
   }
 
   let entity: Entity | null = null
@@ -30,7 +28,7 @@
   let error: string | null = null
 
   // Log when component is created
-  console.log('EntityView component created with location:', location)
+  console.log('EntityView component created with wildcard:', wildcard)
 
   onMount(async () => {
     console.log('EntityView onMount called with slug:', slug)
@@ -42,11 +40,9 @@
   })
 
   // Watch for slug changes
-  $: {
+  $: if (slug) {
     console.log('EntityView: slug changed to:', slug)
-    if (slug && !loading) {
-      loadEntity()
-    }
+    loadEntity()
   }
 
   async function loadEntity() {

@@ -14,6 +14,6 @@
     <Route path="/" component={Home} />
     <Route path="/login" component={Login} />
     <Route path="/admin" component={Admin} />
-    <Route path="/*" component={EntityView} />
+    <Route path="/*wildcard" component={EntityView} />
   </Layout>
 </Router>
