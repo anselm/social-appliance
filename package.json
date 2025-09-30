@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Social Appliance monorepo",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && npm start",
