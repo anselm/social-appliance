@@ -25,9 +25,3 @@ export interface EntityWithChildren extends Entity {
   children?: EntityWithChildren[]
   expanded?: boolean
 }
-
-export interface AuthContext {
-  user: import('svelte/store').Writable<User | null>
-  login: (username: string) => Promise<void>
-  logout: () => void
-}

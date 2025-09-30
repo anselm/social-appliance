@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { onMount, getContext } from 'svelte'
+  import { onMount } from 'svelte'
   import { api } from '../services/api'
-  import type { Entity, AuthContext } from '../types'
+  import { auth } from '../stores/auth'
+  import PostItem from '../components/PostItem.svelte'
+  import PostForm from '../components/PostForm.svelte'
+  import type { Entity } from '../types'
 
   export let slug: string
-
-  const { user } = getContext<AuthContext>('auth')
 
   let group: Entity | null = null
   let posts: Entity[] = []
   let loading = true
   let showNewPost = false
-  let newPost = { title: '', content: '' }
 
   onMount(async () => {
     if (slug) {
@@ -39,30 +39,24 @@
     }
   }
 
-  async function handleCreatePost(e: Event) {
-    e.preventDefault()
-    if (!$user || !group || !newPost.title.trim()) return
+  async function handleCreatePost(event: CustomEvent) {
+    const { title, content } = event.detail
+    if (!$auth.user || !group || !title.trim()) return
 
     try {
       await api.createPost({
-        title: newPost.title.trim(),
-        content: newPost.content.trim(),
+        title: title.trim(),
+        content: content.trim(),
         parentId: group.id,
-        sponsorId: $user.id,
-        auth: $user.id
+        sponsorId: $auth.user.id,
+        auth: $auth.user.id
       })
       
-      newPost = { title: '', content: '' }
       showNewPost = false
       await loadGroup() // Reload posts
     } catch (error) {
       console.error('Failed to create post:', error)
     }
-  }
-
-  function cancelNewPost() {
-    showNewPost = false
-    newPost = { title: '', content: '' }
   }
 </script>
 
@@ -80,7 +74,7 @@
     </div>
 
     <div class="mb-6">
-      {#if $user && !showNewPost}
+      {#if $auth.user && !showNewPost}
         <button
           on:click={() => showNewPost = true}
           class="text-xs uppercase tracking-wider border border-white/20 px-3 py-1 hover:bg-white hover:text-black transition-colors"
@@ -90,40 +84,10 @@
       {/if}
 
       {#if showNewPost}
-        <form on:submit={handleCreatePost} class="border border-white/20 p-4 space-y-3">
-          <div>
-            <input
-              type="text"
-              bind:value={newPost.title}
-              placeholder="Title"
-              class="w-full bg-black border-b border-white/20 pb-1 text-sm focus:outline-none focus:border-white"
-              autofocus
-            />
-          </div>
-          <div>
-            <textarea
-              bind:value={newPost.content}
-              placeholder="Content (optional)"
-              rows="4"
-              class="w-full bg-black border border-white/20 p-2 text-sm focus:outline-none focus:border-white resize-none"
-            />
-          </div>
-          <div class="flex gap-2">
-            <button
-              type="submit"
-              class="text-xs uppercase tracking-wider border border-white/20 px-3 py-1 hover:bg-white hover:text-black transition-colors"
-            >
-              Post
-            </button>
-            <button
-              type="button"
-              on:click={cancelNewPost}
-              class="text-xs uppercase tracking-wider text-white/60 hover:text-white"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+        <PostForm 
+          on:submit={handleCreatePost}
+          on:cancel={() => showNewPost = false}
+        />
       {/if}
     </div>
 
@@ -133,15 +97,7 @@
         <p class="text-xs text-white/60">No posts yet</p>
       {:else}
         {#each posts as post}
-          <div class="border-b border-white/10 pb-4">
-            <h3 class="text-sm font-medium mb-1">{post.title || 'Untitled'}</h3>
-            {#if post.content}
-              <p class="text-sm text-white/80 whitespace-pre-wrap">{post.content}</p>
-            {/if}
-            <div class="text-xs text-white/40 mt-2">
-              {new Date(post.createdAt).toLocaleDateString()}
-            </div>
-          </div>
+          <PostItem {post} />
         {/each}
       {/if}
     </div>

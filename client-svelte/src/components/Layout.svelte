@@ -1,12 +1,9 @@
 <script lang="ts">
   import { Link, navigate } from 'svelte-routing'
-  import { getContext } from 'svelte'
-  import type { AuthContext } from '../types'
-
-  const { user, logout } = getContext<AuthContext>('auth')
+  import { auth } from '../stores/auth'
 
   function handleLogout() {
-    logout()
+    auth.logout()
     navigate('/')
   }
 </script>
@@ -18,11 +15,11 @@
         Social Appliance
       </Link>
       <nav class="flex items-center gap-4 text-xs">
-        {#if $user}
+        {#if $auth.user}
           <Link to="/admin" class="hover:underline">
             admin
           </Link>
-          <span class="text-white/60">[{$user.slug}]</span>
+          <span class="text-white/60">[{$auth.user.slug}]</span>
           <button on:click={handleLogout} class="hover:underline">
             logout
           </button>

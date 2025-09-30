@@ -1,16 +1,13 @@
 <script lang="ts">
   import { navigate } from 'svelte-routing'
-  import { getContext } from 'svelte'
-  import type { AuthContext } from '../types'
-
-  const { login } = getContext<AuthContext>('auth')
+  import { auth } from '../stores/auth'
   
   let username = ''
 
   async function handleSubmit(e: Event) {
     e.preventDefault()
     if (username.trim()) {
-      await login(username.trim())
+      await auth.login(username.trim())
       navigate('/')
     }
   }
