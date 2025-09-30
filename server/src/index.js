@@ -29,6 +29,16 @@ async function start() {
   try {
     await connectDB();
     
+    // Flush database if requested
+    if (process.env.FLUSH_DB === 'true') {
+      console.log('🗑️  Flushing database...');
+      const { getDB } = await import('./db/connection.js');
+      const db = await getDB();
+      await db.collection('entities').deleteMany({});
+      await db.collection('relationships').deleteMany({});
+      console.log('✅ Database flushed');
+    }
+    
     // Load seed data if enabled
     if (process.env.LOAD_SEED_DATA !== 'false') {
       const __dirname = dirname(fileURLToPath(import.meta.url));
