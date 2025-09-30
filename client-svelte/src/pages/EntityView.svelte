@@ -7,6 +7,8 @@
   import GroupViewGrid from '../components/GroupViewGrid.svelte'
   import GroupViewList from '../components/GroupViewList.svelte'
   import GroupViewCards from '../components/GroupViewCards.svelte'
+  import DebugRouter from '../components/DebugRouter.svelte'
+  import DirectEntityLoader from '../components/DirectEntityLoader.svelte'
   import type { Entity } from '../types'
 
   export let slug: string
@@ -17,11 +19,25 @@
   let showNewPost = false
   let error: string | null = null
 
+  // Log when component is created
+  console.log('EntityView component created with slug:', slug)
+
   onMount(async () => {
+    console.log('EntityView onMount called with slug:', slug)
     if (slug) {
       await loadEntity()
+    } else {
+      console.log('EntityView: No slug provided!')
     }
   })
+
+  // Watch for slug changes
+  $: {
+    console.log('EntityView: slug prop changed to:', slug)
+    if (slug && !loading) {
+      loadEntity()
+    }
+  }
 
   async function loadEntity() {
     loading = true
@@ -96,7 +112,36 @@
   function getEntityTypeLabel(type: string): string {
     return type.charAt(0).toUpperCase() + type.slice(1)
   }
+
+  // Manual test function
+  async function testManualLoad() {
+    const testSlug = window.prompt('Enter slug to test:', '/blah/is/not/real')
+    if (testSlug) {
+      console.log('Manual test: Loading slug:', testSlug)
+      try {
+        const result = await api.getEntityBySlug(testSlug)
+        console.log('Manual test: Success!', result)
+        alert('Success! Check console for details')
+      } catch (err: any) {
+        console.error('Manual test: Error:', err)
+        alert(`Error: ${err.message}`)
+      }
+    }
+  }
 </script>
+
+<!-- Debug components -->
+<DebugRouter />
+{#if slug}
+  <DirectEntityLoader {slug} />
+{/if}
+
+<button 
+  on:click={testManualLoad}
+  class="fixed top-4 right-4 bg-yellow-500 text-black px-2 py-1 text-xs"
+>
+  Test API
+</button>
 
 {#if loading}
   <div class="text-xs text-white/60">Loading...</div>

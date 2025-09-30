@@ -2,13 +2,18 @@ const API_BASE = '/api'
 
 export const api = {
   async request(path: string, options: RequestInit = {}) {
-    const response = await fetch(`${API_BASE}${path}`, {
+    const fullUrl = `${API_BASE}${path}`
+    console.log(`API request: ${options.method || 'GET'} ${fullUrl}`)
+    
+    const response = await fetch(fullUrl, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
       },
     })
+    
+    console.log(`API response: ${response.status} ${response.statusText}`)
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Request failed' }))
