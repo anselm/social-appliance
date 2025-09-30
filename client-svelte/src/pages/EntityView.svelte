@@ -15,6 +15,7 @@
   let children: Entity[] = []
   let loading = true
   let showNewPost = false
+  let error: string | null = null
 
   onMount(async () => {
     if (slug) {
@@ -24,13 +25,18 @@
 
   async function loadEntity() {
     try {
+      error = null
       // Ensure slug has leading slash
       const querySlug = slug.startsWith('/') ? slug : `/${slug}`
       console.log('Loading entity with slug:', querySlug)
       const entityData = await api.getEntityBySlug(querySlug)
-      entity = entityData
       
-      if (entityData) {
+      if (!entityData) {
+        error = `Page not found: ${slug}`
+        entity = null
+        children = []
+      } else {
+        entity = entityData
         console.log('Found entity:', entityData)
         // Load children (posts, sub-groups, etc.)
         const childrenData = await api.queryEntities({ 
@@ -38,10 +44,13 @@
           limit: 100 
         })
         console.log('Found children:', childrenData)
-        children = childrenData
+        children = childrenData || []
       }
-    } catch (error) {
-      console.error('Failed to load entity:', error)
+    } catch (err: any) {
+      console.error('Failed to load entity:', err)
+      error = err.message || 'Failed to load page'
+      entity = null
+      children = []
     } finally {
       loading = false
     }
@@ -74,8 +83,16 @@
 
 {#if loading}
   <div class="text-xs text-white/60">Loading...</div>
+{:else if error}
+  <div class="space-y-4">
+    <div class="text-sm text-red-400">{error}</div>
+    <a href="/" class="text-xs text-white/60 hover:text-white underline">← Back to home</a>
+  </div>
 {:else if !entity}
-  <div class="text-xs text-white/60">Not found</div>
+  <div class="space-y-4">
+    <div class="text-sm text-white/60">Page not found</div>
+    <a href="/" class="text-xs text-white/60 hover:text-white underline">← Back to home</a>
+  </div>
 {:else}
   <div>
     <div class="mb-8">

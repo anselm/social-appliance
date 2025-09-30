@@ -28,7 +28,8 @@ router.get('/entities/slug/:slug', async (req, res) => {
     const entity = await api.getEntityBySlug(req.params.slug, req.userId);
     res.json(entity);
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    const status = error.status || 404;
+    res.status(status).json({ error: error.message });
   }
 });
 

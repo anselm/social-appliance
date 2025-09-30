@@ -21,8 +21,38 @@ export class SeedLoader {
       
       console.log(`Found ${files.length} seed files to process`);
       
+      // Initialize deferred entities array
+      this.deferredEntities = [];
+      
       for (const file of files) {
         await this.processFile(file);
+      }
+      
+      // Process deferred entities (those waiting for parents)
+      if (this.deferredEntities.length > 0) {
+        console.log(`\n📋 Processing ${this.deferredEntities.length} deferred entities...`);
+        let remainingDeferred = [...this.deferredEntities];
+        let lastCount = remainingDeferred.length;
+        
+        while (remainingDeferred.length > 0) {
+          this.deferredEntities = [];
+          
+          for (const { entity, filePath } of remainingDeferred) {
+            await this.processEntity(entity, filePath);
+          }
+          
+          remainingDeferred = [...this.deferredEntities];
+          
+          // Prevent infinite loop
+          if (remainingDeferred.length === lastCount) {
+            console.warn(`⚠️  Warning: ${remainingDeferred.length} entities could not be created due to missing parents:`);
+            remainingDeferred.forEach(({ entity }) => {
+              console.warn(`   - ${entity.id} (parent: ${entity.parentId})`);
+            });
+            break;
+          }
+          lastCount = remainingDeferred.length;
+        }
       }
       
       console.log('✅ Seed data loading complete\n');
@@ -91,6 +121,20 @@ export class SeedLoader {
     }
     
     try {
+      // If entity has a parentId, ensure parent exists first
+      if (entity.parentId) {
+        const parentExists = await this.api.entityService.findById(entity.parentId);
+        if (!parentExists) {
+          console.warn(`  ⚠️  Warning: Parent entity ${entity.parentId} not found for ${entity.id} - deferring creation`);
+          // Store for later processing
+          if (!this.deferredEntities) {
+            this.deferredEntities = [];
+          }
+          this.deferredEntities.push({ entity, filePath });
+          return;
+        }
+      }
+      
       // Special handling for root group - check by slug to prevent duplicates
       let existing = null;
       if (entity.slug === '/' && entity.type === 'group') {
@@ -113,6 +157,9 @@ export class SeedLoader {
       } else {
         // Create new entity
         console.log(`  ✨ Creating entity: ${entity.id} (${entity.type || 'unknown'}) - ${entity.slug || 'no slug'}`);
+        if (entity.parentId) {
+          console.log(`     Parent ID: ${entity.parentId}`);
+        }
         
         // We need to bypass the normal create method to preserve the ID
         const db = await this.api.entityService.getDB();
