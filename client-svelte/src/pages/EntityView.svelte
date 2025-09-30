@@ -11,7 +11,17 @@
   import DirectEntityLoader from '../components/DirectEntityLoader.svelte'
   import type { Entity } from '../types'
 
-  export let slug: string
+  export let location: any
+  export let params: any = {}
+
+  // Extract the full path from location
+  let slug: string = ''
+  
+  $: {
+    // Get the pathname and remove leading slash
+    slug = location.pathname.substring(1)
+    console.log('EntityView: location changed, extracted slug:', slug)
+  }
 
   let entity: Entity | null = null
   let children: Entity[] = []
@@ -20,7 +30,7 @@
   let error: string | null = null
 
   // Log when component is created
-  console.log('EntityView component created with slug:', slug)
+  console.log('EntityView component created with location:', location)
 
   onMount(async () => {
     console.log('EntityView onMount called with slug:', slug)
@@ -33,7 +43,7 @@
 
   // Watch for slug changes
   $: {
-    console.log('EntityView: slug prop changed to:', slug)
+    console.log('EntityView: slug changed to:', slug)
     if (slug && !loading) {
       loadEntity()
     }

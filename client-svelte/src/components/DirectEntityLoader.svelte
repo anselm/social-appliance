@@ -31,7 +31,7 @@
 
 <div class="border border-yellow-500 p-4 mb-4">
   <h3 class="text-yellow-500 mb-2">Direct Entity Loader Test</h3>
-  <p class="text-xs mb-2">Testing slug: {slug}</p>
+  <p class="text-xs mb-2">Testing slug: /{slug}</p>
   
   {#if loading}
     <p class="text-xs">Loading...</p>
