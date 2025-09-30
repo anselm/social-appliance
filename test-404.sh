@@ -5,17 +5,22 @@ echo ""
 
 # Test various invalid URLs
 URLS=(
-  "http://localhost:5173/asdfasdf"
-  "http://localhost:5173/garbage/not-valid"
-  "http://localhost:5173/does/not/exist"
-  "http://localhost:5173/demo/invalid-child"
+  "/asdfasdf"
+  "/garbage/not-valid"
+  "/does/not/exist"
+  "/demo/invalid-child"
+  "/really/deep/invalid/path"
 )
 
-for url in "${URLS[@]}"; do
-  echo "Testing: $url"
-  # Check if the API returns 404
-  api_url=$(echo $url | sed 's|5173|3000/api/entities/slug|' | sed 's|http://localhost:3000/api/entities/slug/|http://localhost:3000/api/entities/slug/|')
+for slug in "${URLS[@]}"; do
+  echo "Testing slug: $slug"
+  # Test the API directly
+  api_url="http://localhost:3000/api/entities/slug${slug}"
   response=$(curl -s -o /dev/null -w "%{http_code}" "$api_url")
   echo "API Response: $response"
+  
+  # Also show the actual error message
+  error=$(curl -s "$api_url" | jq -r '.error // "No error"' 2>/dev/null || echo "Failed to parse response")
+  echo "Error message: $error"
   echo ""
 done

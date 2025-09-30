@@ -23,17 +23,22 @@ router.get('/entities/:id', async (req, res) => {
   }
 });
 
-router.get('/entities/slug/:slug', async (req, res) => {
+// Use * to capture multi-segment paths
+router.get('/entities/slug/*', async (req, res) => {
   try {
-    const entity = await api.getEntityBySlug(req.params.slug, req.userId);
+    // Get the full slug path after /entities/slug/
+    const slug = '/' + (req.params[0] || '');
+    console.log(`API route: Looking up slug: "${slug}"`);
+    
+    const entity = await api.getEntityBySlug(slug, req.userId);
     if (!entity) {
       // This should never happen due to the error thrown in getEntityBySlug, but just in case
-      return res.status(404).json({ error: `Entity not found: ${req.params.slug}` });
+      return res.status(404).json({ error: `Entity not found: ${slug}` });
     }
     res.json(entity);
   } catch (error) {
     const status = error.status || 404;
-    console.error(`Error getting entity by slug ${req.params.slug}:`, error.message);
+    console.error(`Error getting entity by slug ${req.params[0]}:`, error.message);
     res.status(status).json({ error: error.message });
   }
 });
