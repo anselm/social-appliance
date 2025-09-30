@@ -17,7 +17,16 @@ export const api = {
       throw err
     }
 
-    return response.json()
+    const data = await response.json()
+    
+    // Extra safety check - if we got a null/undefined response for an entity lookup, treat as 404
+    if (data === null || data === undefined) {
+      const err = new Error('Entity not found')
+      ;(err as any).status = 404
+      throw err
+    }
+    
+    return data
   },
 
   async createPost(data: any) {
@@ -42,9 +51,14 @@ export const api = {
   },
 
   async getEntityBySlug(slug: string) {
-    const response = await this.request(`/entities/slug/${encodeURIComponent(slug)}`)
-    console.log(`API response for slug "${slug}":`, response)
-    return response
+    try {
+      const response = await this.request(`/entities/slug/${encodeURIComponent(slug)}`)
+      console.log(`API response for slug "${slug}":`, response)
+      return response
+    } catch (error: any) {
+      console.error(`Failed to get entity by slug "${slug}":`, error)
+      throw error
+    }
   },
 
   async queryEntities(filters: Record<string, any>) {

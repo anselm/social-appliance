@@ -24,27 +24,44 @@
   })
 
   async function loadEntity() {
+    loading = true
+    error = null
+    entity = null
+    children = []
+    
     try {
-      error = null
       // Ensure slug has leading slash
       const querySlug = slug.startsWith('/') ? slug : `/${slug}`
       console.log('Loading entity with slug:', querySlug)
+      
       const entityData = await api.getEntityBySlug(querySlug)
+      
+      if (!entityData) {
+        throw new Error(`Entity not found: ${querySlug}`)
+      }
       
       entity = entityData
       console.log('Found entity:', entityData)
       
       // Load children (posts, sub-groups, etc.)
-      const childrenData = await api.queryEntities({ 
-        parentId: entityData.id,
-        limit: 100 
-      })
-      console.log('Found children:', childrenData)
-      children = childrenData || []
+      try {
+        const childrenData = await api.queryEntities({ 
+          parentId: entityData.id,
+          limit: 100 
+        })
+        console.log('Found children:', childrenData)
+        children = childrenData || []
+      } catch (childErr) {
+        console.error('Failed to load children:', childErr)
+        // Don't fail the whole page if children can't be loaded
+        children = []
+      }
     } catch (err: any) {
       console.error('Failed to load entity:', err)
-      if (err.status === 404 || err.message?.includes('not found')) {
+      if (err.status === 404 || err.message?.includes('not found') || err.message?.includes('Entity not found')) {
         error = `Page not found: ${slug}`
+      } else if (err.status === 403) {
+        error = 'You do not have permission to view this page'
       } else {
         error = err.message || 'Failed to load page'
       }

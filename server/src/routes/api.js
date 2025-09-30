@@ -26,9 +26,14 @@ router.get('/entities/:id', async (req, res) => {
 router.get('/entities/slug/:slug', async (req, res) => {
   try {
     const entity = await api.getEntityBySlug(req.params.slug, req.userId);
+    if (!entity) {
+      // This should never happen due to the error thrown in getEntityBySlug, but just in case
+      return res.status(404).json({ error: `Entity not found: ${req.params.slug}` });
+    }
     res.json(entity);
   } catch (error) {
     const status = error.status || 404;
+    console.error(`Error getting entity by slug ${req.params.slug}:`, error.message);
     res.status(status).json({ error: error.message });
   }
 });
