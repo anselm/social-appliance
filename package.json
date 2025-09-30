@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && npm start",
-    "client": "cd client-react && npm run dev",
+    "client": "cd client-svelte && npm run dev",
     "setup": "npm run setup:server && npm run setup:client",
     "setup:server": "cd server && npm install",
-    "setup:client": "cd client-react && npm install",
+    "setup:client": "cd client-svelte && npm install",
     "start": "npm run dev"
   },
   "devDependencies": {
