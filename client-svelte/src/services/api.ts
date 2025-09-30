@@ -11,11 +11,10 @@ export const api = {
     })
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return null
-      }
       const error = await response.json().catch(() => ({ error: 'Request failed' }))
-      throw new Error(error.error || `HTTP ${response.status}`)
+      const err = new Error(error.error || `HTTP ${response.status}`)
+      ;(err as any).status = response.status
+      throw err
     }
 
     return response.json()

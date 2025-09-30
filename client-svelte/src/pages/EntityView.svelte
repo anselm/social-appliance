@@ -31,24 +31,23 @@
       console.log('Loading entity with slug:', querySlug)
       const entityData = await api.getEntityBySlug(querySlug)
       
-      if (!entityData) {
-        error = `Page not found: ${slug}`
-        entity = null
-        children = []
-      } else {
-        entity = entityData
-        console.log('Found entity:', entityData)
-        // Load children (posts, sub-groups, etc.)
-        const childrenData = await api.queryEntities({ 
-          parentId: entityData.id,
-          limit: 100 
-        })
-        console.log('Found children:', childrenData)
-        children = childrenData || []
-      }
+      entity = entityData
+      console.log('Found entity:', entityData)
+      
+      // Load children (posts, sub-groups, etc.)
+      const childrenData = await api.queryEntities({ 
+        parentId: entityData.id,
+        limit: 100 
+      })
+      console.log('Found children:', childrenData)
+      children = childrenData || []
     } catch (err: any) {
       console.error('Failed to load entity:', err)
-      error = err.message || 'Failed to load page'
+      if (err.status === 404 || err.message?.includes('not found')) {
+        error = `Page not found: ${slug}`
+      } else {
+        error = err.message || 'Failed to load page'
+      }
       entity = null
       children = []
     } finally {
