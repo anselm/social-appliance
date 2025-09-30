@@ -23,7 +23,6 @@
       bind:value={title}
       placeholder="Title"
       class="w-full bg-black border-b border-white/20 pb-1 text-sm focus:outline-none focus:border-white"
-      autofocus
     />
   </div>
   <div>

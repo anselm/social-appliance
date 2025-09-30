@@ -25,8 +25,9 @@
 
 <form on:submit={handleSubmit} class="max-w-md space-y-4">
   <div>
-    <label class="block text-xs text-white/60 mb-1">Type</label>
+    <label for="entity-type" class="block text-xs text-white/60 mb-1">Type</label>
     <select
+      id="entity-type"
       bind:value={type}
       class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
     >
@@ -40,8 +41,9 @@
   </div>
 
   <div>
-    <label class="block text-xs text-white/60 mb-1">Slug (optional)</label>
+    <label for="entity-slug" class="block text-xs text-white/60 mb-1">Slug (optional)</label>
     <input
+      id="entity-slug"
       type="text"
       bind:value={slug}
       class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
@@ -50,8 +52,9 @@
   </div>
 
   <div>
-    <label class="block text-xs text-white/60 mb-1">Title</label>
+    <label for="entity-title" class="block text-xs text-white/60 mb-1">Title</label>
     <input
+      id="entity-title"
       type="text"
       bind:value={title}
       class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
@@ -60,8 +63,9 @@
   </div>
 
   <div>
-    <label class="block text-xs text-white/60 mb-1">Content</label>
+    <label for="entity-content" class="block text-xs text-white/60 mb-1">Content</label>
     <textarea
+      id="entity-content"
       bind:value={content}
       class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
       rows="4"
@@ -69,8 +73,9 @@
   </div>
 
   <div>
-    <label class="block text-xs text-white/60 mb-1">Parent ID (optional)</label>
+    <label for="entity-parent-id" class="block text-xs text-white/60 mb-1">Parent ID (optional)</label>
     <input
+      id="entity-parent-id"
       type="text"
       bind:value={parentId}
       class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
@@ -79,8 +84,9 @@
   </div>
 
   <div>
-    <label class="block text-xs text-white/60 mb-1">Sponsor ID (optional)</label>
+    <label for="entity-sponsor-id" class="block text-xs text-white/60 mb-1">Sponsor ID (optional)</label>
     <input
+      id="entity-sponsor-id"
       type="text"
       bind:value={sponsorId}
       class="w-full bg-black border border-white/20 px-2 py-1 text-sm"

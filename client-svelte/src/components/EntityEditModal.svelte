@@ -29,24 +29,27 @@
     <h3 class="text-xs uppercase tracking-wider mb-4">Edit Entity</h3>
     <div class="space-y-4">
       <div>
-        <label class="block text-xs text-white/60 mb-1">Slug</label>
+        <label for="edit-entity-slug" class="block text-xs text-white/60 mb-1">Slug</label>
         <input
+          id="edit-entity-slug"
           type="text"
           bind:value={slug}
           class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
         />
       </div>
       <div>
-        <label class="block text-xs text-white/60 mb-1">Title</label>
+        <label for="edit-entity-title" class="block text-xs text-white/60 mb-1">Title</label>
         <input
+          id="edit-entity-title"
           type="text"
           bind:value={title}
           class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
         />
       </div>
       <div>
-        <label class="block text-xs text-white/60 mb-1">Content</label>
+        <label for="edit-entity-content" class="block text-xs text-white/60 mb-1">Content</label>
         <textarea
+          id="edit-entity-content"
           bind:value={content}
           class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
           rows="4"

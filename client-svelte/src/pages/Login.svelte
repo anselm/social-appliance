@@ -26,7 +26,6 @@
         bind:value={username}
         class="w-full bg-black border border-white/20 px-2 py-1 text-sm focus:outline-none focus:border-white"
         placeholder="enter username"
-        autofocus
       />
     </div>
     <button
