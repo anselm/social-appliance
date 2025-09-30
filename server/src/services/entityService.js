@@ -38,6 +38,11 @@ export class EntityService {
     const db = await getDB();
     updates.updatedAt = new Date().toISOString();
     
+    // Log view property if present
+    if (updates.view !== undefined) {
+      console.log(`EntityService: Updating entity ${id} with view: ${updates.view}`);
+    }
+    
     // Check if updating slug and if it's already taken
     if (updates.slug) {
       const existing = await db.collection('entities').findOne({ 

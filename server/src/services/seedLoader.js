@@ -125,6 +125,12 @@ export class SeedLoader {
         console.log(`  📝 Updating entity: ${updateId} (${entity.type || 'unknown'}) - ${entity.slug || 'no slug'}`);
         // Remove id from update data to avoid conflicts
         const { id, ...updateData } = entity;
+        
+        // Log view property if present
+        if (updateData.view) {
+          console.log(`     View style: ${updateData.view}`);
+        }
+        
         await this.api.updateEntity(updateId, updateData);
       } else {
         // Create new entity
@@ -148,6 +154,12 @@ export class SeedLoader {
         // Insert with preserved ID
         entity.createdAt = entity.createdAt || new Date().toISOString();
         entity.updatedAt = entity.updatedAt || new Date().toISOString();
+        
+        // Log view property if present
+        if (entity.view) {
+          console.log(`     View style: ${entity.view}`);
+        }
+        
         await db.collection('entities').insertOne(entity);
       }
     } catch (error) {

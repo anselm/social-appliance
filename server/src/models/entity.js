@@ -11,6 +11,7 @@ export class Entity {
     this.title = data.title || null;
     this.content = data.content || null;
     this.depiction = data.depiction || null;
+    this.view = data.view || null;
     this.tags = data.tags || [];
     this.latitude = data.latitude || undefined;
     this.longitude = data.longitude || undefined;
