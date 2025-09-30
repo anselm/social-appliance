@@ -44,7 +44,7 @@ export default function Home() {
           groups.map((group) => (
             <div key={group.id} className="border-b border-white/10 pb-2">
               <Link
-                to={`/g/${group.slug || group.id}`}
+                to={`/${group.slug || group.id}`}
                 className="block hover:bg-white/5 -mx-2 px-2 py-1"
               >
                 <div className="flex items-baseline gap-2">

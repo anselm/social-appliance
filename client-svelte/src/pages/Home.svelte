@@ -34,7 +34,7 @@
       {#each groups as group}
         <div class="border-b border-white/10 pb-2">
           <Link
-            to="/g/{group.slug || group.id}"
+            to="/{group.slug || group.id}"
             class="block hover:bg-white/5 -mx-2 px-2 py-1"
           >
             <div class="flex items-baseline gap-2">

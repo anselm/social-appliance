@@ -2,7 +2,7 @@
   import { Router, Route } from 'svelte-routing'
   import Layout from './components/Layout.svelte'
   import Home from './pages/Home.svelte'
-  import Group from './pages/Group.svelte'
+  import EntityView from './pages/EntityView.svelte'
   import Login from './pages/Login.svelte'
   import Admin from './pages/Admin.svelte'
 
@@ -13,7 +13,7 @@
   <Layout>
     <Route path="/" component={Home} />
     <Route path="/login" component={Login} />
-    <Route path="/g/:slug" component={Group} />
     <Route path="/admin" component={Admin} />
+    <Route path="/:slug" component={EntityView} />
   </Layout>
 </Router>
