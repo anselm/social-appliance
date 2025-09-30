@@ -13,7 +13,7 @@
       const data: any = {
         title: newEntity.title,
         content: newEntity.content,
-        auth: $auth.user?.id
+        auth: $auth?.id
       }
       
       if (newEntity.slug) data.slug = newEntity.slug

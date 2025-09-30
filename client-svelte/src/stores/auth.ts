@@ -2,22 +2,25 @@ import { writable, derived } from 'svelte/store'
 import type { User } from '../types'
 
 function createAuthStore() {
-  const user = writable<User | null>(JSON.parse(localStorage.getItem('user') || 'null'))
+  const { subscribe, set, update } = writable<User | null>(
+    JSON.parse(localStorage.getItem('user') || 'null')
+  )
   
   return {
-    user,
-    isAuthenticated: derived(user, $user => !!$user),
+    subscribe,
+    user: { subscribe },
+    isAuthenticated: derived({ subscribe }, $user => !!$user),
     login: async (username: string) => {
       const mockUser = {
         id: `user-${username}`,
         slug: username,
         title: username
       }
-      user.set(mockUser)
+      set(mockUser)
       localStorage.setItem('user', JSON.stringify(mockUser))
     },
     logout: () => {
-      user.set(null)
+      set(null)
       localStorage.removeItem('user')
     }
   }

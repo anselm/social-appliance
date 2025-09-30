@@ -15,11 +15,11 @@
         Social Appliance
       </Link>
       <nav class="flex items-center gap-4 text-xs">
-        {#if $auth.user}
+        {#if $auth}
           <Link to="/admin" class="hover:underline">
             admin
           </Link>
-          <span class="text-white/60">[{$auth.user.slug}]</span>
+          <span class="text-white/60">[{$auth.slug}]</span>
           <button on:click={handleLogout} class="hover:underline">
             logout
           </button>
