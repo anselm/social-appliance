@@ -75,22 +75,31 @@
         if (querySlug === '/') {
           error = null
           entity = null
-          // Fall back to showing all top-level groups
+          // Fall back to showing all top-level groups from cache
           try {
             const groups = await api.queryEntities({ 
               type: 'group',
               limit: 100 
             })
             children = groups || []
+            if (children.length === 0) {
+              // No groups found, but that's okay - maybe there's just no content yet
+              console.log('No groups found, showing empty state')
+            }
           } catch (groupErr) {
             console.error('Failed to load groups:', groupErr)
-            error = 'Failed to load content'
+            // Don't show error if we can't load groups - just show empty state
+            children = []
           }
         } else {
           error = `Page not found: ${slug}`
         }
       } else if (err.status === 403) {
         error = 'You do not have permission to view this page'
+      } else if (err.message === 'Failed to fetch' || err.code === 'ECONNREFUSED') {
+        // Server is down, but we can still work with cached/static data
+        console.log('Server unavailable, using cached/static data only')
+        error = null
       } else {
         error = err.message || 'Failed to load page'
       }

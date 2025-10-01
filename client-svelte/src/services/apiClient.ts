@@ -35,7 +35,7 @@ class ApiClient {
       }
     }
     
-    // Always load static data on initialization, regardless of serverless mode
+    // Always load static data on initialization
     if (!this.staticDataLoaded) {
       console.log('ApiClient: Loading static data...')
       try {
@@ -44,6 +44,7 @@ class ApiClient {
         console.log('ApiClient: Static data loaded successfully')
       } catch (error) {
         console.error('ApiClient: Failed to load static data:', error)
+        // Don't fail initialization if static data can't be loaded
       }
     }
   }
@@ -75,35 +76,45 @@ class ApiClient {
     // Normal API mode
     const fullUrl = `${config.baseUrl}${path}`
     
-    const response = await fetch(fullUrl, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    })
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Request failed' }))
-      const err = new Error(error.error || `HTTP ${response.status}`)
-      ;(err as any).status = response.status
-      throw err
+    try {
+      const response = await fetch(fullUrl, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+      })
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Request failed' }))
+        const err = new Error(error.error || `HTTP ${response.status}`)
+        ;(err as any).status = response.status
+        throw err
+      }
+      
+      const data = await response.json()
+      
+      if (data === null || data === undefined) {
+        const err = new Error('Entity not found')
+        ;(err as any).status = 404
+        throw err
+      }
+      
+      // Cache the response if it's an entity or array of entities
+      if (config.enableCache && options.method === 'GET') {
+        await this.cacheResponse(path, data)
+      }
+      
+      return data
+    } catch (error: any) {
+      // If server is unreachable, fall back to serverless mode
+      if (error.message === 'Failed to fetch' || error.code === 'ECONNREFUSED') {
+        console.log('ApiClient: Server unreachable, falling back to cached/static data')
+        return this.handleServerlessRequest(path, options)
+      }
+      throw error
     }
     
-    const data = await response.json()
-    
-    if (data === null || data === undefined) {
-      const err = new Error('Entity not found')
-      ;(err as any).status = 404
-      throw err
-    }
-    
-    // Cache the response if it's an entity or array of entities
-    if (config.enableCache && options.method === 'GET') {
-      await this.cacheResponse(path, data)
-    }
-    
-    return data
   }
   
   private async checkCache(path: string, maxAge: number): Promise<any> {

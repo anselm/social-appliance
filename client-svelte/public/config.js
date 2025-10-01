@@ -30,7 +30,7 @@ window.APP_CONFIG = {
     baseUrl: '/api',
     
     // Serverless mode - use only cached/static data
-    serverless: true,
+    serverless: false,
     
     // Enable client-side caching with IndexedDB
     enableCache: true,
