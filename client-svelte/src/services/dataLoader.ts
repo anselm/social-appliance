@@ -3,27 +3,69 @@ import type { Entity } from '../types'
 
 export async function loadStaticData(): Promise<void> {
   try {
-    // Always load static.info.js regardless of serverless mode
-    const modulePath = `/static.info.js`
-    console.log('DataLoader: Loading static entities from:', modulePath)
-    const module = await import(/* @vite-ignore */ modulePath)
+    // Fetch the static.info.js file as text to avoid Vite warnings
+    const response = await fetch('/static.info.js')
+    if (!response.ok) {
+      console.log('DataLoader: No static data file found')
+      return
+    }
     
-    console.log('DataLoader: Successfully imported static data')
+    console.log('DataLoader: Loading static entities from: /static.info.js')
+    const scriptText = await response.text()
     
-    // Process all exports from the module
+    // Create a temporary global to capture the exports
+    const tempGlobal = '__STATIC_DATA_TEMP__'
+    ;(window as any)[tempGlobal] = {}
+    
+    // Wrap the script to capture ES module exports
+    const wrappedScript = `
+      (function() {
+        const exports = {};
+        const module = { exports };
+        ${scriptText}
+        
+        // Capture all named exports and default export
+        if (typeof rootGroup !== 'undefined') exports.rootGroup = rootGroup;
+        if (typeof staticGallery !== 'undefined') exports.staticGallery = staticGallery;
+        if (typeof staticImages !== 'undefined') exports.staticImages = staticImages;
+        if (typeof staticDocs !== 'undefined') exports.staticDocs = staticDocs;
+        if (typeof docPages !== 'undefined') exports.docPages = docPages;
+        
+        // Handle default export if it exists
+        const defaultExport = (() => {
+          try {
+            return eval('typeof export !== "undefined" && export.default || []');
+          } catch (e) {
+            return [];
+          }
+        })();
+        
+        window['${tempGlobal}'] = { ...exports, default: defaultExport };
+      })();
+    `
+    
+    // Execute the wrapped script
+    const scriptEl = document.createElement('script')
+    scriptEl.textContent = wrappedScript
+    document.head.appendChild(scriptEl)
+    document.head.removeChild(scriptEl)
+    
+    // Get the captured exports
+    const moduleData = (window as any)[tempGlobal]
+    delete (window as any)[tempGlobal]
+    
+    console.log('DataLoader: Successfully loaded static data')
+    
+    // Process the exports
     const allEntities: Entity[] = []
     
     // Handle default export
-    if (module.default) {
-      if (Array.isArray(module.default)) {
-        allEntities.push(...module.default)
-      } else if (module.default.id) {
-        allEntities.push(module.default as Entity)
-      }
+    if (moduleData.default && Array.isArray(moduleData.default)) {
+      allEntities.push(...moduleData.default)
     }
     
     // Handle named exports
-    for (const [key, value] of Object.entries(module)) {
+    for (const [key, value] of Object.entries(moduleData)) {
       if (key === 'default') continue
       
       if (Array.isArray(value)) {
