@@ -189,8 +189,9 @@ export class SeedLoader {
       const marker = entity.action === 'created' ? '✨' : '📝';
       const typeLabel = `[${entity.type || 'unknown'}]`;
       const title = entity.title || entity.slug || 'Untitled';
+      const slugInfo = entity.slug ? ` (${entity.slug})` : '';
       
-      console.log(`${indent}${marker} ${typeLabel} ${title}`);
+      console.log(`${indent}${marker} ${typeLabel} ${title}${slugInfo}`);
       
       // Print children
       entity.children.forEach((childId, index) => {
@@ -214,7 +215,8 @@ export class SeedLoader {
         const marker = entity.action === 'created' ? '✨' : '📝';
         const typeLabel = `[${entity.type || 'unknown'}]`;
         const title = entity.title || entity.slug || 'Untitled';
-        console.log(`  ${marker} ${typeLabel} ${title} (parent: ${entity.parentId})`);
+        const slugInfo = entity.slug ? ` (${entity.slug})` : '';
+        console.log(`  ${marker} ${typeLabel} ${title}${slugInfo} (parent: ${entity.parentId})`);
       });
     }
     
