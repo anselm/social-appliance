@@ -28,3 +28,4 @@ dist-ssr
 
 # Generated data
 public/data/entities.json
+!public/data/index.js

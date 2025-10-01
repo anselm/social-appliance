@@ -1,43 +1,31 @@
 import { get } from 'svelte/store'
 import { apiConfig } from '../stores/config'
+import { 
+  db, 
+  cacheEntity, 
+  cacheEntities, 
+  getCachedEntity, 
+  getCachedEntityBySlug,
+  queryCachedEntities,
+  isCacheStale 
+} from './database'
+import { loadStaticData } from './dataLoader'
 import type { Entity } from '../types'
 
-// IndexedDB setup for caching
-const DB_NAME = 'socialApplianceCache'
-const DB_VERSION = 1
-const STORE_NAME = 'entities'
-
 class ApiClient {
-  private db: IDBDatabase | null = null
   private serverlessData: Entity[] | null = null
+  private staticDataLoaded = false
   
   constructor() {
-    this.initDB()
+    this.init()
   }
   
-  private async initDB() {
-    const config = get(apiConfig)
-    if (!config.enableCache) return
-    
-    return new Promise<void>((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION)
-      
-      request.onerror = () => reject(request.error)
-      request.onsuccess = () => {
-        this.db = request.result
-        resolve()
-      }
-      
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' })
-          store.createIndex('slug', 'slug', { unique: true })
-          store.createIndex('type', 'type', { unique: false })
-          store.createIndex('parentId', 'parentId', { unique: false })
-        }
-      }
-    })
+  private async init() {
+    // Load static data on initialization
+    if (!this.staticDataLoaded) {
+      await loadStaticData()
+      this.staticDataLoaded = true
+    }
   }
   
   private async loadServerlessData(): Promise<Entity[]> {
@@ -51,23 +39,8 @@ class ApiClient {
     
     this.serverlessData = await response.json()
     
-    // Cache in IndexedDB if enabled
-    if (this.db) {
-      const transaction = this.db.transaction([STORE_NAME], 'readwrite')
-      const store = transaction.objectStore(STORE_NAME)
-      
-      // Clear existing data
-      await new Promise((resolve, reject) => {
-        const clearReq = store.clear()
-        clearReq.onsuccess = () => resolve(undefined)
-        clearReq.onerror = () => reject(clearReq.error)
-      })
-      
-      // Add all entities
-      for (const entity of this.serverlessData) {
-        store.add(entity)
-      }
-    }
+    // Cache all entities using Dexie
+    await cacheEntities(this.serverlessData)
     
     return this.serverlessData
   }
@@ -78,6 +51,15 @@ class ApiClient {
     if (config.serverless) {
       // Handle serverless mode
       return this.handleServerlessRequest(path, options)
+    }
+    
+    // Check cache first if enabled
+    if (config.enableCache && options.method === 'GET') {
+      const cached = await this.checkCache(path, config.cacheDuration)
+      if (cached) {
+        console.log(`Cache hit for ${path}`)
+        return cached
+      }
     }
     
     // Normal API mode
@@ -106,13 +88,84 @@ class ApiClient {
       throw err
     }
     
+    // Cache the response if it's an entity or array of entities
+    if (config.enableCache && options.method === 'GET') {
+      await this.cacheResponse(path, data)
+    }
+    
     return data
+  }
+  
+  private async checkCache(path: string, maxAge: number): Promise<any> {
+    // Check for single entity by slug
+    if (path === '/entities/slug') {
+      const cached = await getCachedEntityBySlug('/')
+      if (cached && !await isCacheStale(cached, maxAge)) {
+        return cached
+      }
+    } else if (path.startsWith('/entities/slug/')) {
+      const slug = '/' + path.substring('/entities/slug/'.length)
+      const cached = await getCachedEntityBySlug(slug)
+      if (cached && !await isCacheStale(cached, maxAge)) {
+        return cached
+      }
+    } else if (path.match(/^\/entities\/[^\/\?]+$/)) {
+      const id = path.substring('/entities/'.length)
+      const cached = await getCachedEntity(id)
+      if (cached && !await isCacheStale(cached, maxAge)) {
+        return cached
+      }
+    } else if (path.startsWith('/entities?')) {
+      // For queries, we'll skip cache for now as it's more complex
+      return null
+    }
+    
+    return null
+  }
+  
+  private async cacheResponse(path: string, data: any): Promise<void> {
+    if (Array.isArray(data)) {
+      await cacheEntities(data)
+    } else if (data && data.id) {
+      await cacheEntity(data)
+    }
   }
   
   private async handleServerlessRequest(path: string, options: RequestInit = {}) {
     const method = options.method || 'GET'
     
-    // Load data if not already loaded
+    // First check Dexie cache (which includes static data)
+    const config = get(apiConfig)
+    
+    if (method === 'GET') {
+      // Try cache first
+      if (path === '/entities/slug') {
+        const cached = await getCachedEntityBySlug('/')
+        if (cached) return cached
+      } else if (path.startsWith('/entities/slug/')) {
+        const slug = '/' + path.substring('/entities/slug/'.length)
+        const cached = await getCachedEntityBySlug(slug)
+        if (cached) return cached
+      } else if (path.match(/^\/entities\/[^\/\?]+$/)) {
+        const id = path.substring('/entities/'.length)
+        const cached = await getCachedEntity(id)
+        if (cached) return cached
+      } else if (path.startsWith('/entities?')) {
+        // For queries, check cache
+        const params = new URLSearchParams(path.split('?')[1])
+        const filters: any = {}
+        
+        if (params.get('type')) filters.type = params.get('type')
+        if (params.get('parentId')) filters.parentId = params.get('parentId')
+        filters.limit = parseInt(params.get('limit') || '20')
+        filters.offset = parseInt(params.get('offset') || '0')
+        
+        const cached = await queryCachedEntities(filters)
+        if (cached.length > 0) return cached
+      }
+    }
+    
+    // If not in cache, load from serverless data file
     const entities = await this.loadServerlessData()
     
     // Parse the path to determine the operation

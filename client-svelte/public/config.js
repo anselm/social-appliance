@@ -3,12 +3,12 @@
 
 window.APP_CONFIG = {
   // Application title and branding
-  appTitle: 'Social Appliance',
+  appTitle: 'Social Social!',
   
   // Header configuration
   header: {
     // Whether to show the header
-    enabled: true,
+    enabled: false,
     
     // Header links (static only for post-build customization)
     links: [
@@ -36,25 +36,28 @@ window.APP_CONFIG = {
     serverlessDataUrl: '/data/entities.json',
     
     // Enable client-side caching with IndexedDB
-    enableCache: false,
+    enableCache: true,
     
     // Cache duration in milliseconds (default: 5 minutes)
-    cacheDuration: 5 * 60 * 1000
+    cacheDuration: 5 * 60 * 1000,
+    
+    // Load static data from /data/index.js on startup
+    loadStaticData: true
   },
   
   // Feature flags
   features: {
     // Enable user authentication
-    authentication: true,
+    authentication: false,
     
     // Enable content creation
-    allowCreate: true,
+    allowCreate: false,
     
     // Enable content editing
-    allowEdit: true,
+    allowEdit: false,
     
     // Enable content deletion
-    allowDelete: true
+    allowDelete: false
   },
   
   // Custom methods can be added here
