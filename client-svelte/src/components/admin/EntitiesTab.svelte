@@ -23,10 +23,12 @@
       if (searchQuery) filters.slugPrefix = searchQuery
       
       const data = await api.queryEntities(filters)
-      entities = data
-      treeEntities = buildTree(data)
+      entities = data || []
+      treeEntities = buildTree(entities)
     } catch (error) {
       console.error('Failed to load entities:', error)
+      entities = []
+      treeEntities = []
     } finally {
       loading = false
     }

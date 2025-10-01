@@ -40,13 +40,17 @@ export class API {
     // Normalize the slug - ensure it starts with /
     const normalizedSlug = slug.startsWith('/') ? slug : `/${slug}`;
     
+    console.log(`Looking up entity by slug: "${normalizedSlug}"`);
     const entity = await this.entityService.findBySlug(normalizedSlug);
     
     if (!entity) {
+      console.log(`Entity not found for slug: "${normalizedSlug}"`);
       const error = new Error(`Entity not found: ${normalizedSlug}`);
       error.status = 404;
       throw error;
     }
+    
+    console.log(`Found entity: ${entity.id} (${entity.type}) for slug: "${normalizedSlug}"`);
     
     const canView = await this.permissionService.canView(userId, entity.id);
     if (!canView) {

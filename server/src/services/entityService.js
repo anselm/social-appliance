@@ -74,7 +74,9 @@ export class EntityService {
     
     // Build query based on filters
     if (filters.type) query.type = filters.type;
-    if (filters.parentId) query.parentId = filters.parentId;
+    if (filters.parentId !== undefined) {
+      query.parentId = filters.parentId;
+    }
     if (filters.sponsorId) query.sponsorId = filters.sponsorId;
     if (filters.slug) query.slug = filters.slug;
     if (filters.slugPrefix) {
@@ -97,8 +99,10 @@ export class EntityService {
       query.ends = { $lte: filters.ends };
     }
     
-    const limit = Math.min(parseInt(filters.limit) || 20, 100);
+    const limit = Math.min(parseInt(filters.limit) || 20, 1000);
     const offset = parseInt(filters.offset) || 0;
+    
+    console.log('Entity query:', JSON.stringify(query), `limit: ${limit}, offset: ${offset}`);
     
     const cursor = db.collection('entities')
       .find(query)
@@ -107,6 +111,8 @@ export class EntityService {
       .limit(limit);
     
     const results = await cursor.toArray();
+    console.log(`Found ${results.length} entities`);
+    
     return results.map(data => new Entity(data));
   }
 

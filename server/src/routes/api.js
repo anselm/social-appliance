@@ -14,16 +14,7 @@ router.post('/entities', async (req, res) => {
   }
 });
 
-router.get('/entities/:id', async (req, res) => {
-  try {
-    const entity = await api.getEntity(req.params.id, req.userId);
-    res.json(entity);
-  } catch (error) {
-    res.status(404).json({ error: error.message });
-  }
-});
-
-// Special handling for root entity
+// Special handling for root entity - MUST come before :id route
 router.get('/entities/slug', async (req, res) => {
   try {
     const entity = await api.getEntityBySlug('/', req.userId);
@@ -37,7 +28,7 @@ router.get('/entities/slug', async (req, res) => {
   }
 });
 
-// Use * to capture multi-segment paths
+// Use * to capture multi-segment paths - MUST come before :id route
 router.get('/entities/slug/*', async (req, res) => {
   try {
     // Get the full slug path after /entities/slug/
@@ -55,6 +46,25 @@ router.get('/entities/slug/*', async (req, res) => {
   }
 });
 
+// Query entities - MUST come before :id route
+router.get('/entities', async (req, res) => {
+  try {
+    const entities = await api.queryEntities(req.query, req.userId);
+    res.json(entities);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.get('/entities/:id', async (req, res) => {
+  try {
+    const entity = await api.getEntity(req.params.id, req.userId);
+    res.json(entity);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+});
+
 router.put('/entities/:id', async (req, res) => {
   try {
     const entity = await api.updateEntity(req.params.id, req.body, req.userId);
@@ -68,15 +78,6 @@ router.delete('/entities/:id', async (req, res) => {
   try {
     const success = await api.deleteEntity(req.params.id, req.userId);
     res.json({ success });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-router.get('/entities', async (req, res) => {
-  try {
-    const entities = await api.queryEntities(req.query, req.userId);
-    res.json(entities);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
