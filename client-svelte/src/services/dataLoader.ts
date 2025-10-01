@@ -3,10 +3,10 @@ import type { Entity } from '../types'
 
 export async function loadStaticData(): Promise<void> {
   try {
-    // Try to dynamically import the data index file
-    const dataModule = await import('/data/index.js')
+    // Try to dynamically import the static data file
+    const dataModule = await import('/static.js')
     
-    console.log('Loading static data from /data/index.js')
+    console.log('Loading static data from /static.js')
     
     // Process all exports from the module
     const allEntities: Entity[] = []
@@ -27,6 +27,6 @@ export async function loadStaticData(): Promise<void> {
     }
   } catch (error) {
     // It's okay if the file doesn't exist
-    console.log('No static data file found at /data/index.js')
+    console.log('No static data file found at /static.js')
   }
 }
