@@ -5,12 +5,14 @@ export const rootGroup = {
   id: 'static-root',
   slug: '/',
   type: 'group',
-  title: 'Home',
-  content: 'Welcome to Social Appliance',
+  title: '/Home Folder',
+  content: 'Welcome to our home',
   view: 'list',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
 };
+
+/*
 
 export const staticGallery = {
   id: 'static-gallery',
@@ -122,11 +124,4 @@ Edit config.js to customize the app after deployment.`,
   }
 ];
 
-// Export all entities as default
-export default [
-  rootGroup,
-  staticGallery,
-  ...staticImages,
-  staticDocs,
-  ...docPages
-];
+*/

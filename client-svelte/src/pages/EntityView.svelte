@@ -178,7 +178,6 @@
 {:else}
   <div>
     <div class="mb-8">
-      <div class="text-xs text-white/60 mb-1">[{entity.type}]</div>
       <h1 class="text-lg mb-2">{entity.title || entity.slug || 'Untitled'}</h1>
       {#if entity.content}
         <div class="text-sm text-white/60 prose-content">
@@ -209,14 +208,6 @@
 
     {#if children.length > 0}
       <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xs uppercase tracking-wider text-white/60">
-            {entity.type === 'group' ? 'Posts' : 'Children'}
-          </h2>
-          {#if entity.view}
-            <span class="text-xs text-white/40">View: {entity.view}</span>
-          {/if}
-        </div>
         
         {#if entity.type === 'group'}
           {#if entity.view === 'grid'}

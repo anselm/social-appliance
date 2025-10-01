@@ -16,9 +16,6 @@
         />
       {/if}
       <div class="p-4">
-        <div class="mb-2">
-          <span class="text-xs text-white/60 uppercase">[{child.type}]</span>
-        </div>
         <h3 class="text-sm font-medium mb-2">{child.title || child.slug || 'Untitled'}</h3>
         {#if child.content}
           <p class="text-xs text-white/60 line-clamp-3">{child.content}</p>

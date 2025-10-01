@@ -22,7 +22,6 @@
   {#each children as child}
     <a href="{child.slug || `/${child.id}`}" class="block border-b border-white/10 pb-2 hover:border-white/30 transition-colors">
       <div class="flex items-baseline gap-3">
-        <span class="text-xs text-white/40 uppercase flex-shrink-0">[{child.type}]</span>
         <div class="flex-grow">
           <h3 class="text-sm font-medium inline">{child.title || child.slug || 'Untitled'}</h3>
           {#if child.content}
