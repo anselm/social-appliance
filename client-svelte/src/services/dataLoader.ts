@@ -1,16 +1,47 @@
 import { cacheEntities } from './database'
+import { get } from 'svelte/store'
+import { apiConfig } from '../stores/config'
 import type { Entity } from '../types'
 
 export async function loadStaticData(): Promise<void> {
+  const config = get(apiConfig)
+  const staticFiles = config.staticDataFiles || ['/static.info.js']
+  const allEntities: Entity[] = []
+  
+  console.log(`DataLoader: Loading static data from ${staticFiles.length} files`)
+  
+  for (const filePath of staticFiles) {
+    try {
+      console.log(`DataLoader: Loading ${filePath}...`)
+      const entities = await loadStaticFile(filePath)
+      if (entities.length > 0) {
+        console.log(`DataLoader: Loaded ${entities.length} entities from ${filePath}`)
+        allEntities.push(...entities)
+      }
+    } catch (error) {
+      console.error(`DataLoader: Failed to load ${filePath}:`, error)
+      // Continue loading other files even if one fails
+    }
+  }
+  
+  if (allEntities.length > 0) {
+    console.log(`DataLoader: Total entities loaded: ${allEntities.length}`)
+    await cacheEntities(allEntities)
+    console.log('DataLoader: All entities cached successfully')
+  } else {
+    console.log('DataLoader: No entities found in any static data files')
+  }
+}
+
+async function loadStaticFile(filePath: string): Promise<Entity[]> {
   try {
-    // Fetch the static.info.js file as text to avoid Vite warnings
-    const response = await fetch('/static.info.js')
+    // Fetch the file as text to avoid Vite warnings
+    const response = await fetch(filePath)
     if (!response.ok) {
-      console.log('DataLoader: No static data file found')
-      return
+      console.log(`DataLoader: File not found: ${filePath}`)
+      return []
     }
     
-    console.log('DataLoader: Loading static entities from: /static.info.js')
     const scriptText = await response.text()
     
     // Create a temporary global to capture the exports
@@ -67,14 +98,12 @@ export async function loadStaticData(): Promise<void> {
     const moduleData = (window as any)[tempGlobal]
     delete (window as any)[tempGlobal]
     
-    console.log('DataLoader: Successfully loaded static data')
-    
     // Process the exports
-    const allEntities: Entity[] = []
+    const entities: Entity[] = []
     
     // Handle default export
     if (moduleData.default && Array.isArray(moduleData.default)) {
-      allEntities.push(...moduleData.default)
+      entities.push(...moduleData.default)
     }
     
     // Handle named exports
@@ -82,21 +111,15 @@ export async function loadStaticData(): Promise<void> {
       if (key === 'default') continue
       
       if (Array.isArray(value)) {
-        allEntities.push(...value)
+        entities.push(...value)
       } else if (value && typeof value === 'object' && (value as any).id) {
-        allEntities.push(value as Entity)
+        entities.push(value as Entity)
       }
     }
     
-    if (allEntities.length > 0) {
-      console.log(`DataLoader: Caching ${allEntities.length} entities from static data`)
-      await cacheEntities(allEntities)
-      console.log('DataLoader: Entities cached successfully')
-    } else {
-      console.log('DataLoader: No entities found in static data')
-    }
+    return entities
   } catch (error) {
-    // It's okay if the file doesn't exist
-    console.error('DataLoader: Error loading static data:', error)
+    console.error(`DataLoader: Error loading ${filePath}:`, error)
+    return []
   }
 }

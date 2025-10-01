@@ -38,8 +38,16 @@ window.APP_CONFIG = {
     // Cache duration in milliseconds (default: 5 minutes)
     cacheDuration: 5 * 60 * 1000,
     
-    // Always load static data from /static.info.js on startup
-    loadStaticData: true
+    // Always load static data on startup
+    loadStaticData: true,
+    
+    // List of static data files to import
+    // These files should be in the public folder and follow the same format as static.info.js
+    staticDataFiles: [
+      '/static.info.js',
+      '/anna.static.js'
+      // Add more files here as needed
+    ]
   },
   
   // Feature flags

@@ -17,7 +17,9 @@ const defaultConfig = {
     baseUrl: '/api',
     serverless: false,
     enableCache: false,
-    cacheDuration: 5 * 60 * 1000
+    cacheDuration: 5 * 60 * 1000,
+    loadStaticData: true,
+    staticDataFiles: ['/static.info.js']
   },
   features: {
     authentication: true,
