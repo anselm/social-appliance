@@ -37,10 +37,13 @@ export class API {
   }
 
   async getEntityBySlug(slug, userId = null) {
-    const entity = await this.entityService.findBySlug(slug);
+    // Normalize the slug - ensure it starts with /
+    const normalizedSlug = slug.startsWith('/') ? slug : `/${slug}`;
+    
+    const entity = await this.entityService.findBySlug(normalizedSlug);
     
     if (!entity) {
-      const error = new Error(`Entity not found: ${slug}`);
+      const error = new Error(`Entity not found: ${normalizedSlug}`);
       error.status = 404;
       throw error;
     }
