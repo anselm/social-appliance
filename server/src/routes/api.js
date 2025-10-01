@@ -7,6 +7,7 @@ const api = new API();
 // Entity routes
 router.post('/entities', async (req, res) => {
   try {
+    console.log(`POST /entities - type: ${req.body.type}, slug: ${req.body.slug || 'none'}`);
     const entity = await api.createEntity(req.body, req.userId);
     res.json(entity);
   } catch (error) {
@@ -17,6 +18,7 @@ router.post('/entities', async (req, res) => {
 // Special handling for root entity - MUST come before :id route
 router.get('/entities/slug', async (req, res) => {
   try {
+    console.log('GET /entities/slug - fetching root entity "/"');
     const entity = await api.getEntityBySlug('/', req.userId);
     if (!entity) {
       return res.status(404).json({ error: 'Entity not found: /' });
@@ -33,6 +35,7 @@ router.get('/entities/slug/*', async (req, res) => {
   try {
     // Get the full slug path after /entities/slug/
     const slug = '/' + (req.params[0] || '');
+    console.log(`GET /entities/slug/* - slug: "${slug}"`);
     
     const entity = await api.getEntityBySlug(slug, req.userId);
     if (!entity) {
@@ -49,7 +52,10 @@ router.get('/entities/slug/*', async (req, res) => {
 // Query entities - MUST come before :id route
 router.get('/entities', async (req, res) => {
   try {
-    const entities = await api.queryEntities(req.query, req.userId);
+    const filters = Object.keys(req.query).length > 0 ? req.query : {};
+    console.log('GET /entities - query:', JSON.stringify(filters));
+    const entities = await api.queryEntities(filters, req.userId);
+    console.log(`  → returned ${entities.length} entities`);
     res.json(entities);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -58,6 +64,7 @@ router.get('/entities', async (req, res) => {
 
 router.get('/entities/:id', async (req, res) => {
   try {
+    console.log(`GET /entities/${req.params.id}`);
     const entity = await api.getEntity(req.params.id, req.userId);
     res.json(entity);
   } catch (error) {
@@ -67,6 +74,7 @@ router.get('/entities/:id', async (req, res) => {
 
 router.put('/entities/:id', async (req, res) => {
   try {
+    console.log(`PUT /entities/${req.params.id}`);
     const entity = await api.updateEntity(req.params.id, req.body, req.userId);
     res.json(entity);
   } catch (error) {
@@ -76,6 +84,7 @@ router.put('/entities/:id', async (req, res) => {
 
 router.delete('/entities/:id', async (req, res) => {
   try {
+    console.log(`DELETE /entities/${req.params.id}`);
     const success = await api.deleteEntity(req.params.id, req.userId);
     res.json({ success });
   } catch (error) {
