@@ -27,4 +27,4 @@ dist-ssr
 *.sw?
 
 # Generated data
-public/data/entities.json
+public/data/

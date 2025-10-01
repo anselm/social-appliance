@@ -16,7 +16,6 @@ const defaultConfig = {
   api: {
     baseUrl: '/api',
     serverless: false,
-    serverlessDataUrl: '/data/entities.json',
     enableCache: false,
     cacheDuration: 5 * 60 * 1000
   },

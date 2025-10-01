@@ -29,11 +29,8 @@ window.APP_CONFIG = {
     // Base URL for API calls
     baseUrl: '/api',
     
-    // Serverless mode - fetch all data from a static JSON file
+    // Serverless mode - use only cached/static data
     serverless: true,
-    
-    // URL to fetch all entities in serverless mode
-    serverlessDataUrl: '/data/entities.json',
     
     // Enable client-side caching with IndexedDB
     enableCache: true,

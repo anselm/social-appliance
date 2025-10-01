@@ -55,13 +55,13 @@ Deploy the entire application with MongoDB:
 Deploy just the client as a static site:
 1. Build the client: `npm run build`
 2. Edit `client-svelte/dist/config.js` to set `serverless: true`
-3. Ensure `client-svelte/dist/data/entities.json` exists
+3. The app will use entities from `static.info.js` and cached data
 4. Deploy the `client-svelte/dist` folder to any static host
 
 ## Configuration
 
 The client can be configured post-build by editing `/config.js`:
-- `api.serverless`: Enable serverless mode (uses static JSON)
+- `api.serverless`: Enable serverless mode (uses static data only)
 - `api.baseUrl`: API endpoint (for server mode)
 - `features.*`: Enable/disable features
 - `header.*`: Customize the header

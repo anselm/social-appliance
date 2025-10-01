@@ -35,20 +35,10 @@ class ApiClient {
   }
   
   private async loadServerlessData(): Promise<Entity[]> {
-    if (this.serverlessData) return this.serverlessData
-    
-    const config = get(apiConfig)
-    const response = await fetch(config.serverlessDataUrl)
-    if (!response.ok) {
-      throw new Error('Failed to load serverless data')
-    }
-    
-    this.serverlessData = await response.json()
-    
-    // Cache all entities using Dexie
-    await cacheEntities(this.serverlessData)
-    
-    return this.serverlessData
+    // In the new approach, serverless mode relies entirely on static.info.js
+    // and any cached data. No separate entities.json file is needed.
+    console.log('ApiClient: Serverless mode - using cached/static data only')
+    return []
   }
   
   async request(path: string, options: RequestInit = {}) {
