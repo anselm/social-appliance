@@ -2,6 +2,7 @@
 export const baliGroup = {
   id: 'group-bali-001',
   slug: '/bali',
+  parentId: 'root-group',  
   type: 'group',
   title: 'Bali Community',
   content: 'Connect with people interested in Bali - travel, culture, and living',
@@ -19,11 +20,11 @@ export const baliGroup = {
 export const baliPost1 = {
   id: 'post-bali-001',
   slug: '/bali/canggu-cafes',
+  parentId: 'group-bali-001',
   type: 'post',
   title: 'Best cafes in Canggu for digital nomads',
   content: 'Here are my top 5 cafes with good wifi and great coffee in Canggu area. Each offers a unique atmosphere and reliable internet for remote work.',
   depiction: 'https://images.unsplash.com/photo-1559305616-3f99cd43e353?w=800&h=600&fit=crop',
-  parentId: 'group-bali-001',
   sponsorId: 'admin-001',
   tags: ['canggu', 'cafe', 'digital-nomad', 'wifi'],
   latitude: -8.6478,
@@ -36,11 +37,11 @@ export const baliPost1 = {
 export const baliPost2 = {
   id: 'post-bali-002',
   slug: '/bali/visa-guide',
+  parentId: 'group-bali-001',
   type: 'post',
   title: 'Complete Visa Guide for Bali 2024',
   content: 'Everything you need to know about visa options for Bali, including the new digital nomad visa, tourist visas, and business visas.',
   depiction: 'https://images.unsplash.com/photo-1558005530-a7958896ec60?w=800&h=600&fit=crop',
-  parentId: 'group-bali-001',
   tags: ['visa', 'immigration', 'digital-nomad', 'guide'],
   createdAt: '2024-03-06T09:00:00.000Z',
   updatedAt: '2024-03-06T09:00:00.000Z'
@@ -49,11 +50,11 @@ export const baliPost2 = {
 export const baliPost3 = {
   id: 'post-bali-003',
   slug: '/bali/temple-etiquette',
+  parentId: 'group-bali-001',
   type: 'post',
   title: 'Temple Etiquette in Bali',
   content: 'Visiting Balinese temples? Here is what you need to know about proper dress code, behavior, and cultural sensitivity.',
   depiction: 'https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=800&h=600&fit=crop',
-  parentId: 'group-bali-001',
   tags: ['temple', 'culture', 'etiquette', 'respect'],
   createdAt: '2024-03-07T15:00:00.000Z',
   updatedAt: '2024-03-07T15:00:00.000Z'

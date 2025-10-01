@@ -2,6 +2,7 @@
 export default {
   id: 'admin-001',
   slug: '/admin',
+  parentId: 'root-group',  
   type: 'party',
   title: 'System Administrator',
   content: 'The system administrator account with full permissions',

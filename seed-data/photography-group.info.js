@@ -2,6 +2,7 @@
 export const photographyGroup = {
   id: 'group-photo-001',
   slug: '/photography',
+  parentId: 'root-group',  
   type: 'group',
   title: 'Photography Club',
   content: 'Share your photos, get feedback, and learn photography techniques',
@@ -16,11 +17,11 @@ export const photographyGroup = {
 export const photoPost1 = {
   id: 'post-photo-001',
   slug: '/photography/golden-hour-tips',
+  parentId: 'group-photo-001',
   type: 'post',
   title: 'Golden hour photography tips',
   content: 'The golden hour is the best time for photography. Here are some tips to make the most of it: use manual mode, shoot in RAW, and experiment with backlighting.',
   depiction: 'https://images.unsplash.com/photo-1495567720989-cebdbdd97913?w=800&h=600&fit=crop',
-  parentId: 'group-photo-001',
   sponsorId: 'admin-001',
   tags: ['golden-hour', 'tips', 'lighting'],
   createdAt: '2024-03-10T16:00:00.000Z',
@@ -43,11 +44,11 @@ export const photoPost2 = {
 export const photoPost3 = {
   id: 'post-photo-003',
   slug: '/photography/editing-workflow',
+  parentId: 'group-photo-001',
   type: 'post',
   title: 'My Photo Editing Workflow',
   content: 'A step-by-step guide to my photo editing process using Lightroom and Photoshop. From RAW processing to final touches.',
   depiction: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&h=600&fit=crop',
-  parentId: 'group-photo-001',
   tags: ['editing', 'lightroom', 'photoshop', 'workflow'],
   createdAt: '2024-03-12T14:00:00.000Z',
   updatedAt: '2024-03-12T14:00:00.000Z'
@@ -56,11 +57,11 @@ export const photoPost3 = {
 export const photoPost4 = {
   id: 'post-photo-004',
   slug: '/photography/portrait-lighting',
+  parentId: 'group-photo-001',
   type: 'post',
   title: 'Portrait Lighting Techniques',
   content: 'Master the art of portrait lighting with these fundamental techniques: Rembrandt, butterfly, split, and loop lighting explained.',
   depiction: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
-  parentId: 'group-photo-001',
   tags: ['portrait', 'lighting', 'studio', 'techniques'],
   createdAt: '2024-03-13T11:00:00.000Z',
   updatedAt: '2024-03-13T11:00:00.000Z'

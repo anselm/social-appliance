@@ -2,6 +2,7 @@
 export const anselm = {
   id: 'group-anselm-001',
   slug: '/anselm',
+  parentId: 'root-group',  
   type: 'group',
   title: 'Anselm',
   content: 'Digital artist and writer exploring the intersection of technology and creativity',

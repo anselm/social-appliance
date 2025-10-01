@@ -2,6 +2,7 @@
 export const demoGroup = {
   id: 'group-demo-001',
   slug: '/demo',
+  parentId: 'root-group',  
   type: 'group',
   title: 'Demo Content',
   content: 'Sample content demonstrating different view styles and features',

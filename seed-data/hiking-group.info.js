@@ -2,6 +2,7 @@
 export const hikingGroup = {
   id: 'group-hiking-001',
   slug: '/hiking',
+  parentId: 'root-group',  
   type: 'group',
   title: 'Hiking Enthusiasts',
   content: 'A community for people who love hiking and outdoor adventures',
@@ -16,11 +17,11 @@ export const hikingGroup = {
 export const hikingPost1 = {
   id: 'post-hike-001',
   slug: '/hiking/weekend-tamalpais',
+  parentId: 'group-hiking-001',
   type: 'post',
   title: 'Weekend hike to Mount Tamalpais',
   content: 'Planning a group hike this Saturday morning. Who wants to join? We will meet at the Pantoll parking lot at 8 AM and take the Steep Ravine trail.',
   depiction: 'https://images.unsplash.com/photo-1533692328991-08159ff19fca?w=800&h=600&fit=crop',
-  parentId: 'group-hiking-001',
   sponsorId: 'admin-001',
   tags: ['hike', 'weekend', 'mount-tamalpais'],
   latitude: 37.9235,
@@ -33,11 +34,11 @@ export const hikingPost1 = {
 export const hikingPost2 = {
   id: 'post-hike-002',
   slug: '/hiking/gear-recommendations',
+  parentId: 'group-hiking-001',
   type: 'post',
   title: 'Essential Hiking Gear for Beginners',
   content: 'Starting your hiking journey? Here is a comprehensive list of essential gear you will need for safe and enjoyable hikes.',
   depiction: 'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop',
-  parentId: 'group-hiking-001',
   tags: ['gear', 'beginners', 'equipment'],
   createdAt: '2024-03-02T14:00:00.000Z',
   updatedAt: '2024-03-02T14:00:00.000Z'
@@ -46,11 +47,11 @@ export const hikingPost2 = {
 export const hikingPost3 = {
   id: 'post-hike-003',
   slug: '/hiking/trail-conditions',
+  parentId: 'group-hiking-001',
   type: 'post',
   title: 'Trail Conditions Update - Bay Area',
   content: 'Recent rain has made some trails muddy and slippery. Please be careful and wear appropriate footwear. Avoid steep trails until they dry out.',
   depiction: 'https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?w=800&h=600&fit=crop',
-  parentId: 'group-hiking-001',
   tags: ['trail-conditions', 'safety', 'bay-area'],
   createdAt: '2024-03-03T08:00:00.000Z',
   updatedAt: '2024-03-03T08:00:00.000Z'
