@@ -15,6 +15,7 @@ import type { Entity } from '../types'
 class ApiClient {
   private serverlessData: Entity[] | null = null
   private staticDataLoaded = false
+  private serverAvailable: boolean | null = null // null = unknown, true = available, false = unavailable
   
   constructor() {
     this.init()
@@ -47,6 +48,33 @@ class ApiClient {
         // Don't fail initialization if static data can't be loaded
       }
     }
+    
+    // Set up periodic server availability check if configured
+    if (config.serverRetryInterval && config.serverRetryInterval > 0) {
+      setInterval(() => {
+        if (this.serverAvailable === false) {
+          this.checkServerAvailability()
+        }
+      }, config.serverRetryInterval)
+    }
+  }
+  
+  private async checkServerAvailability() {
+    const config = get(apiConfig)
+    try {
+      const response = await fetch(`${config.baseUrl}/health`, {
+        method: 'GET',
+        // Short timeout for health check
+        signal: AbortSignal.timeout(5000)
+      })
+      
+      if (response.ok) {
+        this.serverAvailable = true
+        console.log('ApiClient: Server is now available')
+      }
+    } catch (error) {
+      // Server still unavailable, will check again later
+    }
   }
   
   private async loadServerlessData(): Promise<Entity[]> {
@@ -59,8 +87,8 @@ class ApiClient {
   async request(path: string, options: RequestInit = {}) {
     const config = get(apiConfig)
     
-    if (config.serverless) {
-      // Handle serverless mode
+    // If we've already determined the server is unavailable, go straight to serverless mode
+    if (this.serverAvailable === false || config.serverless) {
       return this.handleServerlessRequest(path, options)
     }
     
@@ -84,6 +112,12 @@ class ApiClient {
           ...options.headers,
         },
       })
+      
+      // If we get here, the server is available
+      if (this.serverAvailable !== true) {
+        this.serverAvailable = true
+        console.log('ApiClient: Server is available')
+      }
       
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}`
@@ -114,14 +148,21 @@ class ApiClient {
       
       return data
     } catch (error: any) {
-      // If server is unreachable or returns an error, fall back to serverless mode
-      if (error.message === 'Failed to fetch' || 
-          error.code === 'ECONNREFUSED' || 
-          error.status === 500 ||
-          error.status === 404) {
-        console.log(`ApiClient: Server error (${error.status || 'unreachable'}), falling back to cached/static data`)
+      // If server is unreachable, mark it as unavailable and fall back to serverless mode
+      if (error.message === 'Failed to fetch' || error.code === 'ECONNREFUSED') {
+        if (this.serverAvailable !== false) {
+          this.serverAvailable = false
+          console.log('ApiClient: Server is unreachable, switching to serverless mode permanently')
+        }
         return this.handleServerlessRequest(path, options)
       }
+      
+      // For other errors (404, 500, etc), still try serverless mode but don't mark server as permanently unavailable
+      if (error.status === 500 || error.status === 404) {
+        console.log(`ApiClient: Server error (${error.status}), falling back to cached/static data for this request`)
+        return this.handleServerlessRequest(path, options)
+      }
+      
       throw error
     }
     

@@ -50,7 +50,11 @@ window.APP_CONFIG = {
       '/static.info.js',
       '/anna.static.js'
       // Add more files here as needed
-    ]
+    ],
+    
+    // Server availability check interval (milliseconds)
+    // Set to 0 to disable automatic retry
+    serverRetryInterval: 30000 // 30 seconds
   },
   
   // Feature flags
