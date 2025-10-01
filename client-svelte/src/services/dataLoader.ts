@@ -92,7 +92,7 @@ async function loadStaticFile(filePath: string): Promise<Entity[]> {
             const value = eval(name);
             if (typeof value !== 'undefined') {
               exports[name] = value;
-              console.log(`DataLoader: Captured export "${name}":`, typeof value === 'object' ? 'object' : value);
+              console.log('DataLoader: Captured export "' + name + '":', typeof value === 'object' ? 'object' : value);
             }
           } catch (e) {
             // Variable doesn't exist or can't be evaluated, skip it
