@@ -23,8 +23,8 @@ export async function loadStaticData(): Promise<void> {
       .replace(/export\s+(const|let|var)\s+(\w+)\s*=/g, '$1 $2 =')
       // Replace export default
       .replace(/export\s+default\s+/g, 'const __defaultExport__ = ')
-      // Remove import statements (we'll handle them separately)
-      .replace(/import\s+.*?from\s+['"].*?['"];?\s*/g, '')
+      // Handle import statements by replacing them with empty arrays
+      .replace(/import\s+(\w+)\s+from\s+['"].*?['"];?\s*/g, 'const $1 = [];')
     
     // Wrap the script to capture variables
     const wrappedScript = `

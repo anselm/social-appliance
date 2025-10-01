@@ -94,7 +94,7 @@
       } else {
         error = err.message || 'Failed to load page'
       }
-      if (querySlug !== '/') {
+      if (slug !== '/') {
         entity = null
         children = []
       }
