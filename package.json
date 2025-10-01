@@ -5,13 +5,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "cd server && npm start",
-    "client": "cd client-svelte && npm run dev",
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "cd server && npm run dev",
+    "client:dev": "cd client-svelte && npm run dev",
+    "build": "npm run build:client",
+    "build:client": "cd client-svelte && npm run build",
+    "start": "npm run server:prod",
+    "server:prod": "cd server && npm start",
     "setup": "npm run setup:server && npm run setup:client",
     "setup:server": "cd server && npm install",
-    "setup:client": "cd client-svelte && npm install",
-    "start": "npm run dev"
+    "setup:client": "cd client-svelte && npm install"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

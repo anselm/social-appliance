@@ -12,9 +12,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '../../');
 dotenv.config({ path: join(rootDir, '.env') });
 
-console.log('Loading .env from:', join(rootDir, '.env'));
-console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -22,13 +19,24 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// API Routes
 app.use('/api', apiRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
+
+// In production, serve static files from the client build directory
+if (process.env.NODE_ENV === 'production') {
+  const clientBuildPath = join(rootDir, 'client-svelte/dist');
+  app.use(express.static(clientBuildPath));
+
+  // Serve the client app for all non-API routes
+  app.get('*', (req, res) => {
+    res.sendFile(join(clientBuildPath, 'index.html'));
+  });
+}
 
 // Start server
 async function start() {
@@ -62,37 +70,8 @@ async function start() {
     
     // Load seed data if enabled
     if (process.env.LOAD_SEED_DATA !== 'false') {
-      console.log('\n=== SEED DATA LOADING DEBUG ===');
-      console.log('__dirname:', __dirname);
-      console.log('rootDir:', rootDir);
-      console.log('process.cwd():', process.cwd());
-      
-      // Try different path resolutions
-      const path1 = './seed-data';
-      const path2 = join(__dirname, '../../seed-data');
-      const path3 = join(rootDir, 'seed-data');
-      const path4 = join(process.cwd(), '../seed-data');
-      
-      console.log('Path option 1 (relative):', path1);
-      console.log('Path option 2 (__dirname):', path2);
-      console.log('Path option 3 (rootDir):', path3);
-      console.log('Path option 4 (cwd):', path4);
-      
-      // Use the explicit path - ignore SEED_DATA_PATH env var if it's relative
-      let seedDataPath = path2; // Default to __dirname based path
-      
-      if (process.env.SEED_DATA_PATH) {
-        console.log('SEED_DATA_PATH env var:', process.env.SEED_DATA_PATH);
-        // Only use env var if it's an absolute path
-        if (process.env.SEED_DATA_PATH.startsWith('/')) {
-          seedDataPath = process.env.SEED_DATA_PATH;
-        } else {
-          console.log('Ignoring relative SEED_DATA_PATH, using absolute path instead');
-        }
-      }
-      
-      console.log('FINAL seedDataPath:', seedDataPath);
-      console.log('=== END DEBUG ===\n');
+      // Use seed data from project root
+      const seedDataPath = process.env.SEED_DATA_PATH || join(rootDir, 'seed-data');
       
       const seedLoader = new SeedLoader();
       await seedLoader.loadSeedData(seedDataPath);
