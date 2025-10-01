@@ -78,8 +78,19 @@ async function start() {
       console.log('Path option 3 (rootDir):', path3);
       console.log('Path option 4 (cwd):', path4);
       
-      // Use the explicit path
-      const seedDataPath = process.env.SEED_DATA_PATH || path2;
+      // Use the explicit path - ignore SEED_DATA_PATH env var if it's relative
+      let seedDataPath = path2; // Default to __dirname based path
+      
+      if (process.env.SEED_DATA_PATH) {
+        console.log('SEED_DATA_PATH env var:', process.env.SEED_DATA_PATH);
+        // Only use env var if it's an absolute path
+        if (process.env.SEED_DATA_PATH.startsWith('/')) {
+          seedDataPath = process.env.SEED_DATA_PATH;
+        } else {
+          console.log('Ignoring relative SEED_DATA_PATH, using absolute path instead');
+        }
+      }
+      
       console.log('FINAL seedDataPath:', seedDataPath);
       console.log('=== END DEBUG ===\n');
       
