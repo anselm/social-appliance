@@ -1,10 +1,22 @@
 // Static entities that are bundled with the client
 // These entities can reference local assets in the public folder
 
+export const rootGroup = {
+  id: 'static-root',
+  slug: '/',
+  type: 'group',
+  title: 'Home',
+  content: 'Welcome to Social Appliance',
+  view: 'list',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+};
+
 export const staticGallery = {
   id: 'static-gallery',
   slug: '/gallery',
   type: 'group',
+  parentId: 'static-root',
   title: 'Local Gallery',
   content: 'A collection of images and media stored locally with the app',
   view: 'grid',
@@ -52,6 +64,7 @@ export const staticDocs = {
   id: 'static-docs',
   slug: '/docs',
   type: 'group',
+  parentId: 'static-root',
   title: 'Documentation',
   content: 'Built-in documentation and help resources',
   view: 'list',
@@ -111,6 +124,7 @@ Edit config.js to customize the app after deployment.`,
 
 // Export all entities as default
 export default [
+  rootGroup,
   staticGallery,
   ...staticImages,
   staticDocs,
