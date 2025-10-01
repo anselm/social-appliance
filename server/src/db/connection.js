@@ -30,6 +30,24 @@ export async function connectDB() {
     
     db = client.db(dbName);
     console.log(`Connected to MongoDB successfully (database: ${dbName})`);
+    
+    // Create unique index on slug field to prevent duplicates
+    try {
+      await db.collection('entities').createIndex(
+        { slug: 1 }, 
+        { 
+          unique: true, 
+          sparse: true,  // Allow multiple null values
+          background: true 
+        }
+      );
+      console.log('✅ Created unique index on slug field');
+    } catch (error) {
+      if (error.code !== 85) { // 85 = IndexOptionsConflict (index already exists)
+        console.warn('⚠️  Could not create unique index on slug:', error.message);
+      }
+    }
+    
     return db;
   } catch (error) {
     console.error('MongoDB connection error:', error.message);

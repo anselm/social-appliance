@@ -14,12 +14,20 @@ export class EntityService {
     if (entity.slug) {
       const existing = await db.collection('entities').findOne({ slug: entity.slug });
       if (existing) {
-        throw new Error('Slug already exists');
+        throw new Error(`Slug already exists: ${entity.slug}`);
       }
     }
     
-    const result = await db.collection('entities').insertOne(entity.toJSON());
-    return entity;
+    try {
+      const result = await db.collection('entities').insertOne(entity.toJSON());
+      return entity;
+    } catch (error) {
+      // Handle MongoDB duplicate key error
+      if (error.code === 11000 && error.keyPattern?.slug) {
+        throw new Error(`Slug already exists: ${entity.slug}`);
+      }
+      throw error;
+    }
   }
 
   async findById(id) {

@@ -39,6 +39,21 @@ async function start() {
       console.log('✅ Database flushed');
     }
     
+    // Clean up any duplicate root entities
+    {
+      const { getDB } = await import('./db/connection.js');
+      const db = await getDB();
+      const rootEntities = await db.collection('entities').find({ slug: '/' }).toArray();
+      if (rootEntities.length > 1) {
+        console.log(`⚠️  Found ${rootEntities.length} root entities, cleaning up duplicates...`);
+        // Keep the first one, delete the rest
+        const [keep, ...remove] = rootEntities;
+        const idsToRemove = remove.map(e => e.id);
+        await db.collection('entities').deleteMany({ id: { $in: idsToRemove } });
+        console.log(`✅ Removed ${remove.length} duplicate root entities`);
+      }
+    }
+    
     // Load seed data if enabled
     if (process.env.LOAD_SEED_DATA !== 'false') {
       const __dirname = dirname(fileURLToPath(import.meta.url));

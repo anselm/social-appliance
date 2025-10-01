@@ -105,6 +105,23 @@ export class SeedLoader {
       let existing = null;
       if (entity.slug === '/' && entity.type === 'group') {
         existing = await this.api.entityService.findBySlug('/');
+        if (existing && existing.id !== entity.id) {
+          console.warn(`⚠️  Root entity with different ID already exists. Existing: ${existing.id}, New: ${entity.id}`);
+          // Update the existing root entity instead of creating a duplicate
+          const { id, ...updateData } = entity;
+          await this.api.updateEntity(existing.id, updateData);
+          
+          // Track as updated
+          this.loadedEntities.push({
+            id: existing.id,
+            slug: entity.slug || existing.slug,
+            type: entity.type || existing.type,
+            title: entity.title || existing.title,
+            parentId: entity.parentId || existing.parentId,
+            action: 'updated'
+          });
+          return;
+        }
       } else {
         // Check if entity already exists by ID
         existing = await this.api.entityService.findById(entity.id);
