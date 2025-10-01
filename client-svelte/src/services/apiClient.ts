@@ -21,6 +21,20 @@ class ApiClient {
   }
   
   private async init() {
+    const config = get(apiConfig)
+    
+    // Flush cache if configured
+    if (config.flushCacheOnStartup) {
+      console.log('ApiClient: Flushing cache on startup...')
+      try {
+        await db.delete()
+        await db.open()
+        console.log('ApiClient: Cache flushed successfully')
+      } catch (error) {
+        console.error('ApiClient: Failed to flush cache:', error)
+      }
+    }
+    
     // Always load static data on initialization, regardless of serverless mode
     if (!this.staticDataLoaded) {
       console.log('ApiClient: Loading static data...')

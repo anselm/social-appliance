@@ -74,6 +74,10 @@ export async function clearCache(): Promise<void> {
   await db.entities.clear()
 }
 
+export async function deleteDatabase(): Promise<void> {
+  await db.delete()
+}
+
 export async function isCacheStale(entity: CachedEntity, maxAge: number): boolean {
   if (!entity._cachedAt) return true
   return Date.now() - entity._cachedAt > maxAge

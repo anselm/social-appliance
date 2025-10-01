@@ -19,6 +19,7 @@ const defaultConfig = {
     enableCache: false,
     cacheDuration: 5 * 60 * 1000,
     loadStaticData: true,
+    flushCacheOnStartup: false,
     staticDataFiles: ['/static.info.js']
   },
   features: {

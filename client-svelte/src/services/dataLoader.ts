@@ -10,18 +10,29 @@ export async function loadStaticData(): Promise<void> {
   
   console.log(`DataLoader: Loading static data from ${staticFiles.length} files`)
   
-  for (const filePath of staticFiles) {
+  // Load all files in parallel but wait for all to complete
+  const loadPromises = staticFiles.map(async (filePath) => {
     try {
       console.log(`DataLoader: Loading ${filePath}...`)
       const entities = await loadStaticFile(filePath)
       if (entities.length > 0) {
         console.log(`DataLoader: Loaded ${entities.length} entities from ${filePath}`)
-        allEntities.push(...entities)
+        return entities
       }
+      return []
     } catch (error) {
       console.error(`DataLoader: Failed to load ${filePath}:`, error)
       // Continue loading other files even if one fails
+      return []
     }
+  })
+  
+  // Wait for all files to load
+  const results = await Promise.all(loadPromises)
+  
+  // Combine all entities
+  for (const entities of results) {
+    allEntities.push(...entities)
   }
   
   if (allEntities.length > 0) {
