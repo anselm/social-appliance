@@ -117,6 +117,22 @@ export class EntityService {
       .limit(limit);
     
     const results = await cursor.toArray();
+    
+    // Debug: Check for duplicates in query results
+    const ids = new Set();
+    const duplicates = results.filter(r => {
+      if (ids.has(r.id)) {
+        console.warn('Duplicate entity ID found in query results:', r.id, r.slug);
+        return true;
+      }
+      ids.add(r.id);
+      return false;
+    });
+    
+    if (duplicates.length > 0) {
+      console.warn('Duplicate entities in query results:', duplicates);
+    }
+    
     return results.map(data => new Entity(data));
   }
 
