@@ -76,16 +76,26 @@ async function loadStaticFile(filePath: string): Promise<Entity[]> {
         // Capture all defined variables
         const exports = {};
         
-        // List of expected exports based on static.info.js
-        const exportNames = ['rootGroup', 'staticGallery', 'staticImages', 'staticDocs', 'docPages', '__defaultExport__'];
+        // Try to find all exported variables by looking for const/let/var declarations
+        const variableNames = transformedScript.match(/(?:const|let|var)\s+(\w+)\s*=/g) || [];
+        const exportNames = variableNames.map(match => match.replace(/(?:const|let|var)\s+(\w+)\s*=/, '$1'));
+        
+        // Add the default export if it exists
+        if (transformedScript.includes('__defaultExport__')) {
+          exportNames.push('__defaultExport__');
+        }
+        
+        console.log('DataLoader: Found potential exports:', exportNames);
         
         for (const name of exportNames) {
           try {
-            if (typeof eval(name) !== 'undefined') {
-              exports[name] = eval(name);
+            const value = eval(name);
+            if (typeof value !== 'undefined') {
+              exports[name] = value;
+              console.log(`DataLoader: Captured export "${name}":`, typeof value === 'object' ? 'object' : value);
             }
           } catch (e) {
-            // Variable doesn't exist, skip it
+            // Variable doesn't exist or can't be evaluated, skip it
           }
         }
         
