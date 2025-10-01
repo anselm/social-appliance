@@ -86,8 +86,15 @@ class ApiClient {
       })
       
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Request failed' }))
-        const err = new Error(error.error || `HTTP ${response.status}`)
+        let errorMessage = `HTTP ${response.status}`
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorMessage
+        } catch (e) {
+          // If we can't parse the error response, use the status text
+          errorMessage = response.statusText || errorMessage
+        }
+        const err = new Error(errorMessage)
         ;(err as any).status = response.status
         throw err
       }
@@ -107,9 +114,12 @@ class ApiClient {
       
       return data
     } catch (error: any) {
-      // If server is unreachable, fall back to serverless mode
-      if (error.message === 'Failed to fetch' || error.code === 'ECONNREFUSED') {
-        console.log('ApiClient: Server unreachable, falling back to cached/static data')
+      // If server is unreachable or returns an error, fall back to serverless mode
+      if (error.message === 'Failed to fetch' || 
+          error.code === 'ECONNREFUSED' || 
+          error.status === 500 ||
+          error.status === 404) {
+        console.log(`ApiClient: Server error (${error.status || 'unreachable'}), falling back to cached/static data`)
         return this.handleServerlessRequest(path, options)
       }
       throw error

@@ -25,7 +25,8 @@ router.get('/entities/slug', async (req, res) => {
     }
     res.json(entity);
   } catch (error) {
-    const status = error.status || 404;
+    console.error('Error fetching root entity:', error);
+    const status = error.status || 500;
     res.status(status).json({ error: error.message });
   }
 });
