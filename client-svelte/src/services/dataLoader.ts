@@ -3,13 +3,12 @@ import type { Entity } from '../types'
 
 export async function loadStaticData(): Promise<void> {
   try {
-    // Use dynamic import with a template literal to prevent Vite from analyzing it
+    // Always load static.info.js regardless of serverless mode
     const modulePath = `/static.info.js`
-    console.log('DataLoader: Attempting to import from:', modulePath)
+    console.log('DataLoader: Loading static entities from:', modulePath)
     const module = await import(/* @vite-ignore */ modulePath)
     
-    console.log('DataLoader: Successfully imported module:', module)
-    console.log('DataLoader: Module keys:', Object.keys(module))
+    console.log('DataLoader: Successfully imported static data')
     
     // Process all exports from the module
     const allEntities: Entity[] = []

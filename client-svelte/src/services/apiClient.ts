@@ -21,7 +21,7 @@ class ApiClient {
   }
   
   private async init() {
-    // Load static data on initialization
+    // Always load static data on initialization, regardless of serverless mode
     if (!this.staticDataLoaded) {
       console.log('ApiClient: Loading static data...')
       try {

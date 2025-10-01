@@ -41,7 +41,7 @@ window.APP_CONFIG = {
     // Cache duration in milliseconds (default: 5 minutes)
     cacheDuration: 5 * 60 * 1000,
     
-    // Load static data from /data/index.js on startup
+    // Always load static data from /static.info.js on startup
     loadStaticData: true
   },
   

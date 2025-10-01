@@ -1,9 +1,7 @@
-import { readdir, stat, writeFile, mkdir } from 'fs/promises';
-import { join, extname, dirname } from 'path';
-import { pathToFileURL, fileURLToPath } from 'url';
+import { readdir, stat } from 'fs/promises';
+import { join, extname } from 'path';
+import { pathToFileURL } from 'url';
 import { API } from '../api/index.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export class SeedLoader {
   constructor() {
@@ -30,35 +28,8 @@ export class SeedLoader {
       
       console.log('\n✅ Seed data loading complete');
       this.printEntityTree();
-      
-      // Export entities to JSON for serverless mode
-      await this.exportEntitiesToJson();
     } catch (error) {
       console.error('❌ Error loading seed data:', error);
-    }
-  }
-
-  async exportEntitiesToJson() {
-    try {
-      console.log('\n📤 Exporting entities to JSON for serverless mode...');
-      
-      const db = await this.api.entityService.getDB();
-      const entities = await db.collection('entities').find({}).toArray();
-      
-      // Write to client public folder
-      const outputPath = join(__dirname, '../../../../client-svelte/public/data/entities.json');
-      const outputDir = dirname(outputPath);
-      
-      // Create directory if it doesn't exist
-      await mkdir(outputDir, { recursive: true });
-      
-      // Write entities
-      await writeFile(outputPath, JSON.stringify(entities, null, 2));
-      
-      console.log(`✅ Exported ${entities.length} entities to client-svelte/public/data/entities.json`);
-    } catch (error) {
-      console.error('⚠️  Failed to export entities to JSON:', error.message);
-      // Don't fail the whole seeding process if export fails
     }
   }
 
