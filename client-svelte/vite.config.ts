@@ -24,7 +24,8 @@ export default defineConfig({
         manualChunks: {
           vendor: ['svelte', 'svelte-routing']
         }
-      }
+      },
+      external: ['/static.info.js']
     }
   }
 })

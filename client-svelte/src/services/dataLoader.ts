@@ -3,8 +3,22 @@ import type { Entity } from '../types'
 
 export async function loadStaticData(): Promise<void> {
   try {
-    // Try to dynamically import the static data file
-    const dataModule = await import('/static.info.js')
+    // Use fetch to load the static data file at runtime
+    const response = await fetch('/static.info.js')
+    if (!response.ok) {
+      console.log('No static data file found at /static.info.js')
+      return
+    }
+    
+    // Get the JavaScript content
+    const scriptContent = await response.text()
+    
+    // Create a function to execute the module code and capture exports
+    const moduleExports: any = {}
+    const moduleFunc = new Function('exports', scriptContent + '\nreturn exports;')
+    
+    // Execute the module
+    const dataModule = moduleFunc(moduleExports)
     
     console.log('Loading static data from /static.info.js')
     
@@ -27,6 +41,6 @@ export async function loadStaticData(): Promise<void> {
     }
   } catch (error) {
     // It's okay if the file doesn't exist
-    console.log('No static data file found at /static.info.js')
+    console.log('Error loading static data:', error)
   }
 }
