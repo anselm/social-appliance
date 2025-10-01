@@ -23,6 +23,20 @@ router.get('/entities/:id', async (req, res) => {
   }
 });
 
+// Special handling for root entity
+router.get('/entities/slug', async (req, res) => {
+  try {
+    const entity = await api.getEntityBySlug('/', req.userId);
+    if (!entity) {
+      return res.status(404).json({ error: 'Entity not found: /' });
+    }
+    res.json(entity);
+  } catch (error) {
+    const status = error.status || 404;
+    res.status(status).json({ error: error.message });
+  }
+});
+
 // Use * to capture multi-segment paths
 router.get('/entities/slug/*', async (req, res) => {
   try {

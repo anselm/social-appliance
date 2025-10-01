@@ -55,6 +55,12 @@ export const api = {
 
   async getEntityBySlug(slug: string) {
     try {
+      // Special handling for root slug
+      if (slug === '/') {
+        const response = await this.request('/entities/slug')
+        return response
+      }
+      
       // Don't encode the entire slug - split by / and encode each segment
       const segments = slug.split('/').filter(s => s)
       const encodedSlug = segments.map(s => encodeURIComponent(s)).join('/')
