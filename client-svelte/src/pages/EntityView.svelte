@@ -11,11 +11,11 @@
 
   export let wildcard: string = ''
 
-  // Use the wildcard parameter directly as the slug
-  let slug: string = wildcard
+  // Use the wildcard parameter directly as the slug, or "/" for home
+  let slug: string = wildcard || '/'
   
   $: {
-    slug = wildcard
+    slug = wildcard || '/'
   }
 
   let entity: Entity | null = null
@@ -68,14 +68,33 @@
     } catch (err: any) {
       console.error('Failed to load entity:', err)
       if (err.status === 404 || err.message?.includes('not found') || err.message?.includes('Entity not found')) {
-        error = `Page not found: ${slug}`
+        // Special handling for root entity not found
+        if (querySlug === '/') {
+          error = null
+          entity = null
+          // Fall back to showing all top-level groups
+          try {
+            const groups = await api.queryEntities({ 
+              type: 'group',
+              limit: 100 
+            })
+            children = groups || []
+          } catch (groupErr) {
+            console.error('Failed to load groups:', groupErr)
+            error = 'Failed to load content'
+          }
+        } else {
+          error = `Page not found: ${slug}`
+        }
       } else if (err.status === 403) {
         error = 'You do not have permission to view this page'
       } else {
         error = err.message || 'Failed to load page'
       }
-      entity = null
-      children = []
+      if (querySlug !== '/') {
+        entity = null
+        children = []
+      }
     } finally {
       loading = false
     }
@@ -114,6 +133,30 @@
   <div class="space-y-4">
     <div class="text-sm text-red-400">{error}</div>
     <a href="/" class="text-xs text-white/60 hover:text-white underline">← Back to home</a>
+  </div>
+{:else if !entity && slug === '/'}
+  <!-- No root entity, show all top-level groups as fallback -->
+  <div>
+    <h1 class="text-xs uppercase tracking-wider mb-8">Groups</h1>
+    <div class="space-y-2">
+      {#if children.length === 0}
+        <p class="text-xs text-white/60">No groups found</p>
+      {:else}
+        {#each children as group}
+          <div class="border-b border-white/10 pb-2">
+            <a href="{group.slug || `/${group.id}`}" class="hover:underline">
+              <div class="flex items-baseline gap-2">
+                <span class="text-xs text-white/60">[{group.type}]</span>
+                <span class="text-sm">{group.title || group.slug || 'Untitled'}</span>
+              </div>
+              {#if group.content}
+                <p class="text-xs text-white/60 mt-1 line-clamp-2">{group.content}</p>
+              {/if}
+            </a>
+          </div>
+        {/each}
+      {/if}
+    </div>
   </div>
 {:else if !entity}
   <div class="space-y-4">
