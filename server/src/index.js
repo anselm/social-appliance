@@ -29,10 +29,20 @@ app.get('/health', (req, res) => {
 
 // In production, serve static files from the client build directory
 if (process.env.NODE_ENV === 'production') {
-  // Since we're running from the server directory, we need to go up one level
-  const clientBuildPath = join(__dirname, '../../../client-svelte/dist');
+  // __dirname is server/src, so we need to go up 2 levels to reach project root
+  const clientBuildPath = join(__dirname, '../../client-svelte/dist');
   console.log(`Serving static files from: ${clientBuildPath}`);
   console.log(`Current working directory: ${process.cwd()}`);
+  console.log(`__dirname: ${__dirname}`);
+  
+  // Check if the build directory exists
+  import('fs').then(fs => {
+    if (fs.existsSync(clientBuildPath)) {
+      console.log('✅ Client build directory found');
+    } else {
+      console.error('❌ Client build directory not found at:', clientBuildPath);
+    }
+  });
   
   app.use(express.static(clientBuildPath));
 
