@@ -5,9 +5,11 @@ export async function loadStaticData(): Promise<void> {
   try {
     // Use dynamic import with a template literal to prevent Vite from analyzing it
     const modulePath = `/static.info.js`
+    console.log('DataLoader: Attempting to import from:', modulePath)
     const module = await import(/* @vite-ignore */ modulePath)
     
-    console.log('Loading static data from /static.info.js')
+    console.log('DataLoader: Successfully imported module:', module)
+    console.log('DataLoader: Module keys:', Object.keys(module))
     
     // Process all exports from the module
     const allEntities: Entity[] = []
@@ -33,11 +35,14 @@ export async function loadStaticData(): Promise<void> {
     }
     
     if (allEntities.length > 0) {
-      console.log(`Caching ${allEntities.length} entities from static data`)
+      console.log(`DataLoader: Caching ${allEntities.length} entities from static data`)
       await cacheEntities(allEntities)
+      console.log('DataLoader: Entities cached successfully')
+    } else {
+      console.log('DataLoader: No entities found in static data')
     }
   } catch (error) {
     // It's okay if the file doesn't exist
-    console.log('No static data file found at /static.info.js', error)
+    console.error('DataLoader: Error loading static data:', error)
   }
 }

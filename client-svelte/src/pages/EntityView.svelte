@@ -45,7 +45,9 @@
       // Ensure slug has leading slash
       const querySlug = slug.startsWith('/') ? slug : `/${slug}`
       
+      console.log('EntityView: Loading entity with slug:', querySlug)
       const entityData = await api.getEntityBySlug(querySlug)
+      console.log('EntityView: Received entity data:', entityData)
       
       if (!entityData) {
         throw new Error(`Entity not found: ${querySlug}`)

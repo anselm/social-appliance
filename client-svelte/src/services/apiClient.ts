@@ -23,8 +23,14 @@ class ApiClient {
   private async init() {
     // Load static data on initialization
     if (!this.staticDataLoaded) {
-      await loadStaticData()
-      this.staticDataLoaded = true
+      console.log('ApiClient: Loading static data...')
+      try {
+        await loadStaticData()
+        this.staticDataLoaded = true
+        console.log('ApiClient: Static data loaded successfully')
+      } catch (error) {
+        console.error('ApiClient: Failed to load static data:', error)
+      }
     }
   }
   
@@ -134,14 +140,21 @@ class ApiClient {
   private async handleServerlessRequest(path: string, options: RequestInit = {}) {
     const method = options.method || 'GET'
     
+    console.log('ApiClient: Handling serverless request:', path)
+    
     // First check Dexie cache (which includes static data)
     const config = get(apiConfig)
     
     if (method === 'GET') {
       // Try cache first
       if (path === '/entities/slug') {
+        console.log('ApiClient: Looking for root entity in cache')
         const cached = await getCachedEntityBySlug('/')
-        if (cached) return cached
+        if (cached) {
+          console.log('ApiClient: Found root entity in cache:', cached)
+          return cached
+        }
+        console.log('ApiClient: Root entity not found in cache')
       } else if (path.startsWith('/entities/slug/')) {
         const slug = '/' + path.substring('/entities/slug/'.length)
         const cached = await getCachedEntityBySlug(slug)

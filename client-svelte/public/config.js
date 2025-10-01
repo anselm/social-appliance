@@ -30,7 +30,7 @@ window.APP_CONFIG = {
     baseUrl: '/api',
     
     // Serverless mode - fetch all data from a static JSON file
-    serverless: false,
+    serverless: true,
     
     // URL to fetch all entities in serverless mode
     serverlessDataUrl: '/data/entities.json',
