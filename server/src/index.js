@@ -30,12 +30,18 @@ app.get('/health', (req, res) => {
 // In production, serve static files from the client build directory
 if (process.env.NODE_ENV === 'production') {
   const clientBuildPath = join(rootDir, 'client-svelte/dist');
+  console.log(`Serving static files from: ${clientBuildPath}`);
+  
   app.use(express.static(clientBuildPath));
 
   // Serve the client app for all non-API routes
   app.get('*', (req, res) => {
-    res.sendFile(join(clientBuildPath, 'index.html'));
+    const indexPath = join(clientBuildPath, 'index.html');
+    console.log(`Serving index.html for route: ${req.path}`);
+    res.sendFile(indexPath);
   });
+} else {
+  console.log('Running in development mode - not serving static files');
 }
 
 // Start server
