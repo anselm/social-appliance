@@ -1,35 +1,8 @@
-const API_BASE = '/api'
+import { apiClient } from './apiClient'
 
 export const api = {
   async request(path: string, options: RequestInit = {}) {
-    const fullUrl = `${API_BASE}${path}`
-    
-    const response = await fetch(fullUrl, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    })
-    
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Request failed' }))
-      const err = new Error(error.error || `HTTP ${response.status}`)
-      ;(err as any).status = response.status
-      throw err
-    }
-
-    const data = await response.json()
-    
-    // Extra safety check - if we got a null/undefined response for an entity lookup, treat as 404
-    if (data === null || data === undefined) {
-      const err = new Error('Entity not found')
-      ;(err as any).status = 404
-      throw err
-    }
-    
-    return data
+    return apiClient.request(path, options)
   },
 
   async createPost(data: any) {
