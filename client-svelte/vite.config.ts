@@ -24,8 +24,11 @@ export default defineConfig({
         manualChunks: {
           vendor: ['svelte', 'svelte-routing']
         }
-      },
-      external: ['/static.info.js']
+      }
+    },
+    // Tell Vite to ignore dynamic imports with specific patterns
+    dynamicImportVarsOptions: {
+      exclude: [/\.info\.js$/]
     }
   }
 })

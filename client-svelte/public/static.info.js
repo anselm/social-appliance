@@ -1,18 +1,18 @@
 // Static entities that are bundled with the client
 // These entities can reference local assets in the public folder
-// This file is loaded at runtime, so we use a global variable instead of ES modules
 
-window.STATIC_ENTITIES = [
-  {
-    id: 'static-gallery',
-    slug: '/gallery',
-    type: 'group',
-    title: 'Local Gallery',
-    content: 'A collection of images and media stored locally with the app',
-    view: 'grid',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
+export const staticGallery = {
+  id: 'static-gallery',
+  slug: '/gallery',
+  type: 'group',
+  title: 'Local Gallery',
+  content: 'A collection of images and media stored locally with the app',
+  view: 'grid',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+};
+
+export const staticImages = [
   {
     id: 'static-img-1',
     slug: '/gallery/sunset',
@@ -45,17 +45,21 @@ window.STATIC_ENTITIES = [
     depiction: '/images/forest.jpg',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
-  },
-  {
-    id: 'static-docs',
-    slug: '/docs',
-    type: 'group',
-    title: 'Documentation',
-    content: 'Built-in documentation and help resources',
-    view: 'list',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
+  }
+];
+
+export const staticDocs = {
+  id: 'static-docs',
+  slug: '/docs',
+  type: 'group',
+  title: 'Documentation',
+  content: 'Built-in documentation and help resources',
+  view: 'list',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+};
+
+export const docPages = [
   {
     id: 'static-doc-1',
     slug: '/docs/getting-started',
@@ -103,4 +107,12 @@ Edit config.js to customize the app after deployment.`,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }
+];
+
+// Export all entities as default
+export default [
+  staticGallery,
+  ...staticImages,
+  staticDocs,
+  ...docPages
 ];
