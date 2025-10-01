@@ -17,30 +17,43 @@ export async function loadStaticData(): Promise<void> {
     const tempGlobal = '__STATIC_DATA_TEMP__'
     ;(window as any)[tempGlobal] = {}
     
-    // Wrap the script to capture ES module exports
+    // Transform ES module syntax to regular JavaScript
+    let transformedScript = scriptText
+      // Replace export const/let/var declarations
+      .replace(/export\s+(const|let|var)\s+(\w+)\s*=/g, '$1 $2 =')
+      // Replace export default
+      .replace(/export\s+default\s+/g, 'const __defaultExport__ = ')
+      // Remove import statements (we'll handle them separately)
+      .replace(/import\s+.*?from\s+['"].*?['"];?\s*/g, '')
+    
+    // Wrap the script to capture variables
     const wrappedScript = `
       (function() {
+        ${transformedScript}
+        
+        // Capture all defined variables
         const exports = {};
-        const module = { exports };
-        ${scriptText}
         
-        // Capture all named exports and default export
-        if (typeof rootGroup !== 'undefined') exports.rootGroup = rootGroup;
-        if (typeof staticGallery !== 'undefined') exports.staticGallery = staticGallery;
-        if (typeof staticImages !== 'undefined') exports.staticImages = staticImages;
-        if (typeof staticDocs !== 'undefined') exports.staticDocs = staticDocs;
-        if (typeof docPages !== 'undefined') exports.docPages = docPages;
+        // List of expected exports based on static.info.js
+        const exportNames = ['rootGroup', 'staticGallery', 'staticImages', 'staticDocs', 'docPages', '__defaultExport__'];
         
-        // Handle default export if it exists
-        const defaultExport = (() => {
+        for (const name of exportNames) {
           try {
-            return eval('typeof export !== "undefined" && export.default || []');
+            if (typeof eval(name) !== 'undefined') {
+              exports[name] = eval(name);
+            }
           } catch (e) {
-            return [];
+            // Variable doesn't exist, skip it
           }
-        })();
+        }
         
-        window['${tempGlobal}'] = { ...exports, default: defaultExport };
+        // Handle default export
+        if (exports.__defaultExport__) {
+          exports.default = exports.__defaultExport__;
+          delete exports.__defaultExport__;
+        }
+        
+        window['${tempGlobal}'] = exports;
       })();
     `
     
