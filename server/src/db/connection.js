@@ -1,7 +1,12 @@
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+// Load .env from project root
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const rootDir = join(__dirname, '../../../');
+dotenv.config({ path: join(rootDir, '.env') });
 
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const dbName = process.env.DB_NAME || 'social_appliance';

@@ -4,10 +4,14 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
-// Load environment variables
-dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '../../.env') });
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Load environment variables from the root .env file
+const rootDir = join(__dirname, '../../');
+dotenv.config({ path: join(rootDir, '.env') });
+
+console.log('Loading .env from:', join(rootDir, '.env'));
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
 
 async function exportEntities() {
   try {
