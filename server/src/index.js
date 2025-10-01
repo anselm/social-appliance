@@ -62,8 +62,9 @@ async function start() {
     
     // Load seed data if enabled
     if (process.env.LOAD_SEED_DATA !== 'false') {
-      const __dirname = dirname(fileURLToPath(import.meta.url));
-      const seedDataPath = process.env.SEED_DATA_PATH || join(__dirname, '../../seed-data');
+      const seedDataPath = process.env.SEED_DATA_PATH || join(rootDir, 'seed-data');
+      
+      console.log('Seed data path:', seedDataPath);
       
       const seedLoader = new SeedLoader();
       await seedLoader.loadSeedData(seedDataPath);
