@@ -62,10 +62,26 @@ async function start() {
     
     // Load seed data if enabled
     if (process.env.LOAD_SEED_DATA !== 'false') {
-      // Use ../seed-data relative to server directory
-      const seedDataPath = process.env.SEED_DATA_PATH || join(__dirname, '../../seed-data');
+      console.log('\n=== SEED DATA LOADING DEBUG ===');
+      console.log('__dirname:', __dirname);
+      console.log('rootDir:', rootDir);
+      console.log('process.cwd():', process.cwd());
       
-      console.log('Resolved seed data path:', seedDataPath);
+      // Try different path resolutions
+      const path1 = './seed-data';
+      const path2 = join(__dirname, '../../seed-data');
+      const path3 = join(rootDir, 'seed-data');
+      const path4 = join(process.cwd(), '../seed-data');
+      
+      console.log('Path option 1 (relative):', path1);
+      console.log('Path option 2 (__dirname):', path2);
+      console.log('Path option 3 (rootDir):', path3);
+      console.log('Path option 4 (cwd):', path4);
+      
+      // Use the explicit path
+      const seedDataPath = process.env.SEED_DATA_PATH || path2;
+      console.log('FINAL seedDataPath:', seedDataPath);
+      console.log('=== END DEBUG ===\n');
       
       const seedLoader = new SeedLoader();
       await seedLoader.loadSeedData(seedDataPath);

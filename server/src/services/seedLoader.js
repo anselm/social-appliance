@@ -12,9 +12,18 @@ export class SeedLoader {
   }
 
   async loadSeedData(folderPath) {
-    console.log(`\n🌱 Loading seed data from: ${folderPath}`);
+    console.log(`\n🌱 SEEDLOADER: Received path: ${folderPath}`);
+    console.log(`🌱 SEEDLOADER: Path is absolute: ${folderPath.startsWith('/')}`);
     
     try {
+      // Check if the directory exists
+      try {
+        const stats = await stat(folderPath);
+        console.log(`🌱 SEEDLOADER: Directory exists: ${stats.isDirectory()}`);
+      } catch (err) {
+        console.log(`🌱 SEEDLOADER: Directory does NOT exist: ${err.message}`);
+      }
+      
       const files = await this.scanForInfoFiles(folderPath);
       
       if (files.length === 0) {
