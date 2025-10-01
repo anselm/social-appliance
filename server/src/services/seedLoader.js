@@ -6,6 +6,7 @@ import { API } from '../api/index.js';
 export class SeedLoader {
   constructor() {
     this.api = new API();
+    this.loadedEntities = [];
   }
 
   async loadSeedData(folderPath) {
@@ -19,13 +20,14 @@ export class SeedLoader {
         return;
       }
       
-      console.log(`Found ${files.length} seed files to process`);
+      console.log(`Found ${files.length} seed files to process\n`);
       
       for (const file of files) {
         await this.processFile(file);
       }
       
-      console.log('✅ Seed data loading complete\n');
+      console.log('\n✅ Seed data loading complete');
+      this.printEntityTree();
     } catch (error) {
       console.error('❌ Error loading seed data:', error);
     }
@@ -53,8 +55,6 @@ export class SeedLoader {
   }
 
   async processFile(filePath) {
-    console.log(`\n📄 Processing: ${filePath}`);
-    
     try {
       // Convert to file URL for dynamic import
       const fileUrl = pathToFileURL(filePath).href;
@@ -71,22 +71,17 @@ export class SeedLoader {
 
   async processExport(data, filePath, exportName = 'default') {
     if (Array.isArray(data)) {
-      console.log(`  Processing array export '${exportName}' with ${data.length} entities`);
       for (const entity of data) {
         await this.processEntity(entity, filePath);
       }
     } else if (data && typeof data === 'object') {
-      console.log(`  Processing object export '${exportName}'`);
       await this.processEntity(data, filePath);
-    } else {
-      console.warn(`  ⚠️  Skipping non-object export '${exportName}'`);
     }
   }
 
   async processEntity(entity, filePath) {
     // Check if entity has an ID
     if (!entity.id) {
-      console.warn(`  ⚠️  Warning: Entity without ID in ${filePath} - skipping`);
       return;
     }
     
@@ -95,7 +90,6 @@ export class SeedLoader {
       if (entity.parentId) {
         const parentExists = await this.api.entityService.findById(entity.parentId);
         if (!parentExists) {
-          console.log(`  📦 Creating placeholder parent entity: ${entity.parentId}`);
           const db = await this.api.entityService.getDB();
           await db.collection('entities').insertOne({
             id: entity.parentId,
@@ -111,9 +105,6 @@ export class SeedLoader {
       let existing = null;
       if (entity.slug === '/' && entity.type === 'group') {
         existing = await this.api.entityService.findBySlug('/');
-        if (existing) {
-          console.log(`  🔄 Found existing root group with ID: ${existing.id}, will update instead of creating new`);
-        }
       } else {
         // Check if entity already exists by ID
         existing = await this.api.entityService.findById(entity.id);
@@ -122,19 +113,21 @@ export class SeedLoader {
       if (existing) {
         // Update existing entity
         const updateId = existing.id; // Use the existing entity's ID
-        console.log(`  📝 Updating entity: ${updateId} (${entity.type || 'unknown'}) - ${entity.slug || 'no slug'}`);
         // Remove id from update data to avoid conflicts
         const { id, ...updateData } = entity;
-        
-        
         await this.api.updateEntity(updateId, updateData);
+        
+        // Track loaded entity
+        this.loadedEntities.push({
+          id: updateId,
+          slug: entity.slug || existing.slug,
+          type: entity.type || existing.type,
+          title: entity.title || existing.title,
+          parentId: entity.parentId || existing.parentId,
+          action: 'updated'
+        });
       } else {
         // Create new entity
-        console.log(`  ✨ Creating entity: ${entity.id} (${entity.type || 'unknown'}) - ${entity.slug || 'no slug'}`);
-        if (entity.parentId) {
-          console.log(`     Parent ID: ${entity.parentId}`);
-        }
-        
         // We need to bypass the normal create method to preserve the ID
         const db = await this.api.entityService.getDB();
         
@@ -142,7 +135,6 @@ export class SeedLoader {
         if (entity.slug) {
           const existingSlug = await db.collection('entities').findOne({ slug: entity.slug });
           if (existingSlug) {
-            console.warn(`  ⚠️  Warning: Slug '${entity.slug}' already exists - skipping entity ${entity.id}`);
             return;
           }
         }
@@ -151,11 +143,81 @@ export class SeedLoader {
         entity.createdAt = entity.createdAt || new Date().toISOString();
         entity.updatedAt = entity.updatedAt || new Date().toISOString();
         
-        
         await db.collection('entities').insertOne(entity);
+        
+        // Track loaded entity
+        this.loadedEntities.push({
+          id: entity.id,
+          slug: entity.slug,
+          type: entity.type,
+          title: entity.title,
+          parentId: entity.parentId,
+          action: 'created'
+        });
       }
     } catch (error) {
-      console.error(`  ❌ Error processing entity ${entity.id}:`, error.message);
+      console.error(`❌ Error processing entity ${entity.id}:`, error.message);
     }
+  }
+
+  printEntityTree() {
+    console.log('\n📊 Loaded Entity Tree:');
+    console.log('─────────────────────\n');
+    
+    // Build a map of entities by ID
+    const entityMap = new Map();
+    const rootEntities = [];
+    
+    this.loadedEntities.forEach(entity => {
+      entityMap.set(entity.id, { ...entity, children: [] });
+    });
+    
+    // Build parent-child relationships
+    this.loadedEntities.forEach(entity => {
+      if (entity.parentId && entityMap.has(entity.parentId)) {
+        entityMap.get(entity.parentId).children.push(entity.id);
+      } else if (!entity.parentId) {
+        rootEntities.push(entity.id);
+      }
+    });
+    
+    // Print tree recursively
+    const printEntity = (id, indent = '') => {
+      const entity = entityMap.get(id);
+      if (!entity) return;
+      
+      const marker = entity.action === 'created' ? '✨' : '📝';
+      const typeLabel = `[${entity.type || 'unknown'}]`;
+      const title = entity.title || entity.slug || 'Untitled';
+      
+      console.log(`${indent}${marker} ${typeLabel} ${title}`);
+      
+      // Print children
+      entity.children.forEach((childId, index) => {
+        const isLast = index === entity.children.length - 1;
+        const childIndent = indent + (isLast ? '  ' : '│ ');
+        printEntity(childId, childIndent);
+      });
+    };
+    
+    // Print root entities
+    rootEntities.forEach(id => printEntity(id));
+    
+    // Print orphaned entities (those with parentId but parent not in loaded set)
+    const orphaned = this.loadedEntities.filter(e => 
+      e.parentId && !entityMap.has(e.parentId)
+    );
+    
+    if (orphaned.length > 0) {
+      console.log('\n🔗 Entities with external parents:');
+      orphaned.forEach(entity => {
+        const marker = entity.action === 'created' ? '✨' : '📝';
+        const typeLabel = `[${entity.type || 'unknown'}]`;
+        const title = entity.title || entity.slug || 'Untitled';
+        console.log(`  ${marker} ${typeLabel} ${title} (parent: ${entity.parentId})`);
+      });
+    }
+    
+    console.log(`\nTotal entities processed: ${this.loadedEntities.length}`);
   }
 }
