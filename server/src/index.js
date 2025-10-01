@@ -7,7 +7,13 @@ import { SeedLoader } from './services/seedLoader.js';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-dotenv.config();
+// Load .env from project root
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const rootDir = join(__dirname, '../../');
+dotenv.config({ path: join(rootDir, '.env') });
+
+console.log('Loading .env from:', join(rootDir, '.env'));
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
