@@ -110,8 +110,6 @@ export class EntityService {
     const limit = Math.min(parseInt(filters.limit) || 20, 1000);
     const offset = parseInt(filters.offset) || 0;
     
-    console.log('Entity query:', JSON.stringify(query), `limit: ${limit}, offset: ${offset}`);
-    
     const cursor = db.collection('entities')
       .find(query)
       .sort({ createdAt: -1 })
@@ -119,23 +117,6 @@ export class EntityService {
       .limit(limit);
     
     const results = await cursor.toArray();
-    console.log(`Found ${results.length} entities`);
-    
-    // Debug: Check for duplicates
-    const ids = new Set();
-    const duplicates = results.filter(r => {
-      if (ids.has(r.id)) {
-        console.warn('Duplicate entity ID found:', r.id, r.slug);
-        return true;
-      }
-      ids.add(r.id);
-      return false;
-    });
-    
-    if (duplicates.length > 0) {
-      console.warn('Duplicate entities in query results:', duplicates);
-    }
-    
     return results.map(data => new Entity(data));
   }
 
