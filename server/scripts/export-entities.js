@@ -2,6 +2,10 @@ import { connectDB, getDB } from '../src/db/connection.js';
 import { writeFile, mkdir } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '../../.env') });
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
