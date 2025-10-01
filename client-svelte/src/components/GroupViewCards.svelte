@@ -1,8 +1,21 @@
 <script lang="ts">
   import type { Entity } from '../types'
   import PostItem from './PostItem.svelte'
+  import { renderMarkdown } from '../utils/markdown'
 
   export let children: Entity[] = []
+  
+  function stripHtml(html: string): string {
+    const tmp = document.createElement('div')
+    tmp.innerHTML = html
+    return tmp.textContent || tmp.innerText || ''
+  }
+  
+  function getPreview(content: string, maxLength: number = 200): string {
+    const rendered = renderMarkdown(content)
+    const text = stripHtml(rendered)
+    return text.substring(0, maxLength) + (text.length > maxLength ? '...' : '')
+  }
 </script>
 
 <div class="space-y-6">
@@ -24,7 +37,7 @@
           <span class="text-xs text-white/40">{new Date(child.createdAt).toLocaleDateString()}</span>
         </div>
         {#if child.content}
-          <p class="text-sm text-white/70 leading-relaxed">{child.content}</p>
+          <p class="text-sm text-white/70 leading-relaxed">{getPreview(child.content)}</p>
         {/if}
         <div class="mt-4 text-xs text-white/40">
           Last updated: {new Date(child.updatedAt).toLocaleString()}

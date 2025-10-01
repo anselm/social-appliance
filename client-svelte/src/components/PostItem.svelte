@@ -1,8 +1,11 @@
 <script lang="ts">
   import type { Entity } from '../types'
+  import { renderMarkdown } from '../utils/markdown'
   
   export let post: Entity
   export let variant: 'default' | 'grid' | 'card' = 'default'
+  
+  $: renderedContent = post.content ? renderMarkdown(post.content) : ''
 </script>
 
 {#if variant === 'grid'}
@@ -16,8 +19,10 @@
     {/if}
     <div class="p-4">
       <h3 class="text-sm font-medium mb-1">{post.title || 'Untitled'}</h3>
-      {#if post.content}
-        <p class="text-xs text-white/60 line-clamp-3">{post.content}</p>
+      {#if renderedContent}
+        <div class="text-xs text-white/60 line-clamp-3 prose-content">
+          {@html renderedContent}
+        </div>
       {/if}
       <div class="text-xs text-white/40 mt-2">
         {new Date(post.createdAt).toLocaleDateString()}
@@ -34,8 +39,10 @@
       />
     {/if}
     <h3 class="text-lg font-medium mb-2">{post.title || 'Untitled'}</h3>
-    {#if post.content}
-      <p class="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">{post.content}</p>
+    {#if renderedContent}
+      <div class="text-sm text-white/70 prose-content">
+        {@html renderedContent}
+      </div>
     {/if}
     <div class="text-xs text-white/40 mt-4">
       {new Date(post.createdAt).toLocaleDateString()}
@@ -44,8 +51,10 @@
 {:else}
   <div class="border-b border-white/10 pb-4">
     <h3 class="text-sm font-medium mb-1">{post.title || 'Untitled'}</h3>
-    {#if post.content}
-      <p class="text-sm text-white/80 whitespace-pre-wrap">{post.content}</p>
+    {#if renderedContent}
+      <div class="text-sm text-white/80 prose-content">
+        {@html renderedContent}
+      </div>
     {/if}
     <div class="text-xs text-white/40 mt-2">
       {new Date(post.createdAt).toLocaleDateString()}

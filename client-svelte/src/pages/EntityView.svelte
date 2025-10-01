@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import { api } from '../services/api'
   import { auth } from '../stores/auth'
+  import { renderMarkdown } from '../utils/markdown'
   import PostItem from '../components/PostItem.svelte'
   import PostForm from '../components/PostForm.svelte'
   import GroupViewGrid from '../components/GroupViewGrid.svelte'
@@ -171,7 +172,9 @@
       <div class="text-xs text-white/60 mb-1">[{entity.type}]</div>
       <h1 class="text-lg mb-2">{entity.title || entity.slug || 'Untitled'}</h1>
       {#if entity.content}
-        <p class="text-sm text-white/60">{entity.content}</p>
+        <div class="text-sm text-white/60 prose-content">
+          {@html renderMarkdown(entity.content)}
+        </div>
       {/if}
     </div>
 
