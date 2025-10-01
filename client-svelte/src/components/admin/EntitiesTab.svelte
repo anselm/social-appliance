@@ -24,7 +24,21 @@
       
       const data = await api.queryEntities(filters)
       entities = data || []
-      treeEntities = buildTree(entities)
+      
+      // Debug: Check for duplicate root entities
+      const rootEntities = entities.filter(e => !e.parentId)
+      const rootGroups = rootEntities.filter(e => e.type === 'group' && e.slug === '/')
+      if (rootGroups.length > 1) {
+        console.warn('Multiple root groups found:', rootGroups)
+      }
+      
+      // Remove duplicates by ID before building tree
+      const uniqueEntities = Array.from(
+        new Map(entities.map(e => [e.id, e])).values()
+      )
+      
+      treeEntities = buildTree(uniqueEntities)
+      console.log('Tree roots:', treeEntities.length, treeEntities.map(e => ({ id: e.id, slug: e.slug, type: e.type })))
     } catch (error) {
       console.error('Failed to load entities:', error)
       entities = []
