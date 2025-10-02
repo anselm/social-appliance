@@ -9,7 +9,19 @@ async function initApp() {
   // Force initialization and wait for it to complete
   await (apiClient as any).init()
   
-  console.log('Main: API client initialized, starting app...')
+  console.log('Main: API client initialized, checking cache...')
+  
+  // Verify cache has data
+  const { db } = await import('./services/database')
+  const count = await db.entities.count()
+  console.log(`Main: Cache has ${count} entities after init`)
+  
+  if (count > 0) {
+    const allEntities = await db.entities.toArray()
+    console.log('Main: Entities in cache:', allEntities.map(e => ({ id: e.id, slug: e.slug, parentId: e.parentId })))
+  }
+  
+  console.log('Main: Starting app...')
   
   const app = new App({
     target: document.getElementById('app')!,

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { navigate } from 'svelte-routing'
   import { auth } from '../stores/auth'
+  import { navigateTo } from '../utils/navigation'
   
   let username = ''
 
@@ -8,7 +8,7 @@
     e.preventDefault()
     if (username.trim()) {
       await auth.login(username.trim())
-      navigate('/')
+      navigateTo('/')
     }
   }
 </script>

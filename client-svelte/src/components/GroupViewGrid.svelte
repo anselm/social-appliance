@@ -1,13 +1,13 @@
 <script lang="ts">
   import type { Entity } from '../types'
-  import PostItem from './PostItem.svelte'
+  import RouterLink from './RouterLink.svelte'
 
   export let children: Entity[] = []
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
   {#each children as child}
-    <a href="{child.slug || `/${child.id}`}" class="block border border-white/20 hover:border-white/40 transition-colors overflow-hidden">
+    <RouterLink to={child.slug || `/${child.id}`} className="block border border-white/20 hover:border-white/40 transition-colors overflow-hidden">
       {#if child.depiction}
         <img 
           src={child.depiction} 
@@ -21,6 +21,6 @@
           <p class="text-xs text-white/60 line-clamp-3">{child.content}</p>
         {/if}
       </div>
-    </a>
+    </RouterLink>
   {/each}
 </div>

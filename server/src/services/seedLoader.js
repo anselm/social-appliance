@@ -2,6 +2,7 @@ import { readdir, stat } from 'fs/promises';
 import { join, extname } from 'path';
 import { pathToFileURL } from 'url';
 import { API } from '../api/index.js';
+import { Logger } from '../utils/logger.js';
 
 export class SeedLoader {
   constructor() {
@@ -10,26 +11,26 @@ export class SeedLoader {
   }
 
   async loadSeedData(folderPath) {
-    console.log(`\n🌱 Loading seed data from: ${folderPath}`);
+    Logger.info(`Loading seed data from: ${folderPath}`);
     
     try {
       const files = await this.scanForInfoFiles(folderPath);
       
       if (files.length === 0) {
-        console.log('No .info.js files found in seed data folder');
+        Logger.warn('No .info.js files found in seed data folder');
         return;
       }
       
-      console.log(`Found ${files.length} seed files to process\n`);
+      Logger.info(`Found ${files.length} seed files to process`);
       
       for (const file of files) {
         await this.processFile(file);
       }
       
-      console.log('\n✅ Seed data loading complete');
+      Logger.success('Seed data loading complete');
       this.printEntityTree();
     } catch (error) {
-      console.error('❌ Error loading seed data:', error);
+      Logger.error('Error loading seed data:', error);
     }
   }
 
@@ -48,7 +49,7 @@ export class SeedLoader {
         }
       }
     } catch (error) {
-      console.warn(`Warning: Could not read directory ${folderPath}:`, error.message);
+      Logger.warn(`Could not read directory ${folderPath}:`, error);
     }
     
     return files;
@@ -56,6 +57,8 @@ export class SeedLoader {
 
   async processFile(filePath) {
     try {
+      Logger.debug(`Processing file: ${filePath}`);
+      
       // Convert to file URL for dynamic import
       const fileUrl = pathToFileURL(filePath).href;
       const module = await import(fileUrl);
@@ -65,7 +68,7 @@ export class SeedLoader {
         await this.processExport(value, filePath, key);
       }
     } catch (error) {
-      console.error(`❌ Error processing ${filePath}:`, error.message);
+      Logger.error(`Error processing ${filePath}:`, error);
     }
   }
 
@@ -82,103 +85,108 @@ export class SeedLoader {
   async processEntity(entity, filePath) {
     // Check if entity has an ID
     if (!entity.id) {
+      Logger.warn(`Skipping entity without ID in ${filePath}`);
       return;
     }
     
     try {
-      // If entity has a parentId, create a minimal parent if it doesn't exist
+      // Ensure parent exists if specified
       if (entity.parentId) {
-        const parentExists = await this.api.entityService.findById(entity.parentId);
-        if (!parentExists) {
-          const db = await this.api.entityService.getDB();
-          await db.collection('entities').insertOne({
-            id: entity.parentId,
-            type: 'group',
-            title: `Placeholder for ${entity.parentId}`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          });
-        }
+        await this.ensureParentExists(entity.parentId);
       }
       
-      // Special handling for root group - check by slug to prevent duplicates
-      let existing = null;
-      if (entity.slug === '/' && entity.type === 'group') {
-        existing = await this.api.entityService.findBySlug('/');
-        if (existing && existing.id !== entity.id) {
-          console.warn(`⚠️  Root entity with different ID already exists. Existing: ${existing.id}, New: ${entity.id}`);
-          // Update the existing root entity instead of creating a duplicate
-          const { id, ...updateData } = entity;
-          await this.api.updateEntity(existing.id, updateData);
-          
-          // Track as updated
-          this.loadedEntities.push({
-            id: existing.id,
-            slug: entity.slug || existing.slug,
-            type: entity.type || existing.type,
-            title: entity.title || existing.title,
-            parentId: entity.parentId || existing.parentId,
-            action: 'updated'
-          });
-          return;
-        }
-      } else {
-        // Check if entity already exists by ID
-        existing = await this.api.entityService.findById(entity.id);
-      }
+      // Check if entity already exists
+      const existing = await this.findExistingEntity(entity);
       
       if (existing) {
-        // Update existing entity
-        const updateId = existing.id; // Use the existing entity's ID
-        // Remove id from update data to avoid conflicts
-        const { id, ...updateData } = entity;
-        await this.api.updateEntity(updateId, updateData);
-        
-        // Track loaded entity
-        this.loadedEntities.push({
-          id: updateId,
-          slug: entity.slug || existing.slug,
-          type: entity.type || existing.type,
-          title: entity.title || existing.title,
-          parentId: entity.parentId || existing.parentId,
-          action: 'updated'
-        });
+        await this.updateExistingEntity(existing, entity);
       } else {
-        // Create new entity
-        // We need to bypass the normal create method to preserve the ID
-        const db = await this.api.entityService.getDB();
-        
-        // Check slug uniqueness
-        if (entity.slug) {
-          const existingSlug = await db.collection('entities').findOne({ slug: entity.slug });
-          if (existingSlug) {
-            return;
-          }
-        }
-        
-        // Insert with preserved ID
-        entity.createdAt = entity.createdAt || new Date().toISOString();
-        entity.updatedAt = entity.updatedAt || new Date().toISOString();
-        
-        await db.collection('entities').insertOne(entity);
-        
-        // Track loaded entity
-        this.loadedEntities.push({
-          id: entity.id,
-          slug: entity.slug,
-          type: entity.type,
-          title: entity.title,
-          parentId: entity.parentId,
-          action: 'created'
-        });
+        await this.createNewEntity(entity);
       }
     } catch (error) {
-      console.error(`❌ Error processing entity ${entity.id}:`, error.message);
+      Logger.error(`Error processing entity ${entity.id}:`, error);
     }
   }
 
+  async ensureParentExists(parentId) {
+    const parentExists = await this.api.entityService.findById(parentId);
+    if (!parentExists) {
+      const db = await this.api.entityService.getDB();
+      await db.collection('entities').insertOne({
+        id: parentId,
+        type: 'group',
+        title: `Placeholder for ${parentId}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      Logger.debug(`Created placeholder parent: ${parentId}`);
+    }
+  }
+
+  async findExistingEntity(entity) {
+    // Special handling for root entity - check by slug
+    if (entity.slug === '/' && entity.type === 'group') {
+      const existing = await this.api.entityService.findBySlug('/');
+      if (existing && existing.id !== entity.id) {
+        Logger.warn(`Root entity exists with different ID. Existing: ${existing.id}, New: ${entity.id}`);
+        return existing;
+      }
+    }
+    
+    // Check by ID
+    return await this.api.entityService.findById(entity.id);
+  }
+
+  async updateExistingEntity(existing, entity) {
+    const updateId = existing.id;
+    const { id, ...updateData } = entity;
+    
+    await this.api.updateEntity(updateId, updateData);
+    
+    this.loadedEntities.push({
+      id: updateId,
+      slug: entity.slug || existing.slug,
+      type: entity.type || existing.type,
+      title: entity.title || existing.title,
+      parentId: entity.parentId || existing.parentId,
+      action: 'updated'
+    });
+    
+    Logger.debug(`Updated entity: ${updateId}`);
+  }
+
+  async createNewEntity(entity) {
+    const db = await this.api.entityService.getDB();
+    
+    // Check slug uniqueness
+    if (entity.slug) {
+      const existingSlug = await db.collection('entities').findOne({ slug: entity.slug });
+      if (existingSlug) {
+        Logger.warn(`Slug already exists: ${entity.slug}, skipping`);
+        return;
+      }
+    }
+    
+    // Insert with preserved ID
+    entity.createdAt = entity.createdAt || new Date().toISOString();
+    entity.updatedAt = entity.updatedAt || new Date().toISOString();
+    
+    await db.collection('entities').insertOne(entity);
+    
+    this.loadedEntities.push({
+      id: entity.id,
+      slug: entity.slug,
+      type: entity.type,
+      title: entity.title,
+      parentId: entity.parentId,
+      action: 'created'
+    });
+    
+    Logger.debug(`Created entity: ${entity.id}`);
+  }
+
   printEntityTree() {
-    console.log('\n📊 Loaded Entity Tree:');
+    Logger.info('\n📊 Loaded Entity Tree:');
     console.log('─────────────────────\n');
     
     // Build a map of entities by ID
@@ -221,7 +229,7 @@ export class SeedLoader {
     // Print root entities
     rootEntities.forEach(id => printEntity(id));
     
-    // Print orphaned entities (those with parentId but parent not in loaded set)
+    // Print orphaned entities
     const orphaned = this.loadedEntities.filter(e => 
       e.parentId && !entityMap.has(e.parentId)
     );

@@ -8,6 +8,10 @@
   let entitiesTab: EntitiesTab
   let statsTab: StatsTab
   
+  // Build info - will be replaced at build time
+  const buildDate = __BUILD_DATE__
+  const buildRevision = __BUILD_REVISION__
+  
   $: if (activeTab === 'entities' && entitiesTab) {
     entitiesTab.loadEntities()
   } else if (activeTab === 'stats' && statsTab) {
@@ -20,7 +24,12 @@
 </script>
 
 <div>
-  <h1 class="text-xs uppercase tracking-wider mb-6">Admin Panel</h1>
+  <div class="flex items-baseline justify-between mb-6">
+    <h1 class="text-xs uppercase tracking-wider">Admin Panel</h1>
+    <div class="text-xs text-white/40">
+      Build: {buildRevision} ({buildDate})
+    </div>
+  </div>
   
   <!-- Tabs -->
   <div class="flex gap-4 mb-6 border-b border-white/20">

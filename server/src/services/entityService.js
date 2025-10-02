@@ -1,14 +1,18 @@
 import { getDB } from '../db/connection.js';
 import { Entity } from '../models/entity.js';
 import { EntityTypes } from '../config/constants.js';
+import { Logger } from '../utils/logger.js';
 
 export class EntityService {
   async getDB() {
     return getDB();
   }
+
   async create(entityData) {
     const db = await getDB();
     const entity = new Entity(entityData);
+    
+    Logger.db('CREATE', 'entities', { id: entity.id, slug: entity.slug, type: entity.type });
     
     // Check if slug is already taken
     if (entity.slug) {
@@ -19,7 +23,7 @@ export class EntityService {
     }
     
     try {
-      const result = await db.collection('entities').insertOne(entity.toJSON());
+      await db.collection('entities').insertOne(entity.toJSON());
       return entity;
     } catch (error) {
       // Handle MongoDB duplicate key error
@@ -32,12 +36,14 @@ export class EntityService {
 
   async findById(id) {
     const db = await getDB();
+    Logger.db('FIND_BY_ID', 'entities', { id });
     const data = await db.collection('entities').findOne({ id });
     return data ? new Entity(data) : null;
   }
 
   async findBySlug(slug) {
     const db = await getDB();
+    Logger.db('FIND_BY_SLUG', 'entities', { slug });
     const data = await db.collection('entities').findOne({ slug });
     return data ? new Entity(data) : null;
   }
@@ -46,6 +52,7 @@ export class EntityService {
     const db = await getDB();
     updates.updatedAt = new Date().toISOString();
     
+    Logger.db('UPDATE', 'entities', { id, updates: Object.keys(updates) });
     
     // Check if updating slug and if it's already taken
     if (updates.slug) {
@@ -72,6 +79,7 @@ export class EntityService {
 
   async delete(id) {
     const db = await getDB();
+    Logger.db('DELETE', 'entities', { id });
     const result = await db.collection('entities').deleteOne({ id });
     return result.deletedCount > 0;
   }
@@ -79,6 +87,8 @@ export class EntityService {
   async query(filters = {}) {
     const db = await getDB();
     const query = {};
+    
+    Logger.db('QUERY', 'entities', filters);
     
     // Build query based on filters
     if (filters.type) query.type = filters.type;
@@ -118,11 +128,10 @@ export class EntityService {
     
     const results = await cursor.toArray();
     
-    // Debug: Check for duplicates in query results
+    // Check for duplicates in query results
     const ids = new Set();
     const duplicates = results.filter(r => {
       if (ids.has(r.id)) {
-        console.warn('Duplicate entity ID found in query results:', r.id, r.slug);
         return true;
       }
       ids.add(r.id);
@@ -130,7 +139,7 @@ export class EntityService {
     });
     
     if (duplicates.length > 0) {
-      console.warn('Duplicate entities in query results:', duplicates);
+      Logger.warn('Duplicate entities found in query results:', duplicates.map(d => d.id));
     }
     
     return results.map(data => new Entity(data));

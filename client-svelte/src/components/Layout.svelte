@@ -1,11 +1,16 @@
 <script lang="ts">
-  import { Link, navigate } from 'svelte-routing'
   import { auth } from '../stores/auth'
   import { config, headerConfig } from '../stores/config'
+  import { navigateTo } from '../utils/navigation'
+  import RouterLink from './RouterLink.svelte'
+
+  // Build info - will be replaced at build time
+  const buildDate = __BUILD_DATE__
+  const buildRevision = __BUILD_REVISION__
 
   function handleLogout() {
     auth.logout()
-    navigate('/')
+    navigateTo('/')
   }
   
   $: customHeader = $config.methods?.renderHeader?.($config)
@@ -24,23 +29,26 @@
       <!-- Default configurable header -->
       <header class="border-b border-white/20 px-4 py-2">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" class="text-xs uppercase tracking-wider hover:underline">
+          <RouterLink to="/" className="text-xs uppercase tracking-wider hover:underline">
             {$config.appTitle}
-          </Link>
+          </RouterLink>
           <nav class="flex items-center gap-4 text-xs">
             {#if $config.features.authentication && $auth}
-              <Link to="/admin" class="hover:underline">
+              <RouterLink to="/admin" className="hover:underline">
                 admin
-              </Link>
+              </RouterLink>
               <span class="text-white/60">[{$auth.slug}]</span>
               <button on:click={handleLogout} class="hover:underline">
                 logout
               </button>
             {:else if $config.features.authentication}
-              <Link to="/login" class="hover:underline">
+              <RouterLink to="/login" className="hover:underline">
                 login
-              </Link>
+              </RouterLink>
             {/if}
+            <span class="text-white/40 text-xs">
+              {buildRevision}
+            </span>
           </nav>
         </div>
       </header>

@@ -2,10 +2,31 @@ import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
 
+// Generate build info at build time
+function buildInfoPlugin() {
+  return {
+    name: 'build-info',
+    config() {
+      const buildDate = new Date().toISOString()
+      const buildRevision = Date.now().toString(36)
+      
+      return {
+        define: {
+          __BUILD_DATE__: JSON.stringify(buildDate),
+          __BUILD_REVISION__: JSON.stringify(buildRevision)
+        }
+      }
+    }
+  }
+}
+
 export default defineConfig({
-  plugins: [svelte({
-    preprocess: vitePreprocess()
-  })],
+  plugins: [
+    buildInfoPlugin(),
+    svelte({
+      preprocess: vitePreprocess()
+    })
+  ],
   server: {
     port: 5173,
     proxy: {

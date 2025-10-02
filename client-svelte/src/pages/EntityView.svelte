@@ -2,7 +2,9 @@
   import { onMount } from 'svelte'
   import { api } from '../services/api'
   import { auth } from '../stores/auth'
+  import { config } from '../stores/config'
   import { renderMarkdown } from '../utils/markdown'
+  import RouterLink from '../components/RouterLink.svelte'
   import PostItem from '../components/PostItem.svelte'
   import PostForm from '../components/PostForm.svelte'
   import GroupViewGrid from '../components/GroupViewGrid.svelte'
@@ -10,13 +12,16 @@
   import GroupViewCards from '../components/GroupViewCards.svelte'
   import type { Entity } from '../types'
 
+  export let path: string = '/'
   export let wildcard: string = ''
 
-  // Use the wildcard parameter directly as the slug, or "/" for home
-  let slug: string = wildcard || '/'
+  // Use the appropriate prop based on routing mode
+  $: routingMode = $config.routing?.mode || 'query'
+  let slug: string = routingMode === 'query' ? path : (wildcard || '/')
   
   $: {
-    slug = wildcard || '/'
+    slug = routingMode === 'query' ? path : (wildcard || '/')
+    console.log('EntityView: slug changed to:', slug)
   }
 
   let entity: Entity | null = null
@@ -26,6 +31,7 @@
   let error: string | null = null
 
   onMount(async () => {
+    console.log('EntityView: onMount, slug:', slug)
     if (slug) {
       await loadEntity()
     }
@@ -33,6 +39,7 @@
 
   // Watch for slug changes
   $: if (slug) {
+    console.log('EntityView: Reactive slug change detected:', slug)
     loadEntity()
   }
 
@@ -55,60 +62,51 @@
       }
       
       entity = entityData
+      console.log('EntityView: Entity loaded, id:', entity.id, 'type:', entity.type)
       
       // Load children (posts, sub-groups, etc.)
       try {
+        console.log('EntityView: Loading children for entity:', entity.id)
+        console.log('EntityView: Query filters:', { parentId: entity.id, limit: 100 })
+        
         const childrenData = await api.queryEntities({ 
-          parentId: entityData.id,
+          parentId: entity.id,
           limit: 100 
         })
+        console.log('EntityView: Received children data:', childrenData)
+        console.log('EntityView: Children is array?', Array.isArray(childrenData))
+        
         children = childrenData || []
+        console.log('EntityView: Children count:', children.length)
+        
+        if (children.length > 0) {
+          console.log('EntityView: First child:', children[0])
+        } else {
+          console.log('EntityView: No children found for parentId:', entity.id)
+        }
       } catch (childErr) {
-        console.error('Failed to load children:', childErr)
+        console.error('EntityView: Failed to load children:', childErr)
         // Don't fail the whole page if children can't be loaded
         children = []
       }
     } catch (err: any) {
-      console.error('Failed to load entity:', err)
+      console.error('EntityView: Failed to load entity:', err)
+      
+      // For non-root paths, show error
       if (err.status === 404 || err.message?.includes('not found') || err.message?.includes('Entity not found')) {
-        // Special handling for root entity not found
-        if (querySlug === '/') {
-          error = null
-          entity = null
-          // Fall back to showing all top-level groups from cache
-          try {
-            const groups = await api.queryEntities({ 
-              type: 'group',
-              limit: 100 
-            })
-            children = groups || []
-            if (children.length === 0) {
-              // No groups found, but that's okay - maybe there's just no content yet
-              console.log('No groups found, showing empty state')
-            }
-          } catch (groupErr) {
-            console.error('Failed to load groups:', groupErr)
-            // Don't show error if we can't load groups - just show empty state
-            children = []
-          }
-        } else {
-          error = `Page not found: ${slug}`
-        }
+        error = `Page not found: ${slug}`
       } else if (err.status === 403) {
         error = 'You do not have permission to view this page'
       } else if (err.message === 'Failed to fetch' || err.code === 'ECONNREFUSED') {
-        // Server is down, but we can still work with cached/static data
-        console.log('Server unavailable, using cached/static data only')
-        error = null
+        error = 'Server unavailable'
       } else {
         error = err.message || 'Failed to load page'
       }
-      if (slug !== '/') {
-        entity = null
-        children = []
-      }
+      entity = null
+      children = []
     } finally {
       loading = false
+      console.log('EntityView: Loading complete. Entity:', !!entity, 'Children:', children.length, 'Error:', error)
     }
   }
 
@@ -144,36 +142,12 @@
 {:else if error}
   <div class="space-y-4">
     <div class="text-sm text-red-400">{error}</div>
-    <a href="/" class="text-xs text-white/60 hover:text-white underline">← Back to home</a>
-  </div>
-{:else if !entity && slug === '/'}
-  <!-- No root entity, show all top-level groups as fallback -->
-  <div>
-    <h1 class="text-xs uppercase tracking-wider mb-8">Groups</h1>
-    <div class="space-y-2">
-      {#if children.length === 0}
-        <p class="text-xs text-white/60">No groups found</p>
-      {:else}
-        {#each children as group}
-          <div class="border-b border-white/10 pb-2">
-            <a href="{group.slug || `/${group.id}`}" class="hover:underline">
-              <div class="flex items-baseline gap-2">
-                <span class="text-xs text-white/60">[{group.type}]</span>
-                <span class="text-sm">{group.title || group.slug || 'Untitled'}</span>
-              </div>
-              {#if group.content}
-                <p class="text-xs text-white/60 mt-1 line-clamp-2">{group.content}</p>
-              {/if}
-            </a>
-          </div>
-        {/each}
-      {/if}
-    </div>
+    <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">← Back to home</RouterLink>
   </div>
 {:else if !entity}
   <div class="space-y-4">
     <div class="text-sm text-white/60">Page not found</div>
-    <a href="/" class="text-xs text-white/60 hover:text-white underline">← Back to home</a>
+    <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">← Back to home</RouterLink>
   </div>
 {:else}
   <div>
@@ -184,11 +158,14 @@
           {@html renderMarkdown(entity.content)}
         </div>
       {/if}
+      <div class="text-xs text-white/40 mt-2">
+        Entity ID: {entity.id} | Type: {entity.type}
+      </div>
     </div>
 
     {#if entity.type === 'group'}
       <div class="mb-6">
-        {#if $auth && !showNewPost}
+        {#if $config.features.allowCreate && $auth && !showNewPost}
           <button
             on:click={() => showNewPost = true}
             class="text-xs uppercase tracking-wider border border-white/20 px-3 py-1 hover:bg-white hover:text-black transition-colors"
@@ -205,6 +182,10 @@
         {/if}
       </div>
     {/if}
+
+    <div class="text-xs text-white/40 mb-2">
+      Children: {children.length}
+    </div>
 
     {#if children.length > 0}
       <div class="space-y-4">
@@ -223,12 +204,12 @@
               <PostItem post={child} />
             {:else}
               <div class="border-b border-white/10 pb-4">
-                <a href="{child.slug || `/${child.id}`}" class="hover:underline">
+                <RouterLink to={child.slug || `/${child.id}`} className="hover:underline">
                   <div class="flex items-baseline gap-2">
                     <span class="text-xs text-white/60">[{child.type}]</span>
                     <span class="text-sm font-medium">{child.title || child.slug || 'Untitled'}</span>
                   </div>
-                </a>
+                </RouterLink>
                 {#if child.content}
                   <p class="text-xs text-white/60 mt-1 line-clamp-2">{child.content}</p>
                 {/if}
@@ -237,6 +218,8 @@
           {/each}
         {/if}
       </div>
+    {:else if entity.type === 'group'}
+      <div class="text-xs text-white/60">No content in this group yet</div>
     {/if}
   </div>
 {/if}

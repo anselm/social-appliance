@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
   import { api } from '../../services/api'
+  import { apiClient } from '../../services/apiClient'
   import { buildTree } from '../../utils/tree'
   import EntityFilters from '../EntityFilters.svelte'
   import EntityItem from '../EntityItem.svelte'
@@ -15,24 +17,38 @@
   let editingEntity: Entity | null = null
   let expandedNodes = new Set<string>()
   
+  onMount(async () => {
+    // Wait for API client to be fully initialized before loading entities
+    console.log('EntitiesTab: Waiting for API client initialization...')
+    await (apiClient as any).init()
+    console.log('EntitiesTab: API client initialized, loading entities...')
+    await loadEntities()
+  })
+  
   export async function loadEntities() {
     loading = true
     try {
+      console.log('EntitiesTab: Loading entities with filters:', { typeFilter, searchQuery })
+      
       const filters: any = { limit: 1000 }
       if (typeFilter) filters.type = typeFilter
       if (searchQuery) filters.slugPrefix = searchQuery
       
       const data = await api.queryEntities(filters)
+      console.log('EntitiesTab: Received entities:', data)
       entities = data || []
+      console.log('EntitiesTab: Total entities:', entities.length)
       
       // Remove duplicates by ID before building tree
       const uniqueEntities = Array.from(
         new Map(entities.map(e => [e.id, e])).values()
       )
+      console.log('EntitiesTab: Unique entities after dedup:', uniqueEntities.length)
       
       treeEntities = buildTree(uniqueEntities)
+      console.log('EntitiesTab: Tree built with', treeEntities.length, 'root nodes')
     } catch (error) {
-      console.error('Failed to load entities:', error)
+      console.error('EntitiesTab: Failed to load entities:', error)
       entities = []
       treeEntities = []
     } finally {
@@ -89,6 +105,9 @@
   {#if loading}
     <div class="text-xs text-white/60">Loading...</div>
   {:else}
+    <div class="text-xs text-white/40 mb-4">
+      Total entities: {entities.length}
+    </div>
     <div class="space-y-1">
       {#if searchQuery || typeFilter}
         <!-- Flat list when filtering -->

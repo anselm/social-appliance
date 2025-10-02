@@ -3,18 +3,18 @@
 
 window.APP_CONFIG = {
   // Application title and branding
-  appTitle: 'Social Social!',
+  appTitle: '🐳',
   
   // Header configuration
   header: {
     // Whether to show the header
-    enabled: false,
+    enabled: true,
     
     // Header links (static only for post-build customization)
     links: [
       { label: 'Home', href: '/' },
-      { label: 'Admin', href: '/admin' },
-      { label: 'Login', href: '/login' }
+//      { label: 'Admin', href: '/admin' },
+//      { label: 'Login', href: '/login' }
     ],
     
     // Custom header component (as HTML string)
@@ -30,7 +30,7 @@ window.APP_CONFIG = {
     baseUrl: '/api',
     
     // Serverless mode - use only cached/static data
-    serverless: false,
+    serverless: true,
     
     // Enable client-side caching with IndexedDB
     enableCache: true,
@@ -42,14 +42,12 @@ window.APP_CONFIG = {
     loadStaticData: true,
     
     // Flush cache on startup (useful for development)
-    flushCacheOnStartup: true,
+    flushCacheOnStartup: false,
     
     // List of static data files to import
     // These files should be in the public folder and follow the same format as static.info.js
     staticDataFiles: [
-      '/static.info.js',
-      '/anna.static.js'
-      // Add more files here as needed
+      '/static.info.js'
     ],
     
     // Server availability check interval (milliseconds)
@@ -70,6 +68,15 @@ window.APP_CONFIG = {
     
     // Enable content deletion
     allowDelete: false
+  },
+  
+  // Routing configuration
+  routing: {
+    // Routing mode: 'path' for SPA servers, 'query' for static hosts like GitHub Pages
+    mode: 'query', // 'path' | 'query'
+    
+    // Base path for the application (useful for GitHub Pages with project sites)
+    basePath: ''
   },
   
   // Custom methods can be added here

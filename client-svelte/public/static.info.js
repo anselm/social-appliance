@@ -2,23 +2,26 @@
 // These entities can reference local assets in the public folder
 
 export const rootGroup = {
-  id: 'static-root',
+  id: 'root-group',
   slug: '/',
   type: 'group',
-  title: '/Home Folder',
-  content: 'Welcome to our home',
+  title: '/Home',
+  content: 'Welcome',
   view: 'list',
   createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
+  updatedAt: new Date().toISOString(),
+  permissions: ['public:view'],
+  metadata: {
+    isRoot: true,
+    description: 'This is the root group that serves as the top-level container for all other entities'
+  }
 };
-
-/*
 
 export const staticGallery = {
   id: 'static-gallery',
   slug: '/gallery',
   type: 'group',
-  parentId: 'static-root',
+  parentId: 'root-group',
   title: 'Local Gallery',
   content: 'A collection of images and media stored locally with the app',
   view: 'grid',
@@ -66,7 +69,7 @@ export const staticDocs = {
   id: 'static-docs',
   slug: '/docs',
   type: 'group',
-  parentId: 'static-root',
+  parentId: 'root-group',
   title: 'Documentation',
   content: 'Built-in documentation and help resources',
   view: 'list',
@@ -124,4 +127,3 @@ Edit config.js to customize the app after deployment.`,
   }
 ];
 
-*/

@@ -30,6 +30,10 @@ const defaultConfig = {
     allowEdit: true,
     allowDelete: true
   },
+  routing: {
+    mode: 'query', // 'path' | 'query'
+    basePath: ''
+  },
   methods: {
     onInit: () => {},
     renderHeader: () => null
@@ -39,8 +43,19 @@ const defaultConfig = {
 // Get config from window or use defaults
 const loadedConfig = (window as any).APP_CONFIG || defaultConfig
 
+// Merge loaded config with defaults to ensure all properties exist
+const mergedConfig = {
+  ...defaultConfig,
+  ...loadedConfig,
+  header: { ...defaultConfig.header, ...loadedConfig.header },
+  api: { ...defaultConfig.api, ...loadedConfig.api },
+  features: { ...defaultConfig.features, ...loadedConfig.features },
+  routing: { ...defaultConfig.routing, ...loadedConfig.routing },
+  methods: { ...defaultConfig.methods, ...loadedConfig.methods }
+}
+
 // Create writable store
-export const config = writable(loadedConfig)
+export const config = writable(mergedConfig)
 
 // Derived stores for easy access
 export const headerConfig = derived(config, $config => $config.header)
@@ -48,6 +63,6 @@ export const apiConfig = derived(config, $config => $config.api)
 export const features = derived(config, $config => $config.features)
 
 // Initialize config
-if (loadedConfig.methods?.onInit) {
-  loadedConfig.methods.onInit()
+if (mergedConfig.methods?.onInit) {
+  mergedConfig.methods.onInit()
 }
