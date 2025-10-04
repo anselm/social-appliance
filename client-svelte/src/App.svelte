@@ -4,7 +4,7 @@
   import EntityView from './pages/EntityView.svelte'
   import Login from './pages/Login.svelte'
   import Admin from './pages/Admin.svelte'
-  import { config } from './stores/config'
+  import { config } from './stores/appConfig'
   import { getCurrentPath } from './utils/navigation'
   import { onMount } from 'svelte'
   
@@ -20,7 +20,6 @@
   // Update queryPath when navigation events occur
   function updateQueryPath() {
     const newPath = getCurrentPath()
-    console.log('App: Updating queryPath from', queryPath, 'to', newPath)
     queryPath = newPath
   }
   
@@ -48,13 +47,9 @@
                       EntityView
   
   // Pass the path as a prop to EntityView (for query mode)
-  // For invalid routes, pass a non-existent path to trigger 404
   $: queryComponentProps = queryComponent === EntityView ? { 
     path: isInvalidRoute ? actualPath : actualPath 
   } : {}
-  
-  // Debug logging
-  $: console.log('App: routingMode =', routingMode, 'queryPath =', queryPath, 'isInvalidRoute =', isInvalidRoute, 'component =', queryComponent.name)
 </script>
 
 {#if routingMode === 'query'}

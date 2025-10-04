@@ -20,7 +20,6 @@ const defaultConfig = {
     cacheDuration: 5 * 60 * 1000,
     loadStaticData: true,
     flushCacheOnStartup: false,
-    staticDataFiles: ['/static.info.js'],
     // Time to wait before checking server availability again (in milliseconds)
     serverRetryInterval: 30000 // 30 seconds
   },

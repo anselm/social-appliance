@@ -1,4 +1,7 @@
 import { apiClient } from './apiClient'
+import loggers from './logger'
+
+const log = loggers.api
 
 export const api = {
   async request(path: string, options: RequestInit = {}) {
@@ -41,7 +44,7 @@ export const api = {
       const response = await this.request(fullPath)
       return response
     } catch (error: any) {
-      console.error(`Failed to get entity by slug "${slug}":`, error)
+      log.error(`Failed to get entity by slug "${slug}":`, error)
       throw error
     }
   },

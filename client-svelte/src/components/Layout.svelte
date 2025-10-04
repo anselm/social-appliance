@@ -1,6 +1,6 @@
 <script lang="ts">
   import { auth } from '../stores/auth'
-  import { config, headerConfig } from '../stores/config'
+  import { config, headerConfig } from '../stores/appConfig'
   import { navigateTo } from '../utils/navigation'
   import RouterLink from './RouterLink.svelte'
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Link } from 'svelte-routing'
   import { navigateTo, createHref } from '../utils/navigation'
-  import { config } from '../stores/config'
+  import { config } from '../stores/appConfig'
   
   export let to: string
   export let className: string = ''
