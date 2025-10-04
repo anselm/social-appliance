@@ -3,32 +3,24 @@
 
 Sep 29 2025 @anselm
 
-## General Server Side Architecture Principles
+## Server Side Architecture Principles
 
+Server design choices:
+
+- Strong back end api focus
 - API-first design with clean separation of concerns
 - DRY, modular, granular
-- Strong back end api focus
-- Regression tests against back end features
 - API can be run with or without http being present; import and use directly if desired
+- The API exposes data objects, sometimes synthetic, and does permission based access to them.
+- The server exposes a formal api wall; hiding all internals
+- The api abstracts all queries, reads, writes, permissions
+- The actual database should not be exposed in any way (should be able to switch between mongo and postgres)
+- We will want shell based regression tests of the api
+- The api itself separate from the http exposed wrapper for the api; can be used from console
 
-## In more detail
+## Data design choices
 
-API formalism to define the interface.
-
-The API exposes data objects, sometimes synthetic, and does permission based access to them.
-
-Overall:
-
-- the server exposes a formal api wall; hiding all internals
-- the api abstracts all queries, reads, writes, permissions
-- the actual database should not be exposed in any way
-- we will want shell based regression tests of the api
-- the api itself separate from the http exposed wrapper for the api
-- we should be able to import a code interface to the server and use it, not just an http api
-
-Database design:
-
-1) ENTITIES. Behind the scenes an 'entity' mongo table is used for all objects and it has a collection of 'entities' that have several common base fields including a type field that indicates if they are describing a 'user' or a 'group' or other concepts. We use a single table approach to allow for richer relationships between entities. Since we're using mongo entities can each differ, but I want to have a common set of core properties that we can rely on - I think this is a good set of core properties:
+1) ENTITIES. A concept of an 'entity' is used for all objects. There are variations of entities but all entities share several common base fields including a type field that indicates if they are describing a 'user' or a 'group' or other concepts. For durable storage (such as postgres or mongo) we use a beefy base class pattern (or some call it an anti-pattern) to simplify relationships between entities (avoiding references to separate tables). This is a core set of properties:
 
 const EntityTypes = {
   POST: "post",
@@ -44,6 +36,7 @@ const EntitySchema = {
   id: uuidv4(),
   slug: string || null,
   type: EntityTypes,
+  view: string,
   auth: string,
   permissions: string[],
   title: string || null,
