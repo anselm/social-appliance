@@ -1,5 +1,3 @@
-// Static entities that are bundled with the client
-// These entities can reference local assets in the public folder
 
 export const rootGroup = {
   id: 'root-group',

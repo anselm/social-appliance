@@ -23,15 +23,17 @@
   let loading = true
   let error: string | null = null
   let currentLoadingSlug: string | null = null
+  let hasAttemptedLoad = false
 
   // Watch for slug changes - but prevent duplicate loads
   $: {
     const newSlug = routingMode === 'query' ? path : (wildcard || '/')
     if (newSlug !== slug) {
       slug = newSlug
+      hasAttemptedLoad = false
       loadEntity(slug)
-    } else if (slug && !currentLoadingSlug && !entity) {
-      // Initial load when component first renders
+    } else if (slug && !currentLoadingSlug && !entity && !hasAttemptedLoad) {
+      // Initial load when component first renders - only try once
       loadEntity(slug)
     }
   }
@@ -41,6 +43,9 @@
     if (currentLoadingSlug === targetSlug) {
       return
     }
+    
+    // Mark that we've attempted to load this slug
+    hasAttemptedLoad = true
     
     currentLoadingSlug = targetSlug
     loading = true

@@ -55,14 +55,14 @@ class ApiClient {
       }
     }
     
-    // Load root .info.js file if configured
+    // Load root info.js file if configured
     if (config.loadStaticData) {
-      console.log('ApiClient: Loading root .info.js...')
+      console.log('ApiClient: Loading root info.js...')
       try {
         await this.loadInfoFileForPath('/')
-        console.log('ApiClient: Root .info.js loaded successfully')
+        console.log('ApiClient: Root info.js loaded successfully')
       } catch (error) {
-        log.error('Failed to load root .info.js:', error)
+        log.error('Failed to load root info.js:', error)
       }
     }
     
@@ -180,10 +180,10 @@ class ApiClient {
   private async getWithCache(path: string): Promise<any> {
     const config = get(apiConfig)
     
-    // Step 1: Try to load .info.js files for the requested path and all parent paths
+    // Step 1: Try to load info.js files for the requested path and all parent paths
     const slug = this.extractSlugFromPath(path)
     if (slug) {
-      log.debug(`Attempting to load .info.js files for slug: ${slug}`)
+      log.debug(`Attempting to load info.js files for slug: ${slug}`)
       await this.loadInfoFilesForPathHierarchy(slug)
     }
     
@@ -297,7 +297,7 @@ class ApiClient {
   }
   
   private async loadInfoFilesForPathHierarchy(slug: string): Promise<boolean> {
-    log.debug(`Loading .info.js files for path hierarchy: ${slug}`)
+    log.debug(`Loading info.js files for path hierarchy: ${slug}`)
     
     // Generate all parent paths
     const paths: string[] = []
@@ -317,7 +317,7 @@ class ApiClient {
     
     log.debug(`Path hierarchy to load:`, paths)
     
-    // Load each .info.js file in order (root first, then children)
+    // Load each info.js file in order (root first, then children)
     let anyLoaded = false
     for (const path of paths) {
       const loaded = await this.loadInfoFileForPath(path)
@@ -333,7 +333,7 @@ class ApiClient {
   private async loadInfoFileForPath(slug: string): Promise<boolean> {
     // Normalize the slug to a path
     const normalizedPath = slug === '/' ? '/' : slug.endsWith('/') ? slug.slice(0, -1) : slug
-    const infoFilePath = normalizedPath === '/' ? '/.info.js' : `${normalizedPath}/.info.js`
+    const infoFilePath = normalizedPath === '/' ? '/info.js' : `${normalizedPath}/info.js`
     
     // Check if we've already loaded this file
     if (this.loadedInfoFiles.has(infoFilePath)) {

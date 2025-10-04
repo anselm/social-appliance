@@ -38,17 +38,11 @@ window.APP_CONFIG = {
     // Cache duration in milliseconds (default: 5 minutes)
     cacheDuration: 5 * 60 * 1000,
     
-    // Always load static data on startup
+    // Load root info.js on startup
     loadStaticData: true,
     
     // Flush cache on startup (useful for development)
-    flushCacheOnStartup: false,
-    
-    // List of static data files to import
-    // These files should be in the public folder and follow the same format as static.info.js
-    staticDataFiles: [
-      '/static.info.js'
-    ],
+    flushCacheOnStartup: true,
     
     // Server availability check interval (milliseconds)
     // Set to 0 to disable automatic retry
