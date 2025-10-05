@@ -5,10 +5,21 @@ const log = loggers.api
 
 export const api = {
   async request(path: string, options: RequestInit = {}) {
-    return apiClient.request(path, options)
+    const method = options.method || 'GET'
+    log.debug(`API request: ${method} ${path}`)
+    
+    try {
+      const result = await apiClient.request(path, options)
+      log.debug(`API request successful: ${method} ${path}`)
+      return result
+    } catch (error: any) {
+      log.error(`API request failed: ${method} ${path}`, error)
+      throw error
+    }
   },
 
   async createPost(data: any) {
+    log.info('Creating post:', data.title || 'untitled')
     return this.request('/posts', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -16,6 +27,7 @@ export const api = {
   },
 
   async createGroup(data: any) {
+    log.info('Creating group:', data.title || data.slug || 'untitled')
     return this.request('/groups', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -23,6 +35,7 @@ export const api = {
   },
 
   async createUser(data: any) {
+    log.info('Creating user:', data.slug || 'unnamed')
     return this.request('/users', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -31,9 +44,12 @@ export const api = {
 
   async getEntityBySlug(slug: string) {
     try {
+      log.debug(`Getting entity by slug: ${slug}`)
+      
       // Special handling for root slug
       if (slug === '/') {
         const response = await this.request('/entities/slug')
+        log.debug('Got root entity:', response?.id)
         return response
       }
       
@@ -42,6 +58,7 @@ export const api = {
       const encodedSlug = segments.map(s => encodeURIComponent(s)).join('/')
       const fullPath = `/entities/slug/${encodedSlug}`
       const response = await this.request(fullPath)
+      log.debug(`Got entity by slug "${slug}":`, response?.id)
       return response
     } catch (error: any) {
       log.error(`Failed to get entity by slug "${slug}":`, error)
@@ -50,16 +67,20 @@ export const api = {
   },
 
   async queryEntities(filters: Record<string, any>) {
+    log.debug('Querying entities with filters:', filters)
     const params = new URLSearchParams()
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== null && value !== undefined) {
         params.append(key, value)
       }
     })
-    return this.request(`/entities?${params}`)
+    const result = await this.request(`/entities?${params}`)
+    log.debug(`Query returned ${Array.isArray(result) ? result.length : 0} entities`)
+    return result
   },
 
   async updateEntity(id: string, data: any) {
+    log.info(`Updating entity: ${id}`)
     return this.request(`/entities/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -67,6 +88,7 @@ export const api = {
   },
 
   async deleteEntity(id: string) {
+    log.info(`Deleting entity: ${id}`)
     return this.request(`/entities/${id}`, {
       method: 'DELETE',
     })
