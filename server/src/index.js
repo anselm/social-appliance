@@ -14,7 +14,7 @@ const rootDir = join(__dirname, '../../');
 dotenv.config({ path: join(rootDir, '.env') });
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.SERVERPORT || 8001;
 
 // Middleware
 app.use(cors());

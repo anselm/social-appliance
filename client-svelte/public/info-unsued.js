@@ -4,7 +4,7 @@ export const rootGroup = {
   slug: '/',
   type: 'group',
   title: '/Home',
-  content: 'Welcome',
+  content: 'Welcome home',
   view: 'list',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),

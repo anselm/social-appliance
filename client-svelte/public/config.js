@@ -13,8 +13,8 @@ window.APP_CONFIG = {
     // Header links (static only for post-build customization)
     links: [
       { label: 'Home', href: '/' },
-//      { label: 'Admin', href: '/admin' },
-//      { label: 'Login', href: '/login' }
+      { label: 'Admin', href: '/admin' },
+      { label: 'Login', href: '/login' }
     ],
     
     // Custom header component (as HTML string)
@@ -30,16 +30,16 @@ window.APP_CONFIG = {
     baseUrl: '/api',
     
     // Serverless mode - use only cached/static data
-    serverless: true,
+    serverless: false,
     
     // Enable client-side caching with IndexedDB
-    enableCache: true,
+    enableCache: false,
     
     // Cache duration in milliseconds (default: 5 minutes)
     cacheDuration: 5 * 60 * 1000,
     
     // Load root info.js on startup
-    loadStaticData: true,
+    loadStaticData: false,
     
     // Flush cache on startup (useful for development)
     flushCacheOnStartup: true,
@@ -52,16 +52,16 @@ window.APP_CONFIG = {
   // Feature flags
   features: {
     // Enable user authentication
-    authentication: false,
+    authentication: true,
     
     // Enable content creation
-    allowCreate: false,
+    allowCreate: true,
     
     // Enable content editing
-    allowEdit: false,
+    allowEdit: true,
     
     // Enable content deletion
-    allowDelete: false
+    allowDelete: true 
   },
   
   // Routing configuration
@@ -75,6 +75,7 @@ window.APP_CONFIG = {
   
   // Custom methods can be added here
   methods: {
+
     // Example: Custom initialization
     onInit: () => {
       console.log('App initialized with custom config');
