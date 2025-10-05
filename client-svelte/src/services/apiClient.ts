@@ -48,10 +48,24 @@ class ApiClient {
       log.info('Flushing cache on startup...')
       try {
         await db.delete()
+        log.info('Database deleted')
+        // Wait a bit to ensure the database is fully closed
+        await new Promise(resolve => setTimeout(resolve, 100))
         await db.open()
-        log.info('Cache flushed successfully')
+        log.info('Database reopened after flush')
       } catch (error) {
         log.error('Failed to flush cache:', error)
+      }
+    } else {
+      // Ensure database is open
+      try {
+        if (!db.isOpen()) {
+          log.info('Opening database...')
+          await db.open()
+          log.info('Database opened')
+        }
+      } catch (error) {
+        log.error('Failed to open database:', error)
       }
     }
     
@@ -98,6 +112,7 @@ class ApiClient {
     const fullUrl = `${config.baseUrl}${path}`
     
     try {
+      log.debug(`Fetching from server: ${fullUrl}`)
       const response = await fetch(fullUrl, {
         ...options,
         headers: {
@@ -116,6 +131,7 @@ class ApiClient {
         }
         const err = new Error(errorMessage)
         ;(err as any).status = response.status
+        log.error(`Server request failed: ${errorMessage}`)
         throw err
       }
       
@@ -127,6 +143,7 @@ class ApiClient {
         throw err
       }
       
+      log.debug(`Server request successful: ${path}`)
       return data
     } catch (error: any) {
       log.info('Server request failed:', error.message)
@@ -136,7 +153,12 @@ class ApiClient {
   
   async request(path: string, options: RequestInit = {}) {
     // Ensure initialization is complete
-    await this.init()
+    try {
+      await this.init()
+    } catch (error) {
+      log.error('Initialization failed:', error)
+      throw error
+    }
     
     const config = get(apiConfig)
     const method = options.method || 'GET'
@@ -184,11 +206,21 @@ class ApiClient {
     const slug = this.extractSlugFromPath(path)
     if (slug) {
       log.debug(`Attempting to load info.js files for slug: ${slug}`)
-      await this.loadInfoFilesForPathHierarchy(slug)
+      try {
+        await this.loadInfoFilesForPathHierarchy(slug)
+      } catch (error) {
+        log.error('Failed to load info files:', error)
+      }
     }
     
     // Step 2: Check cache
-    const cached = await this.getFromCache(path)
+    let cached: any = null
+    try {
+      cached = await this.getFromCache(path)
+    } catch (error) {
+      log.error('Failed to get from cache:', error)
+      // Continue to try server
+    }
     
     // Step 3: If we have cached data and it's not stale, return it
     if (cached !== null && cached !== undefined) {
@@ -217,10 +249,15 @@ class ApiClient {
           
           // Cache the fresh data
           if (data && typeof data === 'object') {
-            if (Array.isArray(data)) {
-              await cacheEntities(data)
-            } else if (data.id) {
-              await cacheEntity(data)
+            try {
+              if (Array.isArray(data)) {
+                await cacheEntities(data)
+              } else if (data.id) {
+                await cacheEntity(data)
+              }
+            } catch (error) {
+              log.error('Failed to cache server response:', error)
+              // Continue anyway - we have the data
             }
           }
           
@@ -320,9 +357,13 @@ class ApiClient {
     // Load each info.js file in order (root first, then children)
     let anyLoaded = false
     for (const path of paths) {
-      const loaded = await this.loadInfoFileForPath(path)
-      if (loaded) {
-        anyLoaded = true
+      try {
+        const loaded = await this.loadInfoFileForPath(path)
+        if (loaded) {
+          anyLoaded = true
+        }
+      } catch (error) {
+        log.error(`Failed to load info file for ${path}:`, error)
       }
     }
     
@@ -368,7 +409,12 @@ class ApiClient {
           const entitiesWithStubs = await this.ensureParentStubs(entities)
           
           // Cache all entities
-          await cacheEntities(entitiesWithStubs)
+          try {
+            await cacheEntities(entitiesWithStubs)
+          } catch (error) {
+            log.error('Failed to cache entities from info file:', error)
+            throw error
+          }
           
           return true
         } else {
@@ -397,7 +443,12 @@ class ApiClient {
     for (const entity of entities) {
       if (entity.parentId && !existingIds.has(entity.parentId)) {
         // Check if parent exists in cache
-        const parentInCache = await getCachedEntity(entity.parentId)
+        let parentInCache = null
+        try {
+          parentInCache = await getCachedEntity(entity.parentId)
+        } catch (error) {
+          log.error('Failed to check for parent in cache:', error)
+        }
         
         if (!parentInCache && !this.stubEntityIds.has(entity.parentId)) {
           log.debug(`Creating stub for parent: ${entity.parentId}`)
