@@ -43,41 +43,51 @@ class ApiClient {
     log.info('Initializing...')
     log.debug('Config:', config)
     
-    // Flush cache if configured
-    if (config.flushCacheOnStartup) {
-      log.info('Flushing cache on startup...')
-      try {
-        await db.delete()
-        log.info('Database deleted')
-        // Wait a bit to ensure the database is fully closed
-        await new Promise(resolve => setTimeout(resolve, 100))
-        await db.open()
-        log.info('Database reopened after flush')
-      } catch (error) {
-        log.error('Failed to flush cache:', error)
+    // Only initialize cache if caching is enabled
+    if (config.enableCache) {
+      log.info('Cache is enabled')
+      
+      // Flush cache if configured
+      if (config.flushCacheOnStartup) {
+        log.info('Flushing cache on startup...')
+        try {
+          await db.delete()
+          log.info('Database deleted')
+          // Wait a bit to ensure the database is fully closed
+          await new Promise(resolve => setTimeout(resolve, 100))
+          await db.open()
+          log.info('Database reopened after flush')
+        } catch (error) {
+          log.error('Failed to flush cache:', error)
+        }
+      } else {
+        // Ensure database is open
+        try {
+          if (!db.isOpen()) {
+            log.info('Opening database...')
+            await db.open()
+            log.info('Database opened')
+          }
+        } catch (error) {
+          log.error('Failed to open database:', error)
+        }
+      }
+      
+      // Load root info.js file if configured
+      if (config.loadStaticData) {
+        log.info('Loading static data is enabled')
+        console.log('ApiClient: Loading root info.js...')
+        try {
+          await this.loadInfoFileForPath('/')
+          console.log('ApiClient: Root info.js loaded successfully')
+        } catch (error) {
+          log.error('Failed to load root info.js:', error)
+        }
+      } else {
+        log.info('Loading static data is disabled')
       }
     } else {
-      // Ensure database is open
-      try {
-        if (!db.isOpen()) {
-          log.info('Opening database...')
-          await db.open()
-          log.info('Database opened')
-        }
-      } catch (error) {
-        log.error('Failed to open database:', error)
-      }
-    }
-    
-    // Load root info.js file if configured
-    if (config.loadStaticData) {
-      console.log('ApiClient: Loading root info.js...')
-      try {
-        await this.loadInfoFileForPath('/')
-        console.log('ApiClient: Root info.js loaded successfully')
-      } catch (error) {
-        log.error('Failed to load root info.js:', error)
-      }
+      log.info('Cache is disabled - will fetch directly from server')
     }
     
     log.info('Initialization complete')
@@ -165,9 +175,14 @@ class ApiClient {
     
     log.debug(`Request ${method} ${path}`)
     
-    // For GET requests, use read-through cache pattern
+    // For GET requests, use cache if enabled, otherwise go direct to server
     if (method === 'GET') {
-      return this.getWithCache(path)
+      if (config.enableCache) {
+        return this.getWithCache(path)
+      } else {
+        // Cache disabled - fetch directly from server
+        return this.getDirectFromServer(path)
+      }
     }
     
     // For mutations, try server first (if available), then fail
@@ -183,12 +198,17 @@ class ApiClient {
     try {
       const data = await this.fetchFromServer(path, options)
       
-      // Cache the response if it's an entity or array of entities
-      if (data && typeof data === 'object') {
-        if (Array.isArray(data)) {
-          await cacheEntities(data)
-        } else if (data.id) {
-          await cacheEntity(data)
+      // Cache the response if caching is enabled and it's an entity or array of entities
+      if (config.enableCache && data && typeof data === 'object') {
+        try {
+          if (Array.isArray(data)) {
+            await cacheEntities(data)
+          } else if (data.id) {
+            await cacheEntity(data)
+          }
+        } catch (error) {
+          log.error('Failed to cache mutation response:', error)
+          // Continue anyway - mutation succeeded
         }
       }
       
@@ -199,17 +219,40 @@ class ApiClient {
     }
   }
   
+  private async getDirectFromServer(path: string): Promise<any> {
+    const config = get(apiConfig)
+    
+    log.debug('Cache disabled - fetching directly from server')
+    
+    if (config.serverless) {
+      const err = new Error('Server unavailable and cache is disabled')
+      ;(err as any).status = 503
+      throw err
+    }
+    
+    const serverAvailable = await this.checkServerAvailability()
+    if (!serverAvailable) {
+      const err = new Error('Server unavailable')
+      ;(err as any).status = 503
+      throw err
+    }
+    
+    return this.fetchFromServer(path)
+  }
+  
   private async getWithCache(path: string): Promise<any> {
     const config = get(apiConfig)
     
-    // Step 1: Try to load info.js files for the requested path and all parent paths
-    const slug = this.extractSlugFromPath(path)
-    if (slug) {
-      log.debug(`Attempting to load info.js files for slug: ${slug}`)
-      try {
-        await this.loadInfoFilesForPathHierarchy(slug)
-      } catch (error) {
-        log.error('Failed to load info files:', error)
+    // Step 1: Try to load info.js files for the requested path (only if loadStaticData is enabled)
+    if (config.loadStaticData) {
+      const slug = this.extractSlugFromPath(path)
+      if (slug) {
+        log.debug(`Attempting to load info.js files for slug: ${slug}`)
+        try {
+          await this.loadInfoFilesForPathHierarchy(slug)
+        } catch (error) {
+          log.error('Failed to load info files:', error)
+        }
       }
     }
     
