@@ -33,7 +33,7 @@ export function setGlobalLogLevel(level: log.LogLevelDesc) {
 
 // Expose to window for debugging
 if (typeof window !== 'undefined') {
-  (window as any).setLogLevel = setGlobalLogLevel
+  (window as any).setLogLevel = setGlobalLogLevel;
   (window as any).loggers = loggers
 }
 
