@@ -3,15 +3,14 @@
   import { authStore } from '../stores/auth'
   import { config } from '../stores/appConfig'
   import RouterLink from '../components/RouterLink.svelte'
-  import EntityForm from '../components/EntityForm.svelte'
-  import EntityActions from '../components/EntityActions.svelte'
+  import EntityManagementControls from '../components/EntityManagementControls.svelte'
   import PostView from '../components/PostView.svelte'
   import GroupViewGrid from '../components/GroupViewGrid.svelte'
   import GroupViewList from '../components/GroupViewList.svelte'
   import GroupViewCards from '../components/GroupViewCards.svelte'
   import GroupViewDefault from '../components/GroupViewDefault.svelte'
   import { navigateTo } from '../utils/navigation'
-  import { canUserEditEntity, getParentSlug } from '../utils/entityHelpers'
+  import { getParentSlug } from '../utils/entityHelpers'
   import type { Entity } from '../types'
 
   export let path: string = '/'
@@ -26,26 +25,17 @@
   let error: string | null = null
   let currentLoadingSlug: string | null = null
   let hasAttemptedLoad = false
-  let editMode = false
-  let deleting = false
-  let showNewEntityForm = false
-  let creatingEntity = false
 
   $: {
     const newSlug = routingMode === 'query' ? path : (wildcard || '/')
     if (newSlug !== slug) {
       slug = newSlug
       hasAttemptedLoad = false
-      editMode = false
-      showNewEntityForm = false
       loadEntity(slug)
     } else if (slug && !currentLoadingSlug && !entity && !hasAttemptedLoad) {
       loadEntity(slug)
     }
   }
-  
-  $: canEdit = canUserEditEntity(entity, $authStore)
-  $: canCreateChild = entity && entity.type === 'group' && $authStore
 
   async function loadEntity(targetSlug: string) {
     if (currentLoadingSlug === targetSlug) return
@@ -104,99 +94,61 @@
     }
   }
 
-  async function handleEditEntity(event: CustomEvent) {
+  async function handleUpdate(updates: any) {
     if (!entity || !$authStore) return
     
-    const updates = event.detail
+    await api.updateEntity(entity.id, {
+      title: updates.title,
+      content: updates.content,
+      slug: updates.slug,
+      view: updates.view,
+      depiction: updates.depiction
+    })
     
-    try {
-      await api.updateEntity(entity.id, {
-        title: updates.title,
-        content: updates.content,
-        slug: updates.slug,
-        view: updates.view,
-        depiction: updates.depiction
-      })
-      
-      editMode = false
-      
-      if (updates.slug !== entity.slug) {
-        navigateTo(updates.slug)
-      } else {
-        await loadEntity(slug)
-      }
-    } catch (error: any) {
-      console.error('Failed to update entity:', error)
-      alert('Failed to update entity: ' + (error.message || error))
+    if (updates.slug !== entity.slug) {
+      navigateTo(updates.slug)
+    } else {
+      await loadEntity(slug)
     }
   }
   
-  async function handleDeleteEntity() {
-    if (!entity || !canEdit || deleting) return
+  async function handleDelete() {
+    if (!entity) return
     
-    const confirmed = confirm(`Are you sure you want to delete "${entity.title || entity.slug}"?\n\nThis action cannot be undone.`)
-    if (!confirmed) return
-    
-    deleting = true
-    
-    try {
-      await api.deleteEntity(entity.id)
-      const parentSlug = getParentSlug(entity.slug || '/')
-      navigateTo(parentSlug)
-    } catch (error: any) {
-      console.error('Failed to delete entity:', error)
-      alert('Failed to delete entity: ' + (error.message || error))
-      deleting = false
-    }
+    await api.deleteEntity(entity.id)
+    const parentSlug = getParentSlug(entity.slug || '/')
+    navigateTo(parentSlug)
   }
 
-  async function handleCreateChildEntity(event: CustomEvent) {
-    if (creatingEntity || !entity) return
+  async function handleCreateChild(entityData: any) {
+    if (!entity || !$authStore) return
     
-    const entityData = event.detail
-    
-    if (!$authStore) {
-      alert('You must be logged in to create entities')
-      return
+    const data: any = {
+      type: entityData.type,
+      title: entityData.title,
+      content: entityData.content,
+      slug: entityData.slug,
+      auth: $authStore.address || $authStore.issuer,
+      sponsorId: $authStore.address || $authStore.issuer,
+      parentId: entity.id
     }
     
-    creatingEntity = true
+    if (entityData.view) data.view = entityData.view
+    if (entityData.depiction) data.depiction = entityData.depiction
     
-    try {
-      const data: any = {
-        type: entityData.type,
-        title: entityData.title,
-        content: entityData.content,
-        slug: entityData.slug,
-        auth: $authStore.address || $authStore.issuer,
-        sponsorId: $authStore.address || $authStore.issuer,
-        parentId: entity.id
-      }
-      
-      if (entityData.view) data.view = entityData.view
-      if (entityData.depiction) data.depiction = entityData.depiction
-      
-      let result
-      if (entityData.type === 'group') {
-        result = await api.createGroup(data)
-      } else if (entityData.type === 'party') {
-        result = await api.createUser(data)
-      } else {
-        result = await api.createPost(data)
-      }
-      
-      showNewEntityForm = false
-      
-      if (result?.slug) {
-        navigateTo(result.slug)
-      } else {
-        await loadEntity(slug)
-      }
-    } catch (error: any) {
-      console.error('Failed to create entity:', error)
-      alert('Failed to create entity: ' + (error.message || error))
-    } finally {
-      creatingEntity = false
+    let result
+    if (entityData.type === 'group') {
+      result = await api.createGroup(data)
+    } else if (entityData.type === 'party') {
+      result = await api.createUser(data)
+    } else {
+      result = await api.createPost(data)
+    }
+    
+    if (result?.slug) {
+      navigateTo(result.slug)
+    } else {
+      await loadEntity(slug)
     }
   }
 </script>
@@ -214,66 +166,15 @@
     <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">← Back to home</RouterLink>
   </div>
 {:else}
-  {#if editMode}
-    <div class="mb-8">
-      <EntityForm
-        {entity}
-        parentSlug={getParentSlug(entity.slug || '/')}
-        mode="edit"
-        on:submit={handleEditEntity}
-        on:cancel={() => editMode = false}
-      />
-    </div>
+  {#if entity.type === 'post'}
+    <PostView {entity} onUpdate={handleUpdate} onDelete={handleDelete} />
+  {:else if entity.view === 'grid'}
+    <GroupViewGrid {entity} {children} onUpdate={handleUpdate} onDelete={handleDelete} onCreateChild={handleCreateChild} />
+  {:else if entity.view === 'cards'}
+    <GroupViewCards {entity} {children} onUpdate={handleUpdate} onDelete={handleDelete} onCreateChild={handleCreateChild} />
+  {:else if entity.view === 'list'}
+    <GroupViewList {entity} {children} onUpdate={handleUpdate} onDelete={handleDelete} onCreateChild={handleCreateChild} />
   {:else}
-    <div class="flex items-start justify-between gap-4 mb-6">
-      <EntityActions 
-        {canEdit} 
-        {deleting}
-        on:edit={() => editMode = true}
-        on:delete={handleDeleteEntity}
-      />
-    </div>
-    
-    {#if entity.type === 'post'}
-      <PostView {entity} />
-    {:else if entity.view === 'grid'}
-      <GroupViewGrid {entity} {children} />
-    {:else if entity.view === 'cards'}
-      <GroupViewCards {entity} {children} />
-    {:else if entity.view === 'list'}
-      <GroupViewList {entity} {children} />
-    {:else}
-      <GroupViewDefault {entity} {children} />
-    {/if}
-
-    <br/>
-    <hr/>
-    <br/>
-
-    {#if entity.type === 'group'}
-      {#if canCreateChild && !showNewEntityForm}
-        <div class="mb-6">
-          <button
-            on:click={() => showNewEntityForm = true}
-            class="px-3 py-1 border border-white/20 hover:bg-white hover:text-black transition-colors text-xs uppercase tracking-wider"
-          >
-            + New Entity
-          </button>
-        </div>
-      {/if}
-
-      {#if showNewEntityForm}
-        <div class="mb-8">
-          <EntityForm
-            parentSlug={entity.slug || '/'}
-            mode="create"
-            on:submit={handleCreateChildEntity}
-            on:cancel={() => showNewEntityForm = false}
-          />
-        </div>
-      {/if}
-    {/if}
-
-
+    <GroupViewDefault {entity} {children} onUpdate={handleUpdate} onDelete={handleDelete} onCreateChild={handleCreateChild} />
   {/if}
 {/if}
