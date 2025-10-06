@@ -26,9 +26,6 @@ export default defineConfig({
     svelte({ 
       preprocess: vitePreprocess(),
       compilerOptions: {
-        compatibility: {
-          componentApi: 4
-        },
         dev: true
       },
       hot: false,
