@@ -3,15 +3,9 @@
   import { verifyMessage } from "../lib/siweVerify";
   import { authStore } from "../stores/auth";
   import { navigateTo } from "../utils/navigation";
-  import { onMount } from 'svelte';
 
   let error = "";
   let loading = false;
-
-  // Redirect if already logged in
-  $: if ($authStore) {
-    navigateTo('/');
-  }
 
   async function connectMetamask() {
     error = "";
