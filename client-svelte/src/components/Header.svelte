@@ -108,6 +108,14 @@
             Admin
           </RouterLink>
           
+          <RouterLink 
+            to="/testmap" 
+            className="block text-sm hover:text-white/80 transition-colors"
+            on:click={closeMenu}
+          >
+            Test Map
+          </RouterLink>
+          
           <button 
             class="block text-sm text-white/60 hover:text-white/80 transition-colors cursor-not-allowed"
             disabled

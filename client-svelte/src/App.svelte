@@ -4,6 +4,7 @@
   import EntityView from './pages/EntityView.svelte'
   import Login from './pages/siwe-magic-login.svelte'
   import Admin from './pages/Admin.svelte'
+  import TestMap from './pages/TestMap.svelte'
   import { config } from './stores/appConfig'
   import { authStore } from './stores/auth'
   import { getCurrentPath } from './utils/navigation'
@@ -52,8 +53,9 @@
   
   // Determine which component to show based on path (for query mode)
   $: queryComponent = isInvalidRoute ? EntityView :
-                      actualPath === '/login' ? Login : 
-                      actualPath === '/admin' ? Admin : 
+                      actualPath === '/login' ? Login :
+                      actualPath === '/admin' ? Admin :
+                      actualPath === '/testmap' ? TestMap :
                       EntityView
   
   // Pass the path as a prop to EntityView (for query mode)
@@ -76,6 +78,7 @@
     <Layout>
       <Route path="/login" component={Login} />
       <Route path="/admin" component={Admin} />
+      <Route path="/testmap" component={TestMap} />
       <Route path="/" component={EntityView} />
       <Route path="/*wildcard" component={EntityView} />
     </Layout>
