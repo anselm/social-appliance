@@ -18,22 +18,17 @@
     child.latitude != null && child.longitude != null
   )
 
-  $: {
-    console.log('GroupViewMap: Component reactive update', {
-      entityId: entity?.id,
-      entitySlug: entity?.slug,
-      totalChildren: children.length,
-      locatedChildren: locatedChildren.length,
-      mapReady
-    })
-  }
-
   onMount(async () => {
     console.log('GroupViewMap: onMount started')
     console.log('GroupViewMap: Entity:', entity)
     console.log('GroupViewMap: Children count:', children.length)
     console.log('GroupViewMap: Located children count:', locatedChildren.length)
     console.log('GroupViewMap: Map container element:', mapContainer)
+
+    if (!mapContainer) {
+      console.error('GroupViewMap: Map container is not defined!')
+      return
+    }
 
     try {
       // Import Leaflet CSS first
