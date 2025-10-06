@@ -20,21 +20,31 @@
   let loading = $state(true)
   let error = $state<string | null>(null)
   let currentLoadingSlug = $state<string | null>(null)
+  let lastLoadedSlug = $state<string | null>(null)
 
   console.log('EntityView: Component initialized with path:', path, 'wildcard:', wildcard)
 
+  // Use $effect.pre to ensure it runs before rendering
   $effect(() => {
-    console.log('EntityView: Effect triggered with slug:', slug)
+    // Force the effect to track slug by reading it
+    const currentSlug = slug
+    
+    console.log('EntityView: Effect triggered')
+    console.log('EntityView: currentSlug:', currentSlug)
+    console.log('EntityView: lastLoadedSlug:', lastLoadedSlug)
     console.log('EntityView: currentLoadingSlug:', currentLoadingSlug)
     console.log('EntityView: entity:', entity?.slug)
     console.log('EntityView: loading:', loading)
     
-    // Only load if we're not already loading this slug and it's different from current entity
-    if (slug && slug !== currentLoadingSlug) {
-      console.log('EntityView: Calling loadEntity for:', slug)
-      loadEntity(slug)
+    // Load if:
+    // 1. We have a slug
+    // 2. We're not currently loading this slug
+    // 3. We haven't already loaded this slug
+    if (currentSlug && currentSlug !== currentLoadingSlug && currentSlug !== lastLoadedSlug) {
+      console.log('EntityView: Calling loadEntity for:', currentSlug)
+      loadEntity(currentSlug)
     } else {
-      console.log('EntityView: Skipping load - already loading or loaded')
+      console.log('EntityView: Skipping load - conditions not met')
     }
   })
 
@@ -63,6 +73,7 @@
       }
       
       entity = entityData
+      lastLoadedSlug = targetSlug
       
       console.log('EntityView: Loaded entity:', entity)
       console.log('EntityView: Entity type:', entity.type)
