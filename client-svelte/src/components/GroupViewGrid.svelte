@@ -8,13 +8,9 @@
   export let children: Entity[] = []
   
   const dispatch = createEventDispatcher()
-  
-  function handleCreatePost(event: CustomEvent) {
-    dispatch('createPost', event.detail)
-  }
 </script>
 
-<EntityHeader {entity} on:createPost={handleCreatePost} />
+<EntityHeader {entity} />
 
 {#if children.length > 0}
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

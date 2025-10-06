@@ -10,10 +10,6 @@
   
   const dispatch = createEventDispatcher()
   
-  function handleCreatePost(event: CustomEvent) {
-    dispatch('createPost', event.detail)
-  }
-  
   function stripHtml(html: string): string {
     const tmp = document.createElement('div')
     tmp.innerHTML = html
@@ -27,7 +23,7 @@
   }
 </script>
 
-<EntityHeader {entity} on:createPost={handleCreatePost} />
+<EntityHeader {entity} />
 
 {#if children.length > 0}
   <div class="space-y-6">
