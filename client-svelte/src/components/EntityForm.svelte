@@ -121,7 +121,7 @@
       rows="6"
       class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
       placeholder="Enter content (supports Markdown)"
-    />
+    ></textarea>
   </div>
   
   {#if formData.type === 'group'}

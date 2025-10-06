@@ -5,8 +5,14 @@
   import EntityActions from './EntityActions.svelte'
   import { canUserEditEntity, getParentSlug } from '../utils/entityHelpers'
   import type { Entity } from '../types'
+  import type { Snippet } from 'svelte'
   
-  let { entity, showNewEntityButton = false }: { entity: Entity, showNewEntityButton?: boolean } = $props()
+  let { entity, showNewEntityButton = false, content, main }: { 
+    entity: Entity, 
+    showNewEntityButton?: boolean,
+    content?: Snippet,
+    main?: Snippet
+  } = $props()
   
   let editMode = $state(false)
   let deleting = $state(false)
@@ -133,7 +139,9 @@
 {:else}
   <div class="flex items-start justify-between gap-4 mb-6">
     <div class="flex-1">
-      <slot name="content" />
+      {#if content}
+        {@render content()}
+      {/if}
     </div>
     <EntityActions 
       {canEdit} 
@@ -143,7 +151,9 @@
     />
   </div>
   
-  <slot name="main" />
+  {#if main}
+    {@render main()}
+  {/if}
   
   {#if canCreateChild}
     <br/>

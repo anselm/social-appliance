@@ -49,32 +49,29 @@
   let isInvalidRoute = $derived(queryPath.startsWith('__INVALID__'))
   let actualPath = $derived(isInvalidRoute ? queryPath.substring('__INVALID__'.length) : queryPath)
   
-  // Determine which component to show based on path (for query mode)
-  let queryComponent = $derived(
-    isInvalidRoute ? EntityView :
-    actualPath === '/login' ? Login :
-    actualPath === '/admin' ? Admin :
-    actualPath === '/testmap' ? TestMap :
-    EntityView
-  )
-  
   // Pass the path as a prop to EntityView (for query mode)
-  let queryComponentProps = $derived(
-    queryComponent === EntityView ? { 
-      path: isInvalidRoute ? actualPath : actualPath 
-    } : {}
-  )
+  let queryComponentProps = $derived({ 
+    path: isInvalidRoute ? actualPath : actualPath 
+  })
   
   // Debug logging
   $effect(() => {
-    console.log('App state:', { routingMode, queryPath, actualPath, componentName: queryComponent.name })
+    console.log('App state:', { routingMode, queryPath, actualPath })
   })
 </script>
 
 {#if routingMode === 'query'}
   <Layout>
     {#key queryPath}
-      <svelte:component this={queryComponent} {...queryComponentProps} />
+      {#if actualPath === '/login'}
+        <Login />
+      {:else if actualPath === '/admin'}
+        <Admin />
+      {:else if actualPath === '/testmap'}
+        <TestMap />
+      {:else}
+        <EntityView {...queryComponentProps} />
+      {/if}
     {/key}
   </Layout>
 {:else}

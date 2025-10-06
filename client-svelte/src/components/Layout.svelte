@@ -1,8 +1,9 @@
 <script lang="ts">
   import Header from './Header.svelte'
   import { config } from '../stores/appConfig'
+  import type { Snippet } from 'svelte'
   
-  let { currentPath = '/', currentEntity = null }: { currentPath?: string, currentEntity?: any } = $props()
+  let { currentPath = '/', currentEntity = null, children }: { currentPath?: string, currentEntity?: any, children?: Snippet } = $props()
   
   let containerClass = $derived($config.layout?.containerClass || 'max-w-4xl mx-auto px-4 py-8')
 </script>
@@ -11,7 +12,9 @@
   <Header {currentPath} {currentEntity} />
   <div class={containerClass}>
     <main>
-      <slot />
+      {#if children}
+        {@render children()}
+      {/if}
     </main>
   </div>
 </div>

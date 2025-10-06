@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { EntityWithChildren } from '../../types'
   import EntityItem from './EntityItem.svelte'
+  import EntityTreeItem from './EntityTreeItem.svelte'
   
   let { 
     entity, 
@@ -50,7 +51,7 @@
   
   {#if hasChildren && expanded}
     {#each entity.children as child}
-      <svelte:self 
+      <EntityTreeItem 
         entity={child} 
         level={level + 1}
         expanded={expandedNodes.has(child.id)}

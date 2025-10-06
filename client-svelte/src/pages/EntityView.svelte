@@ -13,7 +13,7 @@
   let { path = '/', wildcard = '' }: { path?: string, wildcard?: string } = $props()
 
   let routingMode = $derived($config.routing?.mode || 'query')
-  let slug = $state(routingMode === 'query' ? path : (wildcard || '/'))
+  let slug = $derived(routingMode === 'query' ? path : (wildcard || '/'))
   
   let entity = $state<Entity | null>(null)
   let children = $state<Entity[]>([])
@@ -23,9 +23,7 @@
   let hasAttemptedLoad = $state(false)
 
   $effect(() => {
-    const newSlug = routingMode === 'query' ? path : (wildcard || '/')
-    if (newSlug !== slug) {
-      slug = newSlug
+    if (slug !== currentLoadingSlug && (!entity || entity.slug !== slug)) {
       hasAttemptedLoad = false
       loadEntity(slug)
     } else if (slug && !currentLoadingSlug && !entity && !hasAttemptedLoad) {

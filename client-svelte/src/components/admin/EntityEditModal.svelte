@@ -53,7 +53,7 @@
           bind:value={content}
           class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
           rows="4"
-        />
+        ></textarea>
       </div>
       <div class="flex gap-2">
         <button

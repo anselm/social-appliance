@@ -64,10 +64,11 @@
 
   <!-- Menu Overlay -->
   {#if menuOpen}
-    <div
+    <button
       class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
       onclick={closeMenu}
-    ></div>
+      aria-label="Close menu"
+    ></button>
     
     <nav class="fixed top-0 right-0 z-40 w-64 h-full bg-black border-l border-white/20 p-6 overflow-y-auto">
       <div class="mt-12 space-y-6">
