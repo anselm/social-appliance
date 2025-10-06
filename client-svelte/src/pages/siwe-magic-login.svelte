@@ -1,12 +1,13 @@
 <script lang="ts">
-  import { fetchNonce, buildSiweMessage } from "../lib/siwe";
   import { getMagic } from "../lib/magic";
-  import { postJSON } from "../lib/auth";
+  import { verifyMessage } from "../lib/siweVerify";
 
   let address = "";
+  let email = "";
   let who = "";
   let error = "";
   let loading = false;
+  let authData: { type: 'siwe' | 'magic', address?: string, email?: string, issuer?: string, didToken?: string } | null = null;
 
   async function connectMetamask() {
     error = "";
@@ -23,8 +24,26 @@
       const account = accounts?.[0];
       if (!account) throw new Error("No account found");
 
-      const nonce = await fetchNonce();
-      const message = buildSiweMessage(account, nonce);
+      // Generate a client-side nonce
+      const nonce = Math.random().toString(36).substring(2, 15);
+      const domain = window.location.host;
+      const uri = window.location.origin;
+      const statement = "Sign in with Ethereum to the app.";
+      const version = "1";
+      const chainId = 1;
+
+      const message = [
+        `${domain} wants you to sign in with your Ethereum account:`,
+        account,
+        "",
+        statement,
+        "",
+        `URI: ${uri}`,
+        `Version: ${version}`,
+        `Chain ID: ${chainId}`,
+        `Nonce: ${nonce}`,
+        `Issued At: ${new Date().toISOString()}`,
+      ].join("\n");
 
       // @ts-ignore
       const signature = await window.ethereum.request({
@@ -32,17 +51,25 @@
         params: [message, account],
       });
 
-      const res = await postJSON<{ address: string; appToken?: string }>("/api/verify-siwe", {
-        message,
-        signature,
-      });
+      // Verify the signature client-side
+      const isValid = await verifyMessage(message, signature, account);
+      
+      if (!isValid) {
+        throw new Error("Signature verification failed");
+      }
 
-      address = res.address;
+      address = account;
       who = `Wallet: ${address}`;
       
-      if (res.appToken) {
-        localStorage.setItem('authToken', res.appToken);
-      }
+      // Store auth data for later use
+      authData = {
+        type: 'siwe',
+        address: account
+      };
+      
+      // Store in localStorage for persistence
+      localStorage.setItem('authData', JSON.stringify(authData));
+      
     } catch (e: any) {
       console.error('MetaMask error:', e);
       error = e?.message || String(e);
@@ -62,32 +89,40 @@
         throw new Error("Magic.link is not configured. Please set VITE_MAGIC_PUBLISHABLE_KEY.");
       }
 
-      const email = window.prompt("Enter your email for a login link / OTP:");
-      if (!email) {
+      const userEmail = window.prompt("Enter your email for a login link / OTP:");
+      if (!userEmail) {
         loading = false;
         return;
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
+      if (!emailRegex.test(userEmail)) {
         throw new Error("Please enter a valid email address");
       }
 
-      const res = await magic.auth.loginWithEmailOTP({ email });
+      const res = await magic.auth.loginWithEmailOTP({ email: userEmail });
       if (!res) throw new Error("Magic login canceled");
 
+      // Get the DID token (we'll send this to server only when needed)
       const didToken = await magic.user.getIdToken();
-
-      const vr = await postJSON<{ issuer: string; email?: string; appToken?: string }>(
-        "/api/verify-magic",
-        { didToken }
-      );
-
-      who = `Magic user: ${vr.issuer}${vr.email ? " (" + vr.email + ")" : ""}`;
       
-      if (vr.appToken) {
-        localStorage.setItem('authToken', vr.appToken);
-      }
+      // Get user metadata
+      const metadata = await magic.user.getInfo();
+
+      email = metadata.email || userEmail;
+      who = `Magic user: ${metadata.email || userEmail}`;
+      
+      // Store auth data for later use
+      authData = {
+        type: 'magic',
+        email: metadata.email || userEmail,
+        issuer: metadata.issuer,
+        didToken: didToken
+      };
+      
+      // Store in localStorage for persistence
+      localStorage.setItem('authData', JSON.stringify(authData));
+      
     } catch (e: any) {
       console.error('Magic error:', e);
       error = e?.message || String(e);
@@ -98,17 +133,45 @@
 
   async function logout() {
     try {
-      const magic = getMagic();
-      await magic.user.logout();
+      if (authData?.type === 'magic') {
+        const magic = getMagic();
+        await magic.user.logout();
+      }
+      
+      localStorage.removeItem('authData');
       localStorage.removeItem('authToken');
+      authData = null;
       who = "";
       address = "";
+      email = "";
       error = "";
     } catch (e: any) {
       console.error('Logout error:', e);
       error = e?.message || String(e);
     }
   }
+
+  // Check for existing auth on mount
+  import { onMount } from 'svelte';
+  
+  onMount(() => {
+    const stored = localStorage.getItem('authData');
+    if (stored) {
+      try {
+        authData = JSON.parse(stored);
+        if (authData?.type === 'siwe' && authData.address) {
+          address = authData.address;
+          who = `Wallet: ${address}`;
+        } else if (authData?.type === 'magic' && authData.email) {
+          email = authData.email;
+          who = `Magic user: ${email}`;
+        }
+      } catch (e) {
+        console.error('Failed to restore auth:', e);
+        localStorage.removeItem('authData');
+      }
+    }
+  });
 </script>
 
 <div class="max-w-2xl mx-auto p-6">
@@ -153,6 +216,9 @@
     {#if who}
       <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
         <p class="text-green-800">✅ {who}</p>
+        <p class="text-xs text-green-600 mt-2">
+          Authentication verified locally. Credentials will be sent to server only when performing operations.
+        </p>
       </div>
     {/if}
     
@@ -172,8 +238,9 @@
   <div class="mt-8 p-4 bg-gray-50 rounded-lg">
     <h2 class="text-lg font-semibold mb-2">About Authentication</h2>
     <ul class="list-disc list-inside space-y-1 text-sm text-gray-700">
-      <li><strong>MetaMask (SIWE):</strong> Sign in with your Ethereum wallet using the Sign-In with Ethereum standard</li>
-      <li><strong>Magic (Email):</strong> Passwordless authentication via email link or one-time password</li>
+      <li><strong>MetaMask (SIWE):</strong> Sign in with your Ethereum wallet using the Sign-In with Ethereum standard. Signature is verified client-side.</li>
+      <li><strong>Magic (Email):</strong> Passwordless authentication via email link or one-time password. DID token is stored locally.</li>
+      <li><strong>Permissionless:</strong> No server authentication required until you perform an actual operation.</li>
     </ul>
   </div>
 </div>
