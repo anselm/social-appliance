@@ -1,8 +1,9 @@
 <script lang="ts">
   import { config } from '../stores/appConfig'
   import { navigateTo } from '../utils/navigation'
+  import type { Snippet } from 'svelte'
   
-  let { to, className = '', children }: { to: string, className?: string, children?: any } = $props()
+  let { to, className = '', children }: { to: string, className?: string, children?: Snippet } = $props()
   
   let routingMode = $derived($config.routing?.mode || 'query')
   
@@ -22,7 +23,5 @@
 >
   {#if children}
     {@render children()}
-  {:else}
-    <slot />
   {/if}
 </a>
