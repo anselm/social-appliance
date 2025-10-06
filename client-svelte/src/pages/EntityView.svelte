@@ -29,6 +29,8 @@
   let hasAttemptedLoad = false
   let editMode = false
   let deleting = false
+  let showNewEntityForm = false
+  let creatingEntity = false
 
   $: {
     const newSlug = routingMode === 'query' ? path : (wildcard || '/')
@@ -36,6 +38,7 @@
       slug = newSlug
       hasAttemptedLoad = false
       editMode = false
+      showNewEntityForm = false
       loadEntity(slug)
     } else if (slug && !currentLoadingSlug && !entity && !hasAttemptedLoad) {
       loadEntity(slug)
@@ -43,6 +46,7 @@
   }
   
   $: canEdit = canUserEditEntity(entity, $authStore)
+  $: canCreateChild = entity && entity.type === 'group' && $authStore
 
   async function loadEntity(targetSlug: string) {
     if (currentLoadingSlug === targetSlug) return
@@ -146,6 +150,56 @@
       deleting = false
     }
   }
+
+  async function handleCreateChildEntity(event: CustomEvent) {
+    if (creatingEntity || !entity) return
+    
+    const entityData = event.detail
+    
+    if (!$authStore) {
+      alert('You must be logged in to create entities')
+      return
+    }
+    
+    creatingEntity = true
+    
+    try {
+      const data: any = {
+        type: entityData.type,
+        title: entityData.title,
+        content: entityData.content,
+        slug: entityData.slug,
+        auth: $authStore.address || $authStore.issuer,
+        sponsorId: $authStore.address || $authStore.issuer,
+        parentId: entity.id
+      }
+      
+      if (entityData.view) data.view = entityData.view
+      if (entityData.depiction) data.depiction = entityData.depiction
+      
+      let result
+      if (entityData.type === 'group') {
+        result = await api.createGroup(data)
+      } else if (entityData.type === 'party') {
+        result = await api.createUser(data)
+      } else {
+        result = await api.createPost(data)
+      }
+      
+      showNewEntityForm = false
+      
+      if (result?.slug) {
+        navigateTo(result.slug)
+      } else {
+        await loadEntity(slug)
+      }
+    } catch (error: any) {
+      console.error('Failed to create entity:', error)
+      alert('Failed to create entity: ' + (error.message || error))
+    } finally {
+      creatingEntity = false
+    }
+  }
 </script>
 
 {#if loading}
@@ -183,6 +237,30 @@
         on:delete={handleDeleteEntity}
       />
     </div>
+    
+    {#if entity.type === 'group'}
+      {#if canCreateChild && !showNewEntityForm}
+        <div class="mb-6">
+          <button
+            on:click={() => showNewEntityForm = true}
+            class="px-3 py-1 border border-white/20 hover:bg-white hover:text-black transition-colors text-xs uppercase tracking-wider"
+          >
+            + New Entity
+          </button>
+        </div>
+      {/if}
+      
+      {#if showNewEntityForm}
+        <div class="mb-8">
+          <EntityForm
+            parentSlug={entity.slug || '/'}
+            mode="create"
+            on:submit={handleCreateChildEntity}
+            on:cancel={() => showNewEntityForm = false}
+          />
+        </div>
+      {/if}
+    {/if}
     
     {#if entity.type === 'post'}
       <PostView {entity} />
