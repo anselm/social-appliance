@@ -24,7 +24,10 @@
           />
         {/if}
         <div class="p-4">
-          <h3 class="text-sm font-medium mb-2">{child.title || child.slug || 'Untitled'}</h3>
+          <div class="flex items-baseline gap-2 mb-2">
+            <span class="text-xs text-white/40">[{child.type}]</span>
+            <h3 class="text-sm font-medium flex-1">{child.title || child.slug || 'Untitled'}</h3>
+          </div>
           {#if child.content}
             <p class="text-xs text-white/60 line-clamp-3">{child.content}</p>
           {/if}

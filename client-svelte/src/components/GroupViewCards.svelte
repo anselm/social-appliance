@@ -39,7 +39,7 @@
         <div class="p-6">
           <div class="flex items-start justify-between mb-3">
             <div>
-              <span class="text-xs text-white/60 uppercase tracking-wider">{child.type}</span>
+              <span class="text-xs text-white/40 uppercase tracking-wider">[{child.type}]</span>
               <h3 class="text-lg font-medium mt-1">{child.title || child.slug || 'Untitled'}</h3>
             </div>
             <span class="text-xs text-white/40">{new Date(child.createdAt).toLocaleDateString()}</span>
