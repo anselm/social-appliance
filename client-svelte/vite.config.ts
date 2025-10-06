@@ -28,8 +28,11 @@ export default defineConfig({
       compilerOptions: {
         compatibility: {
           componentApi: 4
-        }
-      }
+        },
+        dev: true
+      },
+      hot: false,
+      emitCss: true
     }),
   ],
 
@@ -41,6 +44,7 @@ export default defineConfig({
         changeOrigin: true
       }
     },
+    hmr: false,
     // SPA fallback - serve index.html for all routes
     historyApiFallback: {
       rewrites: [
@@ -68,5 +72,9 @@ export default defineConfig({
 
   resolve: {
     conditions: ['browser', 'default']
+  },
+
+  optimizeDeps: {
+    exclude: ['svelte']
   }
 });
