@@ -12,6 +12,12 @@
   let map: any = null
   let mapReady = false
   let initError: string | null = null
+  let logMessages: string[] = []
+
+  function log(message: string) {
+    console.log('GroupViewMap:', message)
+    logMessages = [...logMessages, `${new Date().toISOString().substr(11, 8)} - ${message}`]
+  }
 
   // Filter children that have location data
   $: locatedChildren = children.filter(child => 
@@ -19,21 +25,18 @@
   )
 
   onMount(async () => {
-    console.log('=== GroupViewMap: onMount START ===')
-    console.log('GroupViewMap: Entity:', entity)
-    console.log('GroupViewMap: Children count:', children.length)
-    console.log('GroupViewMap: Located children count:', locatedChildren.length)
-    console.log('GroupViewMap: Map container element:', mapContainer)
+    log('onMount START')
+    log('Map container: ' + (mapContainer ? 'found' : 'NOT FOUND'))
 
     if (!mapContainer) {
-      console.error('GroupViewMap: Map container is not defined!')
+      log('ERROR: No map container!')
       initError = 'Map container not found'
       return
     }
 
     try {
-      // Load Leaflet CSS
-      console.log('GroupViewMap: Loading Leaflet CSS...')
+      // Load Leaflet CSS from CDN
+      log('Loading Leaflet CSS from CDN...')
       const existingLink = document.querySelector('link[href*="leaflet"]')
       if (!existingLink) {
         const link = document.createElement('link')
@@ -42,70 +45,83 @@
         link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY='
         link.crossOrigin = ''
         document.head.appendChild(link)
-        console.log('GroupViewMap: Leaflet CSS link added to head')
+        log('CSS link added to head')
         
-        // Wait for CSS to load
         await new Promise((resolve) => {
           link.onload = () => {
-            console.log('GroupViewMap: Leaflet CSS loaded successfully')
+            log('CSS loaded successfully')
             resolve(true)
           }
           link.onerror = () => {
-            console.error('GroupViewMap: Failed to load Leaflet CSS')
+            log('CSS failed to load')
             resolve(false)
           }
           setTimeout(() => {
-            console.log('GroupViewMap: CSS load timeout (2s)')
+            log('CSS load timeout (2s)')
             resolve(true)
           }, 2000)
         })
       } else {
-        console.log('GroupViewMap: Leaflet CSS already loaded')
+        log('CSS already loaded')
       }
 
-      // Import Leaflet library
-      console.log('GroupViewMap: Importing Leaflet library...')
-      const L = await import('leaflet')
-      console.log('GroupViewMap: Leaflet imported:', typeof L, Object.keys(L).slice(0, 10))
+      // Load Leaflet JS from CDN
+      log('Loading Leaflet JS from CDN...')
+      const existingScript = document.querySelector('script[src*="leaflet"]')
+      if (!existingScript) {
+        const script = document.createElement('script')
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+        script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo='
+        script.crossOrigin = ''
+        document.head.appendChild(script)
+        log('JS script added to head')
+        
+        await new Promise((resolve) => {
+          script.onload = () => {
+            log('JS loaded successfully')
+            resolve(true)
+          }
+          script.onerror = () => {
+            log('JS failed to load')
+            resolve(false)
+          }
+          setTimeout(() => {
+            log('JS load timeout (3s)')
+            resolve(true)
+          }, 3000)
+        })
+      } else {
+        log('JS already loaded')
+      }
 
-      // Fix default marker icons
-      console.log('GroupViewMap: Configuring default marker icons...')
-      delete (L.Icon.Default.prototype as any)._getIconUrl
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      })
-      console.log('GroupViewMap: Marker icons configured')
+      // Check if Leaflet is available
+      // @ts-ignore
+      if (typeof window.L === 'undefined') {
+        log('ERROR: Leaflet (L) is not available on window!')
+        initError = 'Leaflet failed to load'
+        return
+      }
+
+      // @ts-ignore
+      const L = window.L
+      log('Leaflet version: ' + L.version)
+
+      // Container dimensions
+      log('Container dimensions: ' + mapContainer.offsetWidth + 'x' + mapContainer.offsetHeight)
 
       // Determine center point
       const centerLat = entity.latitude || locatedChildren[0]?.latitude || 45.5152
       const centerLng = entity.longitude || locatedChildren[0]?.longitude || -122.6784
       
-      console.log('GroupViewMap: Map center:', { centerLat, centerLng })
-      console.log('GroupViewMap: Container dimensions:', {
-        offsetWidth: mapContainer.offsetWidth,
-        offsetHeight: mapContainer.offsetHeight,
-        clientWidth: mapContainer.clientWidth,
-        clientHeight: mapContainer.clientHeight,
-        scrollWidth: mapContainer.scrollWidth,
-        scrollHeight: mapContainer.scrollHeight
-      })
+      log('Map center: ' + centerLat + ', ' + centerLng)
 
-      // Initialize map
-      console.log('GroupViewMap: Creating Leaflet map instance...')
-      map = L.map(mapContainer, {
-        center: [centerLat, centerLng],
-        zoom: 13,
-        zoomControl: true,
-        scrollWheelZoom: true
-      })
-      
-      console.log('GroupViewMap: Map instance created:', map)
-      console.log('GroupViewMap: Map container after init:', mapContainer.innerHTML.substring(0, 100))
+      // Create map
+      log('Creating map instance...')
+      map = L.map(mapContainer).setView([centerLat, centerLng], 13)
+      log('Map instance created')
 
       // Add satellite tile layer
-      console.log('GroupViewMap: Adding satellite tile layer...')
+      log('Adding satellite tile layer...')
       const satelliteLayer = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         {
@@ -114,15 +130,15 @@
         }
       )
       
-      satelliteLayer.on('loading', () => console.log('GroupViewMap: Satellite tiles LOADING'))
-      satelliteLayer.on('load', () => console.log('GroupViewMap: Satellite tiles LOADED'))
-      satelliteLayer.on('tileerror', (e) => console.error('GroupViewMap: Satellite tile ERROR:', e))
+      satelliteLayer.on('loading', () => log('Satellite tiles loading...'))
+      satelliteLayer.on('load', () => log('Satellite tiles loaded!'))
+      satelliteLayer.on('tileerror', (e: any) => log('Satellite tile error: ' + JSON.stringify(e)))
       
       satelliteLayer.addTo(map)
-      console.log('GroupViewMap: Satellite layer added to map')
+      log('Satellite layer added to map')
 
       // Add labels overlay
-      console.log('GroupViewMap: Adding labels overlay...')
+      log('Adding labels overlay...')
       const labelsLayer = L.tileLayer(
         'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',
         {
@@ -132,37 +148,31 @@
         }
       )
       
-      labelsLayer.on('loading', () => console.log('GroupViewMap: Label tiles LOADING'))
-      labelsLayer.on('load', () => console.log('GroupViewMap: Label tiles LOADED'))
-      labelsLayer.on('tileerror', (e) => console.error('GroupViewMap: Label tile ERROR:', e))
+      labelsLayer.on('loading', () => log('Label tiles loading...'))
+      labelsLayer.on('load', () => log('Label tiles loaded!'))
+      labelsLayer.on('tileerror', (e: any) => log('Label tile error: ' + JSON.stringify(e)))
       
       labelsLayer.addTo(map)
-      console.log('GroupViewMap: Labels layer added to map')
+      log('Labels layer added to map')
 
-      // Force map size recalculation
-      console.log('GroupViewMap: Scheduling map size invalidation...')
+      // Force map to recalculate size
       setTimeout(() => {
         if (map) {
-          console.log('GroupViewMap: Invalidating map size NOW')
+          log('Invalidating map size...')
           map.invalidateSize()
-          console.log('GroupViewMap: Map size invalidated, new size:', map.getSize())
+          log('Map size invalidated')
         }
       }, 100)
 
       // Add markers
-      console.log('GroupViewMap: Adding', locatedChildren.length, 'markers...')
+      log('Adding ' + locatedChildren.length + ' markers...')
       locatedChildren.forEach((child, index) => {
         if (child.latitude == null || child.longitude == null) {
-          console.warn(`GroupViewMap: Child ${index} missing coordinates:`, child.id)
+          log('Child ' + index + ' missing coordinates')
           return
         }
 
-        console.log(`GroupViewMap: Creating marker ${index + 1}:`, {
-          id: child.id,
-          title: child.title,
-          lat: child.latitude,
-          lng: child.longitude
-        })
+        log('Creating marker ' + (index + 1) + ': ' + child.title)
 
         let icon
         if (child.depiction) {
@@ -196,7 +206,7 @@
         }
 
         const marker = L.marker([child.latitude, child.longitude], { icon }).addTo(map)
-        console.log(`GroupViewMap: Marker ${index + 1} added`)
+        log('Marker ' + (index + 1) + ' added')
 
         const popupContent = `
           <div style="min-width: 200px;">
@@ -241,54 +251,37 @@
 
       // Fit bounds if we have markers
       if (locatedChildren.length > 0) {
-        console.log('GroupViewMap: Fitting bounds to markers...')
+        log('Fitting bounds to markers...')
         const bounds = L.latLngBounds(
           locatedChildren.map(child => [child.latitude!, child.longitude!])
         )
         map.fitBounds(bounds, { padding: [50, 50] })
-        console.log('GroupViewMap: Bounds fitted')
+        log('Bounds fitted')
       }
 
       // Global click handler
       ;(window as any).handleMarkerClick = (slug: string) => {
-        console.log('GroupViewMap: Marker clicked:', slug)
+        log('Marker clicked: ' + slug)
         navigateTo(slug)
       }
 
       mapReady = true
-      console.log('GroupViewMap: ✅ Map initialization COMPLETE')
-      
-      // Final state check
-      setTimeout(() => {
-        console.log('GroupViewMap: Final state:', {
-          mapReady,
-          hasMap: !!map,
-          mapCenter: map?.getCenter(),
-          mapZoom: map?.getZoom(),
-          containerChildren: mapContainer.children.length,
-          containerHTML: mapContainer.innerHTML.substring(0, 300)
-        })
-      }, 1000)
+      log('✅ Map initialization complete!')
       
     } catch (error) {
-      console.error('GroupViewMap: ❌ INITIALIZATION FAILED:', error)
-      console.error('GroupViewMap: Error details:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : 'No stack'
-      })
+      log('❌ ERROR: ' + (error instanceof Error ? error.message : String(error)))
+      console.error('GroupViewMap error:', error)
       initError = error instanceof Error ? error.message : String(error)
     }
   })
 
   onDestroy(() => {
-    console.log('GroupViewMap: onDestroy called')
+    log('onDestroy called')
     if (map) {
-      console.log('GroupViewMap: Removing map instance')
       map.remove()
       map = null
     }
     delete (window as any).handleMarkerClick
-    console.log('GroupViewMap: Cleanup complete')
   })
 </script>
 
@@ -319,6 +312,17 @@
     {#if locatedChildren.length === 0 && mapReady}
       <div class="mt-4 text-xs text-white/60">
         No locations to display. Add posts with latitude and longitude coordinates.
+      </div>
+    {/if}
+
+    {#if logMessages.length > 0}
+      <div class="mt-4 p-4 bg-black border border-white/20 rounded">
+        <h2 class="text-sm font-bold mb-2">Map Initialization Log:</h2>
+        <div class="space-y-1 text-xs font-mono max-h-48 overflow-y-auto">
+          {#each logMessages as message}
+            <div class="text-white/70">{message}</div>
+          {/each}
+        </div>
       </div>
     {/if}
   </div>
