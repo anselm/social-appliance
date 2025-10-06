@@ -2,7 +2,7 @@ export async function fetchNonce(): Promise<string> {
   const baseURL = import.meta.env.VITE_API_BASE_URL || '';
   const r = await fetch(baseURL + "/api/nonce", { credentials: "include" });
   if (!r.ok) throw new Error(`Failed to fetch nonce: ${r.status}`);
-  const { n } = await r.json();
+  const { nonce } = await r.json();
   return nonce;
 }
 

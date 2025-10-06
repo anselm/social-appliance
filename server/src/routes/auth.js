@@ -1,20 +1,10 @@
 import express from 'express';
-import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import { verifyMessage } from 'viem';
-import { Magic } from '@magic-sdk/admin';
 import { Logger } from '../utils/logger.js';
+import { makeNonce, verifySiwe } from '../services/siwe.js';
+import { verifyMagicDid } from '../services/magic.js';
 
 const router = express.Router();
-
-// Initialize Magic Admin SDK
-let magic = null;
-if (process.env.MAGIC_SECRET_KEY) {
-  magic = new Magic(process.env.MAGIC_SECRET_KEY);
-  Logger.success('Magic Admin SDK initialized');
-} else {
-  Logger.warn('MAGIC_SECRET_KEY not set - Magic.link authentication disabled');
-}
 
 // In-memory nonce storage (use Redis in production)
 const nonces = new Map();
@@ -32,7 +22,7 @@ setInterval(() => {
 // Generate nonce for SIWE
 router.get('/nonce', (req, res) => {
   try {
-    const nonce = crypto.randomBytes(32).toString('hex');
+    const nonce = makeNonce();
     nonces.set(nonce, Date.now());
     Logger.debug(`Generated nonce: ${nonce.substring(0, 8)}...`);
     res.json({ nonce });
@@ -53,10 +43,8 @@ router.post('/verify-siwe', async (req, res) => {
 
     Logger.debug('Verifying SIWE signature...');
 
-    // Parse the SIWE message to extract nonce and address
-    const lines = message.split('\n');
-    const addressLine = lines[1];
-    const nonceLine = lines.find(line => line.startsWith('Nonce: '));
+    // Parse the SIWE message to extract nonce
+    const nonceLine = message.split('\n').find(line => line.startsWith('Nonce: '));
     
     if (!nonceLine) {
       return res.status(400).json({ error: 'Invalid SIWE message format' });
@@ -73,24 +61,15 @@ router.post('/verify-siwe', async (req, res) => {
     // Delete nonce to prevent replay attacks
     nonces.delete(nonce);
 
-    // Verify the signature
-    const isValid = await verifyMessage({
-      address: addressLine,
-      message,
-      signature,
-    });
+    // Verify the signature using your service
+    const address = await verifySiwe({ message, signature, expectedNonce: nonce });
 
-    if (!isValid) {
-      Logger.warn('Invalid signature');
-      return res.status(401).json({ error: 'Invalid signature' });
-    }
-
-    Logger.success(`SIWE authentication successful for ${addressLine}`);
+    Logger.success(`SIWE authentication successful for ${address}`);
 
     // Create JWT token
     const token = jwt.sign(
       { 
-        address: addressLine,
+        address: address,
         type: 'siwe',
         timestamp: Date.now()
       },
@@ -100,27 +79,23 @@ router.post('/verify-siwe', async (req, res) => {
 
     // Set session
     req.session.user = {
-      address: addressLine,
+      address: address,
       type: 'siwe'
     };
 
     res.json({
-      address: addressLine,
+      address: address,
       appToken: token
     });
   } catch (error) {
     Logger.error('SIWE verification error:', error);
-    res.status(500).json({ error: 'Verification failed' });
+    res.status(500).json({ error: error.message || 'Verification failed' });
   }
 });
 
 // Verify Magic DID token
 router.post('/verify-magic', async (req, res) => {
   try {
-    if (!magic) {
-      return res.status(503).json({ error: 'Magic.link authentication not configured' });
-    }
-
     const { didToken } = req.body;
 
     if (!didToken) {
@@ -129,11 +104,8 @@ router.post('/verify-magic', async (req, res) => {
 
     Logger.debug('Verifying Magic DID token...');
 
-    // Validate the DID token
-    await magic.token.validate(didToken);
-
-    // Get user metadata
-    const metadata = await magic.users.getMetadataByToken(didToken);
+    // Verify using your service
+    const metadata = await verifyMagicDid(didToken);
 
     Logger.success(`Magic authentication successful for ${metadata.email || metadata.issuer}`);
 
@@ -142,6 +114,7 @@ router.post('/verify-magic', async (req, res) => {
       {
         issuer: metadata.issuer,
         email: metadata.email,
+        publicAddress: metadata.publicAddress,
         type: 'magic',
         timestamp: Date.now()
       },
@@ -153,17 +126,19 @@ router.post('/verify-magic', async (req, res) => {
     req.session.user = {
       issuer: metadata.issuer,
       email: metadata.email,
+      publicAddress: metadata.publicAddress,
       type: 'magic'
     };
 
     res.json({
       issuer: metadata.issuer,
       email: metadata.email,
+      publicAddress: metadata.publicAddress,
       appToken: token
     });
   } catch (error) {
     Logger.error('Magic verification error:', error);
-    res.status(500).json({ error: 'Verification failed' });
+    res.status(500).json({ error: error.message || 'Verification failed' });
   }
 });
 
