@@ -1,6 +1,7 @@
 // Navigation utilities supporting both path and query parameter routing
 import { get } from 'svelte/store'
 import { config } from '../stores/appConfig'
+import { navigate as svelteNavigate } from 'svelte-routing'
 
 export function navigateTo(path: string) {
   const routingConfig = get(config).routing
@@ -24,8 +25,7 @@ export function navigateTo(path: string) {
     window.dispatchEvent(new PopStateEvent('popstate'))
   } else {
     // Use svelte-routing for path-based navigation
-    const { navigate } = require('svelte-routing')
-    navigate(routingConfig.basePath + path)
+    svelteNavigate(routingConfig.basePath + path)
   }
 }
 
