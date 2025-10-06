@@ -12,8 +12,16 @@ async function initApp() {
     await (apiClient as any).init()
     log.info('API client initialized successfully')
     
-    const app = new App({
-      target: document.getElementById('app')!,
+    // For Svelte 5, we need to use the component directly without new
+    const target = document.getElementById('app')
+    if (!target) {
+      throw new Error('App target element not found')
+    }
+    
+    // Create the app instance using Svelte 5 API
+    const app = App({
+      target,
+      props: {}
     })
     
     log.info('Application mounted successfully')
