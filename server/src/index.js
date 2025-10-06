@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { connectDB } from './db/connection.js';
 import apiRoutes from './routes/api.js';
 import authRoutes from './routes/auth.js';
+import testRoutes from './routes/test.js';
 import { SeedLoader } from './services/seedLoader.js';
 import { Logger } from './utils/logger.js';
 import { join, dirname } from 'path';
@@ -41,6 +42,7 @@ app.use(session({
 // API Routes
 app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
+app.use('/api/test', testRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -123,6 +125,8 @@ async function start() {
       } else {
         Logger.warn('Using default JWT secret - change in production!');
       }
+      
+      Logger.info('Test endpoints available at /api/test/*');
     });
   } catch (error) {
     Logger.error('Failed to start server:', error);
