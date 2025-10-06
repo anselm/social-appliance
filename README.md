@@ -1,31 +1,83 @@
 # Social Appliance
 
-A decentralized social platform built with Node.js, MongoDB, and Svelte.
+A decentralized social platform built with Node.js, MongoDB, and Svelte, featuring multiple authentication methods.
+
+## Features
+
+- **Multiple Authentication Methods:**
+  - Sign-In with Ethereum (SIWE) via MetaMask
+  - Passwordless email authentication via Magic.link
+  - Session-based and JWT token authentication
+
+- **Flexible Data Storage:**
+  - MongoDB for persistent storage
+  - IndexedDB for client-side caching
+  - Static file loading for demo/development
+
+- **Modern Stack:**
+  - Node.js/Express backend
+  - Svelte frontend with TypeScript
+  - Viem for Ethereum interactions
+  - TailwindCSS for styling
 
 ## Quick Start
 
+### Prerequisites
+
+- Node.js 18+
+- MongoDB (local or Atlas)
+- MetaMask browser extension (for SIWE authentication)
+- Magic.link account (for email authentication)
+
+### Installation
+
 1. Clone the repository
-2. Copy `.env.example` to `.env` and configure your MongoDB connection
-3. Install dependencies: `npm run setup`
-4. Start development servers: `npm run dev`
+```bash
+git clone <repository-url>
+cd social-appliance
+```
 
-The API server runs on http://localhost:3000 and the Svelte client on http://localhost:5173.
+2. Install dependencies
+```bash
+npm run setup
+```
 
-## Project Structure
+3. Configure environment variables
 
-- `/server` - Node.js/Express API server
-- `/client-svelte` - Svelte frontend application
-- `/client-console` - Console-based client
-- `/seed-data` - Sample data for development
+**Root .env file:**
+```bash
+cp .env.example .env
+# Edit .env with your values
+```
 
-## Development
+**Client .env file:**
+```bash
+cd client-svelte
+cp .env.example .env
+# Edit .env with your values
+```
+
+4. Get your Magic.link keys (optional, for email authentication):
+   - Sign up at https://magic.link
+   - Create a new app
+   - Copy the publishable key to `client-svelte/.env` as `VITE_MAGIC_PUBLISHABLE_KEY`
+   - Copy the secret key to root `.env` as `MAGIC_SECRET_KEY`
+
+5. (Optional) Configure ENS lookups:
+   - Sign up at https://www.infura.io/ (owned by MetaMask/ConsenSys) for a free API key
+   - Or use Alchemy at https://www.alchemy.com/
+   - Add to `client-svelte/.env` as `VITE_ETHEREUM_RPC_URL`
+
+### Development
 
 Run both server and client in development mode:
 ```bash
 npm run dev
 ```
 
-## Production Build
+The API server runs on http://localhost:8001 and the Svelte client on http://localhost:8000.
+
+### Production Build
 
 Build the client for production:
 ```bash
@@ -42,13 +94,146 @@ The server will:
 - Serve the built Svelte app for all other routes
 - Automatically seed the database if `LOAD_SEED_DATA` is not set to `false`
 
+## Project Structure
+
+```
+social-appliance/
+├── server/                 # Node.js/Express API server
+│   ├── src/
+│   │   ├── routes/        # API routes
+│   │   │   ├── api.js     # Entity routes
+│   │   │   └── auth.js    # Authentication routes
+│   │   ├── middleware/    # Express middleware
+│   │   │   └── auth.js    # Auth middleware
+│   │   ├── services/      # Business logic
+│   │   ├── db/           # Database connection
+│   │   └── index.js      # Server entry point
+│   └── package.json
+├── client-svelte/         # Svelte frontend
+│   ├── src/
+│   │   ├── lib/          # Utilities and helpers
+│   │   │   ├── auth.ts   # Auth API calls
+│   │   │   ├── siwe.ts   # SIWE utilities
+│   │   │   ├── magic.ts  # Magic.link setup
+│   │   │   └── ens.ts    # ENS name resolution
+│   │   ├── pages/        # Page components
+│   │   │   ├── EntityView.svelte
+│   │   │   ├── Admin.svelte
+│   │   │   └── siwe-magic-login.svelte
+│   │   ├── components/   # Reusable components
+│   │   ├── stores/       # Svelte stores
+│   │   └── App.svelte
+│   └── package.json
+├── client-console/        # Console-based client
+├── seed-data/            # Sample data for development
+└── package.json          # Root package.json
+```
+
+## Authentication
+
+### Sign-In with Ethereum (SIWE)
+
+SIWE allows users to authenticate using their Ethereum wallet through MetaMask.
+
+**How it works:**
+1. User clicks "Sign in with MetaMask"
+2. Server generates a unique nonce
+3. User signs a message containing the nonce with their wallet
+4. Server verifies the signature and creates a session
+
+**No additional setup required** beyond having MetaMask installed.
+
+**ENS Name Resolution (Optional):**
+- The app can automatically resolve Ethereum addresses to ENS names (like "vitalik.eth")
+- Requires an RPC provider API key (Infura or Alchemy)
+- Without an API key, the app will show truncated addresses instead
+
+### Magic.link Email Authentication
+
+Magic.link provides passwordless authentication via email.
+
+**Setup:**
+1. Create account at https://magic.link
+2. Get your keys from the dashboard
+3. Add to environment files:
+   - `VITE_MAGIC_PUBLISHABLE_KEY` in `client-svelte/.env`
+   - `MAGIC_SECRET_KEY` in root `.env`
+
+**How it works:**
+1. User enters their email
+2. Magic sends a one-time password or magic link
+3. User completes authentication
+4. Server verifies the DID token and creates a session
+
+## API Endpoints
+
+### Authentication
+
+- `GET /api/nonce` - Get a nonce for SIWE
+- `POST /api/verify-siwe` - Verify SIWE signature
+  - Body: `{ message: string, signature: string }`
+  - Returns: `{ address: string, appToken: string }`
+- `POST /api/verify-magic` - Verify Magic.link DID token
+  - Body: `{ didToken: string }`
+  - Returns: `{ issuer: string, email: string, appToken: string }`
+- `GET /api/me` - Get current user (requires auth)
+- `POST /api/logout` - Logout current user
+
+### Entities
+
+- `GET /api/entities` - List entities
+- `GET /api/entities/:id` - Get entity by ID
+- `GET /api/entities/slug/:slug` - Get entity by slug
+- `POST /api/entities` - Create entity (requires auth)
+- `PUT /api/entities/:id` - Update entity (requires auth)
+- `DELETE /api/entities/:id` - Delete entity (requires auth)
+
+## Configuration
+
+### Server Configuration (.env)
+
+```bash
+# Server
+PORT=3000
+SERVERPORT=8001
+NODE_ENV=development
+
+# Database
+MONGODB_URI=mongodb://localhost:27017
+DB_NAME=social_appliance
+
+# Authentication
+MAGIC_SECRET_KEY=sk_live_your_key
+SESSION_SECRET=your-session-secret
+JWT_SECRET=your-jwt-secret
+
+# CORS
+CORS_ORIGIN=http://localhost:8000
+
+# Seed Data
+LOAD_SEED_DATA=true
+```
+
+### Client Configuration (client-svelte/.env)
+
+```bash
+# Magic.link
+VITE_MAGIC_PUBLISHABLE_KEY=pk_live_your_key
+
+# API
+VITE_API_BASE_URL=
+
+# Ethereum RPC (optional, for ENS)
+VITE_ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/YOUR_API_KEY
+```
+
 ## Deployment Options
 
 ### 1. Full Server Deployment
 Deploy the entire application with MongoDB:
 1. Build the client: `npm run build`
 2. Deploy the server with the built client
-3. Set environment variables (MongoDB URI, etc.)
+3. Set environment variables (MongoDB URI, secrets, etc.)
 4. Start with: `npm start`
 
 ### 2. Serverless/Static Deployment
@@ -57,14 +242,6 @@ Deploy just the client as a static site:
 2. Edit `client-svelte/dist/config.js` to set `serverless: true`
 3. The app will use entities from `static.info.js` and cached data
 4. Deploy the `client-svelte/dist` folder to any static host
-
-## Configuration
-
-The client can be configured post-build by editing `/config.js`:
-- `api.serverless`: Enable serverless mode (uses static data only)
-- `api.baseUrl`: API endpoint (for server mode)
-- `features.*`: Enable/disable features
-- `header.*`: Customize the header
 
 ## Console Client
 
@@ -86,6 +263,77 @@ Console commands:
 - `delete <slug>` - Delete an entity
 - `exit` - Exit the console
 
-## API Documentation
+## Security Notes
 
-See `/server/README.md` for API endpoint documentation.
+- **Change default secrets in production**: Update `SESSION_SECRET` and `JWT_SECRET` in your `.env` file
+- **Use HTTPS in production**: Set `secure: true` for cookies
+- **Keep Magic.link secret key secure**: Never commit to git
+- **Use environment variables**: For all secrets and configuration
+- **Enable CORS properly**: Set `CORS_ORIGIN` to your production domain
+- **Nonce expiration**: Nonces expire after 5 minutes to prevent replay attacks
+- **JWT expiration**: Tokens expire after 7 days by default
+
+## Development Tips
+
+- Use `npm run dev` to run both server and client with hot reload
+- Check server logs for authentication status on startup
+- Use browser DevTools to inspect authentication tokens
+- Test both authentication methods to ensure proper setup
+- Monitor MongoDB for session and entity data
+
+## Troubleshooting
+
+### MetaMask not connecting
+- Ensure MetaMask is installed and unlocked
+- Check that you're on the correct network
+- Clear browser cache and try again
+
+### Magic.link not working
+- Verify `VITE_MAGIC_PUBLISHABLE_KEY` is set correctly
+- Check that `MAGIC_SECRET_KEY` is set on the server
+- Ensure email address is valid
+- Check server logs for Magic.link errors
+
+### ENS names not resolving
+- ENS lookup is optional and will fail gracefully
+- To enable ENS lookups, get a free API key from Infura (https://www.infura.io/) or Alchemy (https://www.alchemy.com/)
+- Add the RPC URL to `client-svelte/.env` as `VITE_ETHEREUM_RPC_URL`
+- Without an API key, addresses will be displayed in truncated format (0x1234...5678)
+
+### CORS errors
+- Verify `CORS_ORIGIN` matches your client URL
+- Ensure `credentials: true` is set in fetch requests
+- Check that server is running on the correct port
+
+### Session not persisting
+- Verify `SESSION_SECRET` is set
+- Check cookie settings in browser
+- Ensure `credentials: 'include'` in fetch requests
+
+## External Services
+
+### Infura (MetaMask/ConsenSys)
+- **Purpose**: Ethereum RPC provider for ENS lookups
+- **Website**: https://www.infura.io/
+- **Free Tier**: Yes, 100,000 requests/day
+- **Setup**: Sign up, create project, copy API key
+
+### Alchemy (Alternative to Infura)
+- **Purpose**: Ethereum RPC provider for ENS lookups
+- **Website**: https://www.alchemy.com/
+- **Free Tier**: Yes, 300M compute units/month
+- **Setup**: Sign up, create app, copy API key
+
+### Magic.link
+- **Purpose**: Passwordless email authentication
+- **Website**: https://magic.link
+- **Free Tier**: Yes, 1,000 MAUs
+- **Setup**: Sign up, create app, copy publishable and secret keys
+
+## License
+
+ISC
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
