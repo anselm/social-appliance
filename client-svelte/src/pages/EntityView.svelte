@@ -12,51 +12,34 @@
 
   let { path = '/', wildcard = '' }: { path?: string, wildcard?: string } = $props()
 
-  let routingMode = $derived($config.routing?.mode || 'query')
-  let slug = $derived(routingMode === 'query' ? path : (wildcard || '/'))
-  
   let entity = $state<Entity | null>(null)
   let children = $state<Entity[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
-  let currentLoadingSlug = $state<string | null>(null)
-  let lastLoadedSlug = $state<string | null>(null)
 
   console.log('EntityView: Component initialized with path:', path, 'wildcard:', wildcard)
 
-  // Use $effect.pre to ensure it runs before rendering
+  // Watch for path changes and load entity
   $effect(() => {
-    // Force the effect to track slug by reading it
-    const currentSlug = slug
+    // Read the props to track them
+    const currentPath = path
+    const currentWildcard = wildcard
+    const routingMode = $config.routing?.mode || 'query'
+    const slug = routingMode === 'query' ? currentPath : (currentWildcard || '/')
     
-    console.log('EntityView: Effect triggered')
-    console.log('EntityView: currentSlug:', currentSlug)
-    console.log('EntityView: lastLoadedSlug:', lastLoadedSlug)
-    console.log('EntityView: currentLoadingSlug:', currentLoadingSlug)
-    console.log('EntityView: entity:', entity?.slug)
-    console.log('EntityView: loading:', loading)
+    console.log('EntityView: Effect triggered!')
+    console.log('EntityView: path:', currentPath)
+    console.log('EntityView: wildcard:', currentWildcard)
+    console.log('EntityView: routingMode:', routingMode)
+    console.log('EntityView: computed slug:', slug)
     
-    // Load if:
-    // 1. We have a slug
-    // 2. We're not currently loading this slug
-    // 3. We haven't already loaded this slug
-    if (currentSlug && currentSlug !== currentLoadingSlug && currentSlug !== lastLoadedSlug) {
-      console.log('EntityView: Calling loadEntity for:', currentSlug)
-      loadEntity(currentSlug)
-    } else {
-      console.log('EntityView: Skipping load - conditions not met')
-    }
+    // Load the entity
+    loadEntity(slug)
   })
 
   async function loadEntity(targetSlug: string) {
     console.log('EntityView: loadEntity called with:', targetSlug)
     
-    if (currentLoadingSlug === targetSlug) {
-      console.log('EntityView: Already loading this slug, skipping')
-      return
-    }
-    
-    currentLoadingSlug = targetSlug
     loading = true
     error = null
     entity = null
@@ -73,7 +56,6 @@
       }
       
       entity = entityData
-      lastLoadedSlug = targetSlug
       
       console.log('EntityView: Loaded entity:', entity)
       console.log('EntityView: Entity type:', entity.type)
@@ -114,7 +96,6 @@
       children = []
     } finally {
       loading = false
-      currentLoadingSlug = null
       console.log('EntityView: Load complete for:', targetSlug)
     }
   }
