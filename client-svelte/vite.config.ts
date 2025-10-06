@@ -25,9 +25,6 @@ export default defineConfig({
     buildInfoPlugin(),
     svelte({ 
       preprocess: vitePreprocess(),
-      compilerOptions: {
-        dev: true
-      },
       hot: false,
       emitCss: true
     }),

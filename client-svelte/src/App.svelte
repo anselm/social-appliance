@@ -37,31 +37,22 @@
     return unsubscribe
   })
   
-  // Determine which component to render based on path
-  let currentComponent = $derived.by(() => {
-    if (currentPath === '/login') {
-      return Login
-    } else if (currentPath === '/admin') {
-      return Admin
-    } else if (currentPath === '/testmap') {
-      return TestMap
-    } else {
-      return EntityView
-    }
-  })
-  
-  let componentProps = $derived.by(() => {
-    if (currentComponent === EntityView) {
-      return { path: currentPath }
-    }
-    return {}
-  })
+  // Determine component props
+  let componentProps = $derived({ path: currentPath })
 </script>
 
 <Layout>
   {#snippet children()}
     {#key currentPath}
-      <svelte:component this={currentComponent} {...componentProps} />
+      {#if currentPath === '/login'}
+        <Login />
+      {:else if currentPath === '/admin'}
+        <Admin />
+      {:else if currentPath === '/testmap'}
+        <TestMap />
+      {:else}
+        <EntityView {...componentProps} />
+      {/if}
     {/key}
   {/snippet}
 </Layout>
