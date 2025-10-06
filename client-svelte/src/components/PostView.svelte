@@ -5,11 +5,9 @@
   import EntityManagementControls from './EntityManagementControls.svelte'
 
   export let entity: Entity
-  export let onUpdate: (updates: any) => Promise<void>
-  export let onDelete: () => Promise<void>
 </script>
 
-<EntityManagementControls {entity} {onUpdate} {onDelete} showNewEntityButton={false}>
+<EntityManagementControls {entity} showNewEntityButton={false}>
   <div slot="content">
     <h1 class="text-2xl mb-4">{entity.title || entity.slug || 'Untitled'}</h1>
     {#if entity.slug}

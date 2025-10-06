@@ -1,16 +1,12 @@
 <script lang="ts">
   import { api } from '../services/api'
-  import { authStore } from '../stores/auth'
   import { config } from '../stores/appConfig'
   import RouterLink from '../components/RouterLink.svelte'
-  import EntityManagementControls from '../components/EntityManagementControls.svelte'
   import PostView from '../components/PostView.svelte'
   import GroupViewGrid from '../components/GroupViewGrid.svelte'
   import GroupViewList from '../components/GroupViewList.svelte'
   import GroupViewCards from '../components/GroupViewCards.svelte'
   import GroupViewDefault from '../components/GroupViewDefault.svelte'
-  import { navigateTo } from '../utils/navigation'
-  import { getParentSlug } from '../utils/entityHelpers'
   import type { Entity } from '../types'
 
   export let path: string = '/'
@@ -93,64 +89,6 @@
       currentLoadingSlug = null
     }
   }
-
-  async function handleUpdate(updates: any) {
-    if (!entity || !$authStore) return
-    
-    await api.updateEntity(entity.id, {
-      title: updates.title,
-      content: updates.content,
-      slug: updates.slug,
-      view: updates.view,
-      depiction: updates.depiction
-    })
-    
-    if (updates.slug !== entity.slug) {
-      navigateTo(updates.slug)
-    } else {
-      await loadEntity(slug)
-    }
-  }
-  
-  async function handleDelete() {
-    if (!entity) return
-    
-    await api.deleteEntity(entity.id)
-    const parentSlug = getParentSlug(entity.slug || '/')
-    navigateTo(parentSlug)
-  }
-
-  async function handleCreateChild(entityData: any) {
-    if (!entity || !$authStore) return
-    
-    const data: any = {
-      type: entityData.type,
-      title: entityData.title,
-      content: entityData.content,
-      slug: entityData.slug,
-      auth: $authStore.address || $authStore.issuer,
-      sponsorId: $authStore.address || $authStore.issuer,
-      parentId: entity.id
-    }
-    
-    if (entityData.view) data.view = entityData.view
-    if (entityData.depiction) data.depiction = entityData.depiction
-    
-    let result
-    if (entityData.type === 'group') {
-      result = await api.createGroup(data)
-    } else if (entityData.type === 'party') {
-      result = await api.createUser(data)
-    } else {
-      result = await api.createPost(data)
-    }
-    
-    if (result?.slug) {
-      navigateTo(result.slug)
-    } else {
-      await loadEntity(slug)
-    }
-  }
 </script>
 
 {#if loading}
@@ -167,14 +105,14 @@
   </div>
 {:else}
   {#if entity.type === 'post'}
-    <PostView {entity} onUpdate={handleUpdate} onDelete={handleDelete} />
+    <PostView {entity} />
   {:else if entity.view === 'grid'}
-    <GroupViewGrid {entity} {children} onUpdate={handleUpdate} onDelete={handleDelete} onCreateChild={handleCreateChild} />
+    <GroupViewGrid {entity} {children} />
   {:else if entity.view === 'cards'}
-    <GroupViewCards {entity} {children} onUpdate={handleUpdate} onDelete={handleDelete} onCreateChild={handleCreateChild} />
+    <GroupViewCards {entity} {children} />
   {:else if entity.view === 'list'}
-    <GroupViewList {entity} {children} onUpdate={handleUpdate} onDelete={handleDelete} onCreateChild={handleCreateChild} />
+    <GroupViewList {entity} {children} />
   {:else}
-    <GroupViewDefault {entity} {children} onUpdate={handleUpdate} onDelete={handleDelete} onCreateChild={handleCreateChild} />
+    <GroupViewDefault {entity} {children} />
   {/if}
 {/if}

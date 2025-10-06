@@ -1,16 +1,14 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
   import { authStore } from '../stores/auth'
+  import { api } from '../services/api'
   import EntityForm from './EntityForm.svelte'
   import EntityActions from './EntityActions.svelte'
   import { canUserEditEntity, getParentSlug } from '../utils/entityHelpers'
   import type { Entity } from '../types'
   
   export let entity: Entity
-  export let onUpdate: (updates: any) => Promise<void>
-  export let onDelete: () => Promise<void>
   export let showNewEntityButton: boolean = false
-  export let onCreateChild: ((entityData: any) => Promise<void>) | null = null
   
   const dispatch = createEventDispatcher()
   
@@ -30,8 +28,23 @@
     const updates = event.detail
     
     try {
-      await onUpdate(updates)
+      await api.updateEntity(entity.id, {
+        title: updates.title,
+        content: updates.content,
+        slug: updates.slug,
+        view: updates.view,
+        depiction: updates.depiction
+      })
+      
       editMode = false
+      
+      // If slug changed, navigate to new slug
+      if (updates.slug !== entity.slug) {
+        window.location.href = `?path=${encodeURIComponent(updates.slug)}`
+      } else {
+        // Reload current page
+        window.location.reload()
+      }
     } catch (error: any) {
       console.error('Failed to update entity:', error)
       alert('Failed to update entity: ' + (error.message || error))
@@ -47,7 +60,11 @@
     deleting = true
     
     try {
-      await onDelete()
+      await api.deleteEntity(entity.id)
+      
+      // Navigate to parent
+      const parentSlug = getParentSlug(entity.slug || '/')
+      window.location.href = `?path=${encodeURIComponent(parentSlug)}`
     } catch (error: any) {
       console.error('Failed to delete entity:', error)
       alert('Failed to delete entity: ' + (error.message || error))
@@ -56,7 +73,7 @@
   }
   
   async function handleCreateChildSubmit(event: CustomEvent) {
-    if (creatingEntity || !onCreateChild) return
+    if (creatingEntity) return
     
     const entityData = event.detail
     
@@ -68,8 +85,36 @@
     creatingEntity = true
     
     try {
-      await onCreateChild(entityData)
+      const data: any = {
+        type: entityData.type,
+        title: entityData.title,
+        content: entityData.content,
+        slug: entityData.slug,
+        auth: $authStore.address || $authStore.issuer,
+        sponsorId: $authStore.address || $authStore.issuer,
+        parentId: entity.id
+      }
+      
+      if (entityData.view) data.view = entityData.view
+      if (entityData.depiction) data.depiction = entityData.depiction
+      
+      let result
+      if (entityData.type === 'group') {
+        result = await api.createGroup(data)
+      } else if (entityData.type === 'party') {
+        result = await api.createUser(data)
+      } else {
+        result = await api.createPost(data)
+      }
+      
       showNewEntityForm = false
+      
+      // Navigate to new entity
+      if (result?.slug) {
+        window.location.href = `?path=${encodeURIComponent(result.slug)}`
+      } else {
+        window.location.reload()
+      }
     } catch (error: any) {
       console.error('Failed to create entity:', error)
       alert('Failed to create entity: ' + (error.message || error))

@@ -6,12 +6,9 @@
 
   export let entity: Entity
   export let children: Entity[] = []
-  export let onUpdate: (updates: any) => Promise<void>
-  export let onDelete: () => Promise<void>
-  export let onCreateChild: (entityData: any) => Promise<void>
 </script>
 
-<EntityManagementControls {entity} {onUpdate} {onDelete} showNewEntityButton={true} {onCreateChild}>
+<EntityManagementControls {entity} showNewEntityButton={true}>
   <div slot="content">
     <!-- Empty - EntityHeader handles the display -->
   </div>
