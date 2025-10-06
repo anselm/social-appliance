@@ -124,7 +124,7 @@
   <div class="mb-8">
     <EntityForm
       {entity}
-      parentSlug={getPar entSlug(entity.slug || '/')}
+      parentSlug={getParentSlug(entity.slug || '/')}
       mode="edit"
       on:submit={handleEditSubmit}
       on:cancel={() => editMode = false}
