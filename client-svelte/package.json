@@ -26,6 +26,7 @@
     "dexie": "^3.2.7",
     "loglevel": "^1.9.2",
     "marked": "^9.1.6",
-    "svelte-routing": "^2.13.0"
+    "svelte-routing": "^2.13.0",
+    "@web3auth/auth-adapter": "^9.7.0"
   }
 }
