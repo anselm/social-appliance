@@ -3,13 +3,15 @@
   import { generateEntityId, buildEntitySlug } from '../utils/entityHelpers'
   import type { Entity } from '../types'
   
-  export let entity: Entity | null = null
-  export let parentSlug: string = '/'
-  export let mode: 'create' | 'edit' = 'create'
+  let { entity = null, parentSlug = '/', mode = 'create' }: { 
+    entity?: Entity | null, 
+    parentSlug?: string, 
+    mode?: 'create' | 'edit' 
+  } = $props()
   
   const dispatch = createEventDispatcher()
   
-  let formData = {
+  let formData = $state({
     type: entity?.type || 'post',
     title: entity?.title || '',
     content: entity?.content || '',
@@ -17,7 +19,7 @@
     view: entity?.view || '',
     depiction: entity?.depiction || '',
     parentId: entity?.parentId || null
-  }
+  })
   
   const entityTypes = ['post', 'group', 'party', 'agent', 'place', 'thing']
   const viewTypes = ['', 'default', 'grid', 'list', 'cards', 'map']
@@ -90,7 +92,7 @@
       Slug * {#if mode === 'create'}
         <button
           type="button"
-          on:click={regenerateSlug}
+          onclick={regenerateSlug}
           class="text-blue-400 hover:text-blue-300 ml-2"
         >
           (regenerate)
@@ -158,14 +160,14 @@
   <div class="flex gap-3 pt-4">
     <button
       type="button"
-      on:click={handleSubmit}
+      onclick={handleSubmit}
       class="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-medium"
     >
       {mode === 'create' ? 'Create Entity' : 'Save Changes'}
     </button>
     <button
       type="button"
-      on:click={handleCancel}
+      onclick={handleCancel}
       class="px-4 py-2 border border-white/20 hover:bg-white/10 transition-colors text-sm"
     >
       Cancel

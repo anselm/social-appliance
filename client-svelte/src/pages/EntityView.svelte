@@ -10,20 +10,19 @@
   import GroupViewMap from '../components/GroupViewMap.svelte'
   import type { Entity } from '../types'
 
-  export let path: string = '/'
-  export let wildcard: string = ''
+  let { path = '/', wildcard = '' }: { path?: string, wildcard?: string } = $props()
 
-  $: routingMode = $config.routing?.mode || 'query'
-  let slug: string = routingMode === 'query' ? path : (wildcard || '/')
+  let routingMode = $derived($config.routing?.mode || 'query')
+  let slug = $state(routingMode === 'query' ? path : (wildcard || '/'))
   
-  let entity: Entity | null = null
-  let children: Entity[] = []
-  let loading = true
-  let error: string | null = null
-  let currentLoadingSlug: string | null = null
-  let hasAttemptedLoad = false
+  let entity = $state<Entity | null>(null)
+  let children = $state<Entity[]>([])
+  let loading = $state(true)
+  let error = $state<string | null>(null)
+  let currentLoadingSlug = $state<string | null>(null)
+  let hasAttemptedLoad = $state(false)
 
-  $: {
+  $effect(() => {
     const newSlug = routingMode === 'query' ? path : (wildcard || '/')
     if (newSlug !== slug) {
       slug = newSlug
@@ -32,7 +31,7 @@
     } else if (slug && !currentLoadingSlug && !entity && !hasAttemptedLoad) {
       loadEntity(slug)
     }
-  }
+  })
 
   async function loadEntity(targetSlug: string) {
     if (currentLoadingSlug === targetSlug) return
@@ -99,12 +98,12 @@
   }
   
   // Add reactive logging to see what's happening
-  $: {
+  $effect(() => {
     if (entity) {
       console.log('EntityView: Reactive check - entity:', entity.id, 'type:', entity.type, 'view:', entity.view)
       console.log('EntityView: Reactive - should render map?', entity.type === 'group' && entity.view === 'map')
     }
-  }
+  })
 </script>
 
 {#if loading}
@@ -112,12 +111,20 @@
 {:else if error}
   <div class="space-y-4">
     <div class="text-sm text-red-400">{error}</div>
-    <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">← Back to home</RouterLink>
+    <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">
+      {#snippet children()}
+        ← Back to home
+      {/snippet}
+    </RouterLink>
   </div>
 {:else if !entity}
   <div class="space-y-4">
     <div class="text-sm text-white/60">Page not found</div>
-    <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">← Back to home</RouterLink>
+    <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">
+      {#snippet children()}
+        ← Back to home
+      {/snippet}
+    </RouterLink>
   </div>
 {:else}
   <div class="mb-4 p-3 bg-green-900/20 border border-green-500/30 text-xs space-y-1">

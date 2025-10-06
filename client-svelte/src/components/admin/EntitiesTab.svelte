@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
   import { api } from '../../services/api'
   import { apiClient } from '../../services/apiClient'
   import { buildTree } from '../../utils/tree'
@@ -9,20 +8,22 @@
   import EntityEditModal from './EntityEditModal.svelte'
   import type { Entity, EntityWithChildren } from '../../types'
   
-  let entities: Entity[] = []
-  let treeEntities: EntityWithChildren[] = []
-  let loading = false
-  let searchQuery = ''
-  let typeFilter = ''
-  let editingEntity: Entity | null = null
-  let expandedNodes = new Set<string>()
+  let entities = $state<Entity[]>([])
+  let treeEntities = $state<EntityWithChildren[]>([])
+  let loading = $state(false)
+  let searchQuery = $state('')
+  let typeFilter = $state('')
+  let editingEntity = $state<Entity | null>(null)
+  let expandedNodes = $state(new Set<string>())
   
-  onMount(async () => {
+  $effect(() => {
     // Wait for API client to be fully initialized before loading entities
     console.log('EntitiesTab: Waiting for API client initialization...')
-    await (apiClient as any).init()
-    console.log('EntitiesTab: API client initialized, loading entities...')
-    await loadEntities()
+    ;(async () => {
+      await (apiClient as any).init()
+      console.log('EntitiesTab: API client initialized, loading entities...')
+      await loadEntities()
+    })()
   })
   
   export async function loadEntities() {
@@ -58,11 +59,11 @@
   
   function toggleExpanded(entityId: string) {
     if (expandedNodes.has(entityId)) {
-      expandedNodes.delete(entityId)
+      expandedNodes.delete(entity Id)
     } else {
       expandedNodes.add(entityId)
     }
-    expandedNodes = expandedNodes // Trigger reactivity
+    expandedNodes = new Set(expandedNodes) // Trigger reactivity
   }
   
   async function handleDeleteEntity(id: string) {

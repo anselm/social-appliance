@@ -2,10 +2,9 @@
   import type { Entity } from '../types'
   import { renderMarkdown } from '../utils/markdown'
   
-  export let post: Entity
-  export let variant: 'default' | 'grid' | 'card' = 'default'
+  let { post, variant = 'default' }: { post: Entity, variant?: 'default' | 'grid' | 'card' } = $props()
   
-  $: renderedContent = post.content ? renderMarkdown(post.content) : ''
+  let renderedContent = $derived(post.content ? renderMarkdown(post.content) : '')
 </script>
 
 {#if variant === 'grid'}

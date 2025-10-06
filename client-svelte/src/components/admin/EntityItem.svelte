@@ -1,10 +1,12 @@
 <script lang="ts">
   import type { Entity } from '../../types'
   
-  export let entity: Entity
-  export let onEdit: (entity: Entity) => void
-  export let onDelete: (id: string) => void
-  export let showParent = true
+  let { entity, onEdit, onDelete, showParent = true }: { 
+    entity: Entity, 
+    onEdit: (entity: Entity) => void, 
+    onDelete: (id: string) => void,
+    showParent?: boolean
+  } = $props()
 </script>
 
 <div class="flex justify-between items-start">
@@ -28,13 +30,13 @@
   </div>
   <div class="flex gap-2">
     <button
-      on:click={() => onEdit(entity)}
+      onclick={() => onEdit(entity)}
       class="text-blue-500 hover:text-blue-400"
     >
       Edit
     </button>
     <button
-      on:click={() => onDelete(entity.id)}
+      onclick={() => onDelete(entity.id)}
       class="text-red-500 hover:text-red-400"
     >
       Delete

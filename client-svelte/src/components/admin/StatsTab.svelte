@@ -2,8 +2,8 @@
   import { api } from '../../services/api'
   import type { Entity, Stats } from '../../types'
   
-  let loading = false
-  let stats: Stats | null = null
+  let loading = $state(false)
+  let stats = $state<Stats | null>(null)
   
   export async function loadStats() {
     loading = true

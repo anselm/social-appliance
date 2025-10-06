@@ -1,10 +1,9 @@
 <script lang="ts">
-  export let active = false
-  export let label: string
+  let { active = false, label, onclick }: { active?: boolean, label: string, onclick?: () => void } = $props()
 </script>
 
 <button
-  on:click
+  {onclick}
   class="pb-2 text-xs uppercase tracking-wider {active ? 'border-b border-white' : 'text-white/60 hover:text-white'}"
 >
   {label}

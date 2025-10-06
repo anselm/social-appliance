@@ -3,14 +3,13 @@
   import { authStore } from '../stores/auth'
   import RouterLink from './RouterLink.svelte'
   
-  export let currentPath: string = '/'
-  export let currentEntity: any = null
+  let { currentPath = '/', currentEntity = null }: { currentPath?: string, currentEntity?: any } = $props()
   
-  let menuOpen = false
+  let menuOpen = $state(false)
   
-  $: showHeader = $config.header?.show !== false
-  $: title = $config.header?.title || 'Social Appliance'
-  $: showLogin = $config.header?.showLogin !== false
+  let showHeader = $derived($config.header?.show !== false)
+  let title = $derived($config.header?.title || 'Social Appliance')
+  let showLogin = $derived($config.header?.showLogin !== false)
   
   function getDisplayName(auth: any): string {
     if (!auth) return ''
@@ -54,7 +53,7 @@
 {#if showHeader}
   <!-- Hamburger Button - Fixed Position -->
   <button
-    on:click={toggleMenu}
+    onclick={toggleMenu}
     class="fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-black/80 border border-white/20 hover:border-white/40 transition-colors backdrop-blur-sm"
     aria-label="Menu"
   >
@@ -67,15 +66,17 @@
   {#if menuOpen}
     <div
       class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-      on:click={closeMenu}
+      onclick={closeMenu}
     ></div>
     
     <nav class="fixed top-0 right-0 z-40 w-64 h-full bg-black border-l border-white/20 p-6 overflow-y-auto">
       <div class="mt-12 space-y-6">
         <!-- Title -->
         <div class="border-b border-white/20 pb-4">
-          <RouterLink to="/" className="text-xl font-bold hover:text-white/80 transition-colors block" on:click={closeMenu}>
-            {title}
+          <RouterLink to="/" className="text-xl font-bold hover:text-white/80 transition-colors block">
+            {#snippet children()}
+              {title}
+            {/snippet}
           </RouterLink>
         </div>
         
@@ -95,25 +96,28 @@
           <RouterLink 
             to="/" 
             className="block text-sm hover:text-white/80 transition-colors"
-            on:click={closeMenu}
           >
-            Home
+            {#snippet children()}
+              Home
+            {/snippet}
           </RouterLink>
           
           <RouterLink 
             to="/admin" 
             className="block text-sm hover:text-white/80 transition-colors"
-            on:click={closeMenu}
           >
-            Admin
+            {#snippet children()}
+              Admin
+            {/snippet}
           </RouterLink>
           
           <RouterLink 
             to="/testmap" 
             className="block text-sm hover:text-white/80 transition-colors"
-            on:click={closeMenu}
           >
-            Test Map
+            {#snippet children()}
+              Test Map
+            {/snippet}
           </RouterLink>
           
           <button 
@@ -128,7 +132,7 @@
         <div class="border-t border-white/20 pt-4">
           {#if $authStore}
             <button 
-              on:click={handleLogout}
+              onclick={handleLogout}
               class="w-full px-4 py-2 border border-white/20 hover:bg-white hover:text-black transition-colors text-sm"
             >
               Logout
@@ -138,9 +142,10 @@
               <RouterLink 
                 to="/login" 
                 className="block w-full px-4 py-2 border border-white/20 hover:bg-white hover:text-black transition-colors text-sm text-center"
-                on:click={closeMenu}
               >
-                Login
+                {#snippet children()}
+                  Login
+                {/snippet}
               </RouterLink>
             {/if}
           {/if}

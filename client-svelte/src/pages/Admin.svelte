@@ -4,19 +4,21 @@
   import CreateTab from '../components/admin/CreateTab.svelte'
   import StatsTab from '../components/admin/StatsTab.svelte'
   
-  let activeTab: 'entities' | 'create' | 'stats' = 'entities'
-  let entitiesTab: EntitiesTab
-  let statsTab: StatsTab
+  let activeTab = $state<'entities' | 'create' | 'stats'>('entities')
+  let entitiesTab = $state<EntitiesTab>()
+  let statsTab = $state<StatsTab>()
   
   // Build info - will be replaced at build time
   const buildDate = __BUILD_DATE__
   const buildRevision = __BUILD_REVISION__
   
-  $: if (activeTab === 'entities' && entitiesTab) {
-    entitiesTab.loadEntities()
-  } else if (activeTab === 'stats' && statsTab) {
-    statsTab.loadStats()
-  }
+  $effect(() => {
+    if (activeTab === 'entities' && entitiesTab) {
+      entitiesTab.loadEntities()
+    } else if (activeTab === 'stats' && statsTab) {
+      statsTab.loadStats()
+    }
+  })
   
   function handleEntityCreated() {
     activeTab = 'entities'
@@ -36,17 +38,17 @@
     <TabButton 
       active={activeTab === 'entities'}
       label="Entities"
-      on:click={() => activeTab = 'entities'}
+      onclick={() => activeTab = 'entities'}
     />
     <TabButton 
       active={activeTab === 'create'}
       label="Create"
-      on:click={() => activeTab = 'create'}
+      onclick={() => activeTab = 'create'}
     />
     <TabButton 
       active={activeTab === 'stats'}
       label="Stats"
-      on:click={() => activeTab = 'stats'}
+      onclick={() => activeTab = 'stats'}
     />
   </div>
 

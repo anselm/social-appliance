@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
   import { authStore } from '../stores/auth'
   import { api } from '../services/api'
   import EntityForm from './EntityForm.svelte'
@@ -7,18 +6,15 @@
   import { canUserEditEntity, getParentSlug } from '../utils/entityHelpers'
   import type { Entity } from '../types'
   
-  export let entity: Entity
-  export let showNewEntityButton: boolean = false
+  let { entity, showNewEntityButton = false }: { entity: Entity, showNewEntityButton?: boolean } = $props()
   
-  const dispatch = createEventDispatcher()
+  let editMode = $state(false)
+  let deleting = $state(false)
+  let showNewEntityForm = $state(false)
+  let creatingEntity = $state(false)
   
-  let editMode = false
-  let deleting = false
-  let showNewEntityForm = false
-  let creatingEntity = false
-  
-  $: canEdit = canUserEditEntity(entity, $authStore)
-  $: canCreateChild = showNewEntityButton && entity.type === 'group' && $authStore
+  let canEdit = $derived(canUserEditEntity(entity, $authStore))
+  let canCreateChild = $derived(showNewEntityButton && entity.type === 'group' && $authStore)
   
   async function handleEdit() {
     editMode = true
@@ -128,7 +124,7 @@
   <div class="mb-8">
     <EntityForm
       {entity}
-      parentSlug={getParentSlug(entity.slug || '/')}
+      parentSlug={getPar entSlug(entity.slug || '/')}
       mode="edit"
       on:submit={handleEditSubmit}
       on:cancel={() => editMode = false}
@@ -157,7 +153,7 @@
     {#if !showNewEntityForm}
       <div class="mb-6">
         <button
-          on:click={() => showNewEntityForm = true}
+          onclick={() => showNewEntityForm = true}
           class="px-3 py-1 border border-white/20 hover:bg-white hover:text-black transition-colors text-xs uppercase tracking-wider"
         >
           + New Entity

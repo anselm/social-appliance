@@ -5,8 +5,7 @@
   import EntityHeader from './EntityHeader.svelte'
   import EntityManagementControls from './EntityManagementControls.svelte'
 
-  export let entity: Entity
-  export let children: Entity[] = []
+  let { entity, children = [] }: { entity: Entity, children: Entity[] } = $props()
   
   function stripHtml(html: string): string {
     const tmp = document.createElement('div')

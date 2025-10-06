@@ -1,13 +1,8 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
-  import { authStore } from '../stores/auth'
-  import { config } from '../stores/appConfig'
   import { renderMarkdown } from '../utils/markdown'
   import type { Entity } from '../types'
 
-  export let entity: Entity
-  
-  const dispatch = createEventDispatcher()
+  let { entity }: { entity: Entity } = $props()
 </script>
 
 <div class="mb-8">

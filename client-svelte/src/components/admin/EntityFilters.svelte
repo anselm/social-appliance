@@ -1,8 +1,10 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
   
-  export let searchQuery = ''
-  export let typeFilter = ''
+  let { searchQuery = $bindable(''), typeFilter = $bindable('') }: { 
+    searchQuery?: string, 
+    typeFilter?: string 
+  } = $props()
   
   const dispatch = createEventDispatcher()
   
@@ -20,12 +22,12 @@
     type="text"
     placeholder="Search by slug..."
     bind:value={searchQuery}
-    on:keydown={(e) => e.key === 'Enter' && handleSearch()}
+    onkeydown={(e) => e.key === 'Enter' && handleSearch()}
     class="bg-black border border-white/20 px-2 py-1 text-xs"
   />
   <select
     bind:value={typeFilter}
-    on:change={handleTypeChange}
+    onchange={handleTypeChange}
     class="bg-black border border-white/20 px-2 py-1 text-xs"
   >
     <option value="">All Types</option>
@@ -37,7 +39,7 @@
     <option value="agent">Agent</option>
   </select>
   <button
-    on:click={handleSearch}
+    onclick={handleSearch}
     class="border border-white/20 px-3 py-1 text-xs uppercase tracking-wider hover:bg-white hover:text-black"
   >
     Search

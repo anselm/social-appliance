@@ -4,7 +4,7 @@
   import RouterLink from './RouterLink.svelte'
   import EntityManagementControls from './EntityManagementControls.svelte'
 
-  export let entity: Entity
+  let { entity }: { entity: Entity } = $props()
 </script>
 
 <EntityManagementControls {entity} showNewEntityButton={false}>

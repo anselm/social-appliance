@@ -5,8 +5,7 @@
   import EntityHeader from './EntityHeader.svelte'
   import EntityManagementControls from './EntityManagementControls.svelte'
 
-  export let entity: Entity
-  export let children: Entity[] = []
+  let { entity, children = [] }: { entity: Entity, children: Entity[] } = $props()
   
   function stripHtml(html: string): string {
     const tmp = document.createElement('div')
@@ -20,7 +19,7 @@
     return text.substring(0, 100) + (text.length > 100 ? '...' : '')
   }
 
-  function fixDate(raw) {
+  function fixDate(raw: string) {
     const date = new Date(raw);
     const str = date.toLocaleString('en-US', {
       year: 'numeric',

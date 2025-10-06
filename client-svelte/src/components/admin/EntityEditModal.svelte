@@ -1,14 +1,14 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-  import type { Entity } from '../types'
+  import type { Entity } from '../../types'
   
-  export let entity: Entity
+  let { entity }: { entity: Entity } = $props()
   
   const dispatch = createEventDispatcher()
   
-  let slug = entity.slug || ''
-  let title = entity.title || ''
-  let content = entity.content || ''
+  let slug = $state(entity.slug || '')
+  let title = $state(entity.title || '')
+  let content = $state(entity.content || '')
   
   function handleSave() {
     dispatch('save', {
@@ -57,13 +57,13 @@
       </div>
       <div class="flex gap-2">
         <button
-          on:click={handleSave}
+          onclick={handleSave}
           class="border border-white/20 px-3 py-1 text-xs uppercase tracking-wider hover:bg-white hover:text-black"
         >
           Save
         </button>
         <button
-          on:click={handleCancel}
+          onclick={handleCancel}
           class="text-xs uppercase tracking-wider text-white/60 hover:text-white"
         >
           Cancel

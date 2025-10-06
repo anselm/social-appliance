@@ -2,10 +2,9 @@
   import { config } from '../stores/appConfig'
   import { navigateTo } from '../utils/navigation'
   
-  export let to: string
-  export let className: string = ''
+  let { to, className = '', children }: { to: string, className?: string, children?: any } = $props()
   
-  $: routingMode = $config.routing?.mode || 'query'
+  let routingMode = $derived($config.routing?.mode || 'query')
   
   function handleClick(event: MouseEvent) {
     if (routingMode === 'query') {
@@ -19,7 +18,11 @@
 <a 
   href={routingMode === 'query' ? `?path=${encodeURIComponent(to)}` : to}
   class={className}
-  on:click={handleClick}
+  onclick={handleClick}
 >
-  <slot />
+  {#if children}
+    {@render children()}
+  {:else}
+    <slot />
+  {/if}
 </a>

@@ -1,14 +1,13 @@
 <script lang="ts">
   import { getMagic } from "../lib/magic";
   import { verifyMessage } from "../lib/siweVerify";
-  import { lookupENSName, formatDisplayName } from "../lib/ens";
+  import { lookupENSName } from "../lib/ens";
   import { authStore } from "../stores/auth";
-  import { navigateTo } from "../utils/navigation";
   import RouterLink from "../components/RouterLink.svelte";
 
-  let error = "";
-  let loading = false;
-  let lookingUpENS = false;
+  let error = $state("");
+  let loading = $state(false);
+  let lookingUpENS = $state(false);
 
   function getDisplayName(auth: any): string {
     if (!auth) return ''
@@ -191,7 +190,7 @@
             </div>
           </div>
           <button
-            on:click={handleLogout}
+            onclick={handleLogout}
             class="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/30 transition-colors"
           >
             Sign Out
@@ -204,7 +203,9 @@
           to="/" 
           className="px-6 py-3 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-colors"
         >
-          ← Back to Home
+          {#snippet children()}
+            ← Back to Home
+          {/snippet}
         </RouterLink>
       </div>
     </div>
@@ -216,7 +217,7 @@
 
       <div class="space-y-4">
         <button 
-          on:click={connectMetamask}
+          onclick={connectMetamask}
           disabled={loading}
           class="w-full px-6 py-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-3"
         >
@@ -232,7 +233,7 @@
         </button>
         
         <button 
-          on:click={loginWithMagic}
+          onclick={loginWithMagic}
           disabled={loading}
           class="w-full px-6 py-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-3"
         >

@@ -4,8 +4,7 @@
   import EntityHeader from './EntityHeader.svelte'
   import EntityManagementControls from './EntityManagementControls.svelte'
 
-  export let entity: Entity
-  export let children: Entity[] = []
+  let { entity, children = [] }: { entity: Entity, children: Entity[] } = $props()
 </script>
 
 <EntityManagementControls {entity} showNewEntityButton={true}>
