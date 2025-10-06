@@ -9,7 +9,6 @@
   import GroupViewDefault from '../components/GroupViewDefault.svelte'
   import GroupViewMap from '../components/GroupViewMap.svelte'
   import type { Entity } from '../types'
-  import { onMount } from 'svelte'
 
   let { path = '/', wildcard = '' }: { path?: string, wildcard?: string } = $props()
 
@@ -17,32 +16,15 @@
   let children = $state<Entity[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
+  let containerDiv: HTMLDivElement | undefined = $state()
 
-  console.log('EntityView: Component initialized - path:', path, 'wildcard:', wildcard)
+  const routingMode = $config.routing?.mode || 'query'
+  const slug = routingMode === 'query' ? path : (wildcard || '/')
 
-  // Use onMount to ensure initial load
-  onMount(() => {
-    console.log('EntityView: onMount triggered')
-    const routingMode = $config.routing?.mode || 'query'
-    const slug = routingMode === 'query' ? path : (wildcard || '/')
-    console.log('EntityView: Initial load with slug:', slug)
-    loadEntity(slug)
-  })
+  console.log('EntityView: SCRIPT EXECUTING - slug:', slug)
 
-  // Watch for path changes
-  $effect(() => {
-    const currentPath = path
-    const currentWildcard = wildcard
-    const routingMode = $config.routing?.mode || 'query'
-    const slug = routingMode === 'query' ? currentPath : (currentWildcard || '/')
-    
-    console.log('EntityView: $effect triggered with slug:', slug)
-    
-    // Only load if we have a slug
-    if (slug) {
-      loadEntity(slug)
-    }
-  })
+  // Call loadEntity immediately in the script
+  loadEntity(slug)
 
   async function loadEntity(targetSlug: string) {
     console.log('EntityView: loadEntity START with:', targetSlug)
@@ -106,42 +88,52 @@
       console.log('EntityView: loadEntity COMPLETE for:', targetSlug)
     }
   }
+
+  // Use effect bound to the container div to force reactivity
+  $effect(() => {
+    if (containerDiv) {
+      console.log('EntityView: Container div bound, slug:', slug)
+      // This effect will run when containerDiv is bound
+    }
+  })
 </script>
 
-{#if loading}
-  <div class="text-xs text-white/60">Loading...</div>
-{:else if error}
-  <div class="space-y-4">
-    <div class="text-sm text-red-400">{error}</div>
-    <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">
-      {#snippet children()}
-        ← Back to home
-      {/snippet}
-    </RouterLink>
-  </div>
-{:else if !entity}
-  <div class="space-y-4">
-    <div class="text-sm text-white/60">Page not found</div>
-    <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">
-      {#snippet children()}
-        ← Back to home
-      {/snippet}
-    </RouterLink>
-  </div>
-{:else}
-  {#if entity.type === 'post'}
-    <PostView {entity} />
-  {:else if entity.type === 'group' && entity.view === 'map'}
-    <GroupViewMap {entity} {children} />
-  {:else if entity.type === 'group' && entity.view === 'grid'}
-    <GroupViewGrid {entity} {children} />
-  {:else if entity.type === 'group' && entity.view === 'cards'}
-    <GroupViewCards {entity} {children} />
-  {:else if entity.type === 'group' && entity.view === 'list'}
-    <GroupViewList {entity} {children} />
-  {:else if entity.type === 'group'}
-    <GroupViewDefault {entity} {children} />
+<div bind:this={containerDiv}>
+  {#if loading}
+    <div class="text-xs text-white/60">Loading... (direct call)</div>
+  {:else if error}
+    <div class="space-y-4">
+      <div class="text-sm text-red-400">{error}</div>
+      <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">
+        {#snippet children()}
+          ← Back to home
+        {/snippet}
+      </RouterLink>
+    </div>
+  {:else if !entity}
+    <div class="space-y-4">
+      <div class="text-sm text-white/60">Page not found</div>
+      <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">
+        {#snippet children()}
+          ← Back to home
+        {/snippet}
+      </RouterLink>
+    </div>
   {:else}
-    <div class="text-xs text-red-400">Unknown entity type: {entity.type}</div>
+    {#if entity.type === 'post'}
+      <PostView {entity} />
+    {:else if entity.type === 'group' && entity.view === 'map'}
+      <GroupViewMap {entity} {children} />
+    {:else if entity.type === 'group' && entity.view === 'grid'}
+      <GroupViewGrid {entity} {children} />
+    {:else if entity.type === 'group' && entity.view === 'cards'}
+      <GroupViewCards {entity} {children} />
+    {:else if entity.type === 'group' && entity.view === 'list'}
+      <GroupViewList {entity} {children} />
+    {:else if entity.type === 'group'}
+      <GroupViewDefault {entity} {children} />
+    {:else}
+      <div class="text-xs text-red-400">Unknown entity type: {entity.type}</div>
+    {/if}
   {/if}
-{/if}
+</div>
