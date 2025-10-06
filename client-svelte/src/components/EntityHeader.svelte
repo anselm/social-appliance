@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-  import { auth } from '../stores/auth'
+  import { authStore } from '../stores/auth'
   import { config } from '../stores/appConfig'
   import { renderMarkdown } from '../utils/markdown'
   import PostForm from './PostForm.svelte'
@@ -30,7 +30,7 @@
 
 {#if entity.type === 'group' && showNewPostButton}
   <div class="mb-6">
-    {#if $config.features.allowCreate && $auth && !showNewPost}
+    {#if $config.features.allowCreate && $authStore && !showNewPost}
       <button
         on:click={() => showNewPost = true}
         class="text-xs uppercase tracking-wider border border-white/20 px-3 py-1 hover:bg-white hover:text-black transition-colors"
