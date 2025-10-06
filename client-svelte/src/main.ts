@@ -2,6 +2,7 @@ import './app.css'
 import App from './App.svelte'
 import { apiClient } from './services/apiClient'
 import loggers from './services/logger'
+import { mount } from 'svelte'
 
 const log = loggers.app
 
@@ -12,14 +13,13 @@ async function initApp() {
     await (apiClient as any).init()
     log.info('API client initialized successfully')
     
-    // For Svelte 5, we need to use the component directly without new
     const target = document.getElementById('app')
     if (!target) {
       throw new Error('App target element not found')
     }
     
-    // Create the app instance using Svelte 5 API with proper props
-    const app = App({
+    // Use mount API for Svelte 5
+    const app = mount(App, {
       target,
       props: {
         url: window.location.pathname
