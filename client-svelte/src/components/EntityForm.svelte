@@ -20,7 +20,7 @@
   }
   
   const entityTypes = ['post', 'group', 'party', 'agent', 'place', 'thing']
-  const viewTypes = ['', 'default', 'grid', 'list', 'cards']
+  const viewTypes = ['', 'default', 'grid', 'list', 'cards', 'map']
   
   function handleSubmit() {
     if (!formData.title.trim()) {

@@ -6,7 +6,7 @@ export const portlandGroup = {
   type: 'group',
   title: 'Portland Community',
   content: 'Connect with locals and visitors in Portland, Oregon - food, culture, and city life',
-  view: 'cards',
+  view: 'map',
   depiction: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&h=600&fit=crop',
   tags: ['portland', 'oregon', 'pnw', 'city', 'community'],
   latitude: 45.5152,

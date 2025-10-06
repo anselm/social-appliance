@@ -7,6 +7,7 @@
   import GroupViewList from '../components/GroupViewList.svelte'
   import GroupViewCards from '../components/GroupViewCards.svelte'
   import GroupViewDefault from '../components/GroupViewDefault.svelte'
+  import GroupViewMap from '../components/GroupViewMap.svelte'
   import type { Entity } from '../types'
 
   export let path: string = '/'
@@ -106,6 +107,8 @@
 {:else}
   {#if entity.type === 'post'}
     <PostView {entity} />
+  {:else if entity.view === 'map'}
+    <GroupViewMap {entity} {children} />
   {:else if entity.view === 'grid'}
     <GroupViewGrid {entity} {children} />
   {:else if entity.view === 'cards'}
