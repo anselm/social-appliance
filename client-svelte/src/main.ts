@@ -1,5 +1,4 @@
 import './app.css'
-import { mount } from 'svelte'
 import App from './App.svelte'
 import { apiClient } from './services/apiClient'
 import loggers from './services/logger'
@@ -13,7 +12,7 @@ async function initApp() {
     await (apiClient as any).init()
     log.info('API client initialized successfully')
     
-    const app = mount(App, {
+    const app = new App({
       target: document.getElementById('app')!,
     })
     
