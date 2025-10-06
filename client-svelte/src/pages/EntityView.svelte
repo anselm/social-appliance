@@ -20,21 +20,32 @@
   let loading = $state(true)
   let error = $state<string | null>(null)
   let currentLoadingSlug = $state<string | null>(null)
-  let hasAttemptedLoad = $state(false)
+
+  console.log('EntityView: Component initialized with path:', path, 'wildcard:', wildcard)
 
   $effect(() => {
-    if (slug !== currentLoadingSlug && (!entity || entity.slug !== slug)) {
-      hasAttemptedLoad = false
+    console.log('EntityView: Effect triggered with slug:', slug)
+    console.log('EntityView: currentLoadingSlug:', currentLoadingSlug)
+    console.log('EntityView: entity:', entity?.slug)
+    console.log('EntityView: loading:', loading)
+    
+    // Only load if we're not already loading this slug and it's different from current entity
+    if (slug && slug !== currentLoadingSlug) {
+      console.log('EntityView: Calling loadEntity for:', slug)
       loadEntity(slug)
-    } else if (slug && !currentLoadingSlug && !entity && !hasAttemptedLoad) {
-      loadEntity(slug)
+    } else {
+      console.log('EntityView: Skipping load - already loading or loaded')
     }
   })
 
   async function loadEntity(targetSlug: string) {
-    if (currentLoadingSlug === targetSlug) return
+    console.log('EntityView: loadEntity called with:', targetSlug)
     
-    hasAttemptedLoad = true
+    if (currentLoadingSlug === targetSlug) {
+      console.log('EntityView: Already loading this slug, skipping')
+      return
+    }
+    
     currentLoadingSlug = targetSlug
     loading = true
     error = null
@@ -43,6 +54,8 @@
     
     try {
       const querySlug = targetSlug.startsWith('/') ? targetSlug : `/${targetSlug}`
+      console.log('EntityView: Fetching entity with slug:', querySlug)
+      
       const entityData = await api.getEntityBySlug(querySlug)
       
       if (!entityData) {
@@ -54,7 +67,6 @@
       console.log('EntityView: Loaded entity:', entity)
       console.log('EntityView: Entity type:', entity.type)
       console.log('EntityView: Entity view:', entity.view)
-      console.log('EntityView: View comparison - entity.view === "map":', entity.view === 'map')
       
       if (entity.type === 'group') {
         try {
@@ -92,16 +104,9 @@
     } finally {
       loading = false
       currentLoadingSlug = null
+      console.log('EntityView: Load complete for:', targetSlug)
     }
   }
-  
-  // Add reactive logging to see what's happening
-  $effect(() => {
-    if (entity) {
-      console.log('EntityView: Reactive check - entity:', entity.id, 'type:', entity.type, 'view:', entity.view)
-      console.log('EntityView: Reactive - should render map?', entity.type === 'group' && entity.view === 'map')
-    }
-  })
 </script>
 
 {#if loading}
@@ -125,34 +130,17 @@
     </RouterLink>
   </div>
 {:else}
-  <div class="mb-4 p-3 bg-green-900/20 border border-green-500/30 text-xs space-y-1">
-    <div>DEBUG: Entity type = "{entity.type}"</div>
-    <div>DEBUG: Entity view = "{entity.view || '(empty)'}"</div>
-    <div>DEBUG: Children count = {children.length}</div>
-    <div>DEBUG: Type is group? {entity.type === 'group'}</div>
-    <div>DEBUG: View is map? {entity.view === 'map'}</div>
-    <div>DEBUG: Should render map? {entity.type === 'group' && entity.view === 'map'}</div>
-  </div>
-  
   {#if entity.type === 'post'}
-    <div class="mb-2 text-xs text-blue-400">→ Rendering PostView</div>
     <PostView {entity} />
   {:else if entity.type === 'group' && entity.view === 'map'}
-    <div class="mb-2 p-2 bg-yellow-900/30 border border-yellow-500/50 text-xs text-yellow-300">
-      ✓ MAP VIEW BRANCH MATCHED - About to render GroupViewMap component
-    </div>
     <GroupViewMap {entity} {children} />
   {:else if entity.type === 'group' && entity.view === 'grid'}
-    <div class="mb-2 text-xs text-blue-400">→ Rendering GroupViewGrid</div>
     <GroupViewGrid {entity} {children} />
   {:else if entity.type === 'group' && entity.view === 'cards'}
-    <div class="mb-2 text-xs text-blue-400">→ Rendering GroupViewCards</div>
     <GroupViewCards {entity} {children} />
   {:else if entity.type === 'group' && entity.view === 'list'}
-    <div class="mb-2 text-xs text-blue-400">→ Rendering GroupViewList</div>
     <GroupViewList {entity} {children} />
   {:else if entity.type === 'group'}
-    <div class="mb-2 text-xs text-blue-400">→ Rendering GroupViewDefault (no specific view)</div>
     <GroupViewDefault {entity} {children} />
   {:else}
     <div class="text-xs text-red-400">Unknown entity type: {entity.type}</div>
