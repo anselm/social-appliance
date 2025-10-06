@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Router, Route } from 'svelte-routing'
+  import Router from 'svelte-spa-router'
+  import { wrap } from 'svelte-spa-router/wrap'
   import Layout from './components/Layout.svelte'
   import EntityView from './pages/EntityView.svelte'
   import Login from './pages/siwe-magic-login.svelte'
@@ -58,6 +59,21 @@
   $effect(() => {
     console.log('App state:', { routingMode, queryPath, actualPath })
   })
+  
+  // Routes for path-based routing
+  const routes = {
+    '/': wrap({
+      component: EntityView,
+      props: { path: '/' }
+    }),
+    '/login': Login,
+    '/admin': Admin,
+    '/testmap': TestMap,
+    '/*': wrap({
+      component: EntityView,
+      props: (params: any) => ({ wildcard: params.wild })
+    })
+  }
 </script>
 
 {#if routingMode === 'query'}
@@ -77,15 +93,9 @@
     {/snippet}
   </Layout>
 {:else}
-  <Router {url}>
-    <Layout>
-      {#snippet children()}
-        <Route path="/login" component={Login} />
-        <Route path="/admin" component={Admin} />
-        <Route path="/testmap" component={TestMap} />
-        <Route path="/" component={EntityView} />
-        <Route path="/*wildcard" component={EntityView} />
-      {/snippet}
-    </Layout>
-  </Router>
+  <Layout>
+    {#snippet children()}
+      <Router {routes} />
+    {/snippet}
+  </Layout>
 {/if}

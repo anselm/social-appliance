@@ -1,6 +1,7 @@
 <script lang="ts">
   import { config } from '../stores/appConfig'
   import { navigateTo } from '../utils/navigation'
+  import { push } from 'svelte-spa-router'
   import type { Snippet } from 'svelte'
   
   let { to, className = '', children }: { to: string, className?: string, children?: Snippet } = $props()
@@ -8,11 +9,14 @@
   let routingMode = $derived($config.routing?.mode || 'query')
   
   function handleClick(event: MouseEvent) {
+    event.preventDefault()
+    
     if (routingMode === 'query') {
-      event.preventDefault()
       navigateTo(to)
+    } else {
+      // Use svelte-spa-router's push for path-based routing
+      push(to)
     }
-    // For path mode, let the default link behavior work
   }
 </script>
 
