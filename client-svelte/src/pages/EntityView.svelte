@@ -16,15 +16,19 @@
   let children = $state<Entity[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
-  let containerDiv: HTMLDivElement | undefined = $state()
 
-  const routingMode = $config.routing?.mode || 'query'
-  const slug = routingMode === 'query' ? path : (wildcard || '/')
+  console.log('EntityView: Component initialized with path:', path, 'wildcard:', wildcard)
 
-  console.log('EntityView: SCRIPT EXECUTING - slug:', slug)
-
-  // Call loadEntity immediately in the script
-  loadEntity(slug)
+  // Watch the path prop and load entity when it changes
+  $effect(() => {
+    const routingMode = $config.routing?.mode || 'query'
+    const slug = routingMode === 'query' ? path : (wildcard || '/')
+    
+    console.log('EntityView: $effect triggered with slug:', slug)
+    
+    // Call loadEntity
+    loadEntity(slug)
+  })
 
   async function loadEntity(targetSlug: string) {
     console.log('EntityView: loadEntity START with:', targetSlug)
@@ -85,22 +89,14 @@
       children = []
     } finally {
       loading = false
-      console.log('EntityView: loadEntity COMPLETE for:', targetSlug)
+      console.log('EntityView: loadEntity COMPLETE for:', targetSlug, 'loading:', loading, 'entity:', entity?.id)
     }
   }
-
-  // Use effect bound to the container div to force reactivity
-  $effect(() => {
-    if (containerDiv) {
-      console.log('EntityView: Container div bound, slug:', slug)
-      // This effect will run when containerDiv is bound
-    }
-  })
 </script>
 
-<div bind:this={containerDiv}>
+<div>
   {#if loading}
-    <div class="text-xs text-white/60">Loading... (direct call)</div>
+    <div class="text-xs text-white/60">Loading...</div>
   {:else if error}
     <div class="space-y-4">
       <div class="text-sm text-red-400">{error}</div>
