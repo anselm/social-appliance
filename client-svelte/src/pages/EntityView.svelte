@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
   import { api } from '../services/api'
   import { config } from '../stores/appConfig'
   import RouterLink from '../components/RouterLink.svelte'
@@ -20,11 +19,11 @@
 
   console.log('EntityView: Component script executing with path:', path)
 
-  // Use onMount to ensure component is ready before loading
-  onMount(() => {
-    console.log('EntityView: onMount triggered, calling loadEntity with path:', path)
+  // Use setTimeout as a hack since onMount and $effect are broken
+  setTimeout(() => {
+    console.log('EntityView: setTimeout triggered, calling loadEntity with path:', path)
     loadEntity(path)
-  })
+  }, 0)
 
   async function loadEntity(targetSlug: string) {
     console.log('EntityView: loadEntity START with:', targetSlug)
