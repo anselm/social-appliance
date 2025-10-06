@@ -57,6 +57,7 @@
       console.log('EntityView: Loaded entity:', entity)
       console.log('EntityView: Entity type:', entity.type)
       console.log('EntityView: Entity view:', entity.view)
+      console.log('EntityView: View comparison - entity.view === "map":', entity.view === 'map')
       
       if (entity.type === 'group') {
         try {
@@ -101,6 +102,7 @@
   $: {
     if (entity) {
       console.log('EntityView: Reactive check - entity:', entity.id, 'type:', entity.type, 'view:', entity.view)
+      console.log('EntityView: Reactive - should render map?', entity.type === 'group' && entity.view === 'map')
     }
   }
 </script>
@@ -118,26 +120,36 @@
     <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">← Back to home</RouterLink>
   </div>
 {:else}
-  <div class="mb-4 text-xs text-white/40">
-    DEBUG: Entity type={entity.type}, view={entity.view || '(none)'}
+  <div class="mb-4 p-3 bg-green-900/20 border border-green-500/30 text-xs space-y-1">
+    <div>DEBUG: Entity type = "{entity.type}"</div>
+    <div>DEBUG: Entity view = "{entity.view || '(empty)'}"</div>
+    <div>DEBUG: Children count = {children.length}</div>
+    <div>DEBUG: Type is group? {entity.type === 'group'}</div>
+    <div>DEBUG: View is map? {entity.view === 'map'}</div>
+    <div>DEBUG: Should render map? {entity.type === 'group' && entity.view === 'map'}</div>
   </div>
   
   {#if entity.type === 'post'}
+    <div class="mb-2 text-xs text-blue-400">→ Rendering PostView</div>
     <PostView {entity} />
+  {:else if entity.type === 'group' && entity.view === 'map'}
+    <div class="mb-2 p-2 bg-yellow-900/30 border border-yellow-500/50 text-xs text-yellow-300">
+      ✓ MAP VIEW BRANCH MATCHED - About to render GroupViewMap component
+    </div>
+    <GroupViewMap {entity} {children} />
+  {:else if entity.type === 'group' && entity.view === 'grid'}
+    <div class="mb-2 text-xs text-blue-400">→ Rendering GroupViewGrid</div>
+    <GroupViewGrid {entity} {children} />
+  {:else if entity.type === 'group' && entity.view === 'cards'}
+    <div class="mb-2 text-xs text-blue-400">→ Rendering GroupViewCards</div>
+    <GroupViewCards {entity} {children} />
+  {:else if entity.type === 'group' && entity.view === 'list'}
+    <div class="mb-2 text-xs text-blue-400">→ Rendering GroupViewList</div>
+    <GroupViewList {entity} {children} />
   {:else if entity.type === 'group'}
-    {#if entity.view === 'map'}
-      <div class="mb-4 text-xs text-green-400">DEBUG: Rendering GroupViewMap</div>
-      <GroupViewMap {entity} {children} />
-    {:else if entity.view === 'grid'}
-      <GroupViewGrid {entity} {children} />
-    {:else if entity.view === 'cards'}
-      <GroupViewCards {entity} {children} />
-    {:else if entity.view === 'list'}
-      <GroupViewList {entity} {children} />
-    {:else}
-      <GroupViewDefault {entity} {children} />
-    {/if}
+    <div class="mb-2 text-xs text-blue-400">→ Rendering GroupViewDefault (no specific view)</div>
+    <GroupViewDefault {entity} {children} />
   {:else}
-    <div class="text-xs text-white/60">Unknown entity type: {entity.type}</div>
+    <div class="text-xs text-red-400">Unknown entity type: {entity.type}</div>
   {/if}
 {/if}
