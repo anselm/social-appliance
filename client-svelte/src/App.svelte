@@ -62,14 +62,11 @@
   
   // Routes for path-based routing
   const routes = {
-    '/': wrap({
-      component: EntityView,
-      props: { path: '/' }
-    }),
+    '/': EntityView,
     '/login': Login,
     '/admin': Admin,
     '/testmap': TestMap,
-    '/*': wrap({
+    '*': wrap({
       component: EntityView,
       props: (params: any) => ({ wildcard: params.wild })
     })
