@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { api } from '../services/api'
-  import { auth } from '../stores/auth'
+  import { authStore } from '../stores/auth'
   import { config } from '../stores/appConfig'
   import RouterLink from '../components/RouterLink.svelte'
   import PostView from '../components/PostView.svelte'
@@ -108,15 +108,15 @@
 
   async function handleCreatePost(event: CustomEvent) {
     const { title, content } = event.detail
-    if (!$auth || !entity || !title.trim()) return
+    if (!$authStore || !entity || !title.trim()) return
 
     try {
       await api.createPost({
         title: title.trim(),
         content: content.trim(),
         parentId: entity.id,
-        sponsorId: $auth.id,
-        auth: $auth.id
+        sponsorId: $authStore.address || $authStore.issuer,
+        auth: $authStore.address || $authStore.issuer
       })
       
       await loadEntity(slug) // Reload children
