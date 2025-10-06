@@ -16,6 +16,7 @@
   let children = $state<Entity[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
+  let renderKey = $state(0)
 
   console.log('EntityView: Component script executing with path:', path)
 
@@ -23,7 +24,7 @@
   setTimeout(() => {
     console.log('EntityView: setTimeout triggered, calling loadEntity with path:', path)
     loadEntity(path)
-  }, 0)
+  }, 100)
 
   async function loadEntity(targetSlug: string) {
     console.log('EntityView: loadEntity START with:', targetSlug)
@@ -32,6 +33,7 @@
     error = null
     entity = null
     children = []
+    renderKey = renderKey + 1
     
     try {
       const querySlug = targetSlug.startsWith('/') ? targetSlug : `/${targetSlug}`
@@ -84,50 +86,53 @@
       children = []
     } finally {
       loading = false
+      renderKey = renderKey + 1
       console.log('EntityView: loadEntity COMPLETE')
-      console.log('EntityView: Final state - loading:', loading, 'entity:', entity?.id, 'error:', error)
+      console.log('EntityView: Final state - loading:', loading, 'entity:', entity?.id, 'error:', error, 'renderKey:', renderKey)
     }
   }
 </script>
 
-<div>
-  <div class="mb-2 text-xs text-yellow-400">DEBUG: loading={loading}, entity={entity?.id || 'null'}, error={error || 'null'}</div>
-  
-  {#if loading}
-    <div class="text-xs text-white/60">Loading...</div>
-  {:else if error}
-    <div class="space-y-4">
-      <div class="text-sm text-red-400">{error}</div>
-      <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">
-        {#snippet children()}
-          ← Back to home
-        {/snippet}
-      </RouterLink>
-    </div>
-  {:else if !entity}
-    <div class="space-y-4">
-      <div class="text-sm text-white/60">Page not found</div>
-      <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">
-        {#snippet children()}
-          ← Back to home
-        {/snippet}
-      </RouterLink>
-    </div>
-  {:else}
-    {#if entity.type === 'post'}
-      <PostView {entity} />
-    {:else if entity.type === 'group' && entity.view === 'map'}
-      <GroupViewMap {entity} {children} />
-    {:else if entity.type === 'group' && entity.view === 'grid'}
-      <GroupViewGrid {entity} {children} />
-    {:else if entity.type === 'group' && entity.view === 'cards'}
-      <GroupViewCards {entity} {children} />
-    {:else if entity.type === 'group' && entity.view === 'list'}
-      <GroupViewList {entity} {children} />
-    {:else if entity.type === 'group'}
-      <GroupViewDefault {entity} {children} />
+{#key renderKey}
+  <div>
+    <div class="mb-2 text-xs text-yellow-400">DEBUG: loading={loading}, entity={entity?.id || 'null'}, error={error || 'null'}, renderKey={renderKey}</div>
+    
+    {#if loading}
+      <div class="text-xs text-white/60">Loading...</div>
+    {:else if error}
+      <div class="space-y-4">
+        <div class="text-sm text-red-400">{error}</div>
+        <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">
+          {#snippet children()}
+            ← Back to home
+          {/snippet}
+        </RouterLink>
+      </div>
+    {:else if !entity}
+      <div class="space-y-4">
+        <div class="text-sm text-white/60">Page not found</div>
+        <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">
+          {#snippet children()}
+            ← Back to home
+          {/snippet}
+        </RouterLink>
+      </div>
     {:else}
-      <div class="text-xs text-red-400">Unknown entity type: {entity.type}</div>
+      {#if entity.type === 'post'}
+        <PostView {entity} />
+      {:else if entity.type === 'group' && entity.view === 'map'}
+        <GroupViewMap {entity} {children} />
+      {:else if entity.type === 'group' && entity.view === 'grid'}
+        <GroupViewGrid {entity} {children} />
+      {:else if entity.type === 'group' && entity.view === 'cards'}
+        <GroupViewCards {entity} {children} />
+      {:else if entity.type === 'group' && entity.view === 'list'}
+        <GroupViewList {entity} {children} />
+      {:else if entity.type === 'group'}
+        <GroupViewDefault {entity} {children} />
+      {:else}
+        <div class="text-xs text-red-400">Unknown entity type: {entity.type}</div>
+      {/if}
     {/if}
-  {/if}
-</div>
+  </div>
+{/key}
