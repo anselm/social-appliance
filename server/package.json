@@ -14,7 +14,9 @@
     "mongodb": "^6.3.0",
     "uuid": "^9.0.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "@magic-sdk/admin": "^2.8.1",
+    "viem": "^2.37.12"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
