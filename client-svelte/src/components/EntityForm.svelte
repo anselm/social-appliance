@@ -1,103 +1,174 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
+  import { generateEntityId, buildEntitySlug } from '../utils/entityHelpers'
+  import type { Entity } from '../types'
   
-  export let type = 'post'
-  export let slug = ''
-  export let title = ''
-  export let content = ''
-  export let parentId = ''
-  export let sponsorId = ''
+  export let entity: Entity | null = null
+  export let parentSlug: string = '/'
+  export let mode: 'create' | 'edit' = 'create'
   
   const dispatch = createEventDispatcher()
   
-  function handleSubmit(e: Event) {
-    e.preventDefault()
+  let formData = {
+    type: entity?.type || 'post',
+    title: entity?.title || '',
+    content: entity?.content || '',
+    slug: entity?.slug || buildEntitySlug(parentSlug),
+    view: entity?.view || '',
+    depiction: entity?.depiction || '',
+    parentId: entity?.parentId || null
+  }
+  
+  const entityTypes = ['post', 'group', 'party', 'agent', 'place', 'thing']
+  const viewTypes = ['', 'default', 'grid', 'list', 'cards']
+  
+  function handleSubmit() {
+    if (!formData.title.trim()) {
+      alert('Title is required')
+      return
+    }
+    
+    if (!formData.slug.trim()) {
+      alert('Slug is required')
+      return
+    }
+    
     dispatch('submit', {
-      type,
-      slug,
-      title,
-      content,
-      parentId,
-      sponsorId
+      ...formData,
+      id: entity?.id
     })
+  }
+  
+  function handleCancel() {
+    dispatch('cancel')
+  }
+  
+  function regenerateSlug() {
+    formData.slug = buildEntitySlug(parentSlug)
   }
 </script>
 
-<form on:submit={handleSubmit} class="max-w-md space-y-4">
+<div class="bg-white/5 border border-white/20 rounded-lg p-6 space-y-4">
+  <h2 class="text-lg font-semibold mb-4">
+    {mode === 'create' ? 'New Entity' : 'Edit Entity'}
+  </h2>
+  
   <div>
-    <label for="entity-type" class="block text-xs text-white/60 mb-1">Type</label>
+    <label for="type" class="block text-xs text-white/60 mb-1">
+      Type *
+    </label>
     <select
-      id="entity-type"
-      bind:value={type}
-      class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
+      id="type"
+      bind:value={formData.type}
+      class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
+      disabled={mode === 'edit'}
     >
-      <option value="post">Post</option>
-      <option value="group">Group</option>
-      <option value="party">Party (User)</option>
-      <option value="place">Place</option>
-      <option value="thing">Thing</option>
-      <option value="agent">Agent</option>
+      {#each entityTypes as type}
+        <option value={type}>{type}</option>
+      {/each}
     </select>
+    {#if mode === 'edit'}
+      <p class="text-xs text-white/40 mt-1">Type cannot be changed after creation</p>
+    {/if}
   </div>
-
+  
   <div>
-    <label for="entity-slug" class="block text-xs text-white/60 mb-1">Slug (optional)</label>
+    <label for="title" class="block text-xs text-white/60 mb-1">
+      Title *
+    </label>
     <input
-      id="entity-slug"
+      id="title"
       type="text"
-      bind:value={slug}
-      class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
-      placeholder="unique-identifier"
+      bind:value={formData.title}
+      class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
+      placeholder="Enter title"
     />
   </div>
-
+  
   <div>
-    <label for="entity-title" class="block text-xs text-white/60 mb-1">Title</label>
+    <label for="slug" class="block text-xs text-white/60 mb-1">
+      Slug * {#if mode === 'create'}
+        <button
+          type="button"
+          on:click={regenerateSlug}
+          class="text-blue-400 hover:text-blue-300 ml-2"
+        >
+          (regenerate)
+        </button>
+      {/if}
+    </label>
     <input
-      id="entity-title"
+      id="slug"
       type="text"
-      bind:value={title}
-      class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
-      required
+      bind:value={formData.slug}
+      class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white font-mono"
+      placeholder="/path/to/entity"
     />
+    <p class="text-xs text-white/40 mt-1">
+      Must be unique. Format: /path/to/entity
+    </p>
   </div>
-
+  
   <div>
-    <label for="entity-content" class="block text-xs text-white/60 mb-1">Content</label>
+    <label for="content" class="block text-xs text-white/60 mb-1">
+      Content
+    </label>
     <textarea
-      id="entity-content"
-      bind:value={content}
-      class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
-      rows="4"
+      id="content"
+      bind:value={formData.content}
+      rows="6"
+      class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
+      placeholder="Enter content (supports Markdown)"
     />
   </div>
-
+  
+  {#if formData.type === 'group'}
+    <div>
+      <label for="view" class="block text-xs text-white/60 mb-1">
+        View Type
+      </label>
+      <select
+        id="view"
+        bind:value={formData.view}
+        class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
+      >
+        {#each viewTypes as view}
+          <option value={view}>{view || '(default)'}</option>
+        {/each}
+      </select>
+      <p class="text-xs text-white/40 mt-1">
+        How child entities are displayed
+      </p>
+    </div>
+  {/if}
+  
   <div>
-    <label for="entity-parent-id" class="block text-xs text-white/60 mb-1">Parent ID (optional)</label>
+    <label for="depiction" class="block text-xs text-white/60 mb-1">
+      Depiction (Image URL)
+    </label>
     <input
-      id="entity-parent-id"
+      id="depiction"
       type="text"
-      bind:value={parentId}
-      class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
-      placeholder="parent-entity-id"
+      bind:value={formData.depiction}
+      class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
+      placeholder="https://example.com/image.jpg"
     />
   </div>
-
-  <div>
-    <label for="entity-sponsor-id" class="block text-xs text-white/60 mb-1">Sponsor ID (optional)</label>
-    <input
-      id="entity-sponsor-id"
-      type="text"
-      bind:value={sponsorId}
-      class="w-full bg-black border border-white/20 px-2 py-1 text-sm"
-      placeholder="sponsor-entity-id"
-    />
+  
+  <div class="flex gap-3 pt-4">
+    <button
+      type="button"
+      on:click={handleSubmit}
+      class="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-medium"
+    >
+      {mode === 'create' ? 'Create Entity' : 'Save Changes'}
+    </button>
+    <button
+      type="button"
+      on:click={handleCancel}
+      class="px-4 py-2 border border-white/20 hover:bg-white/10 transition-colors text-sm"
+    >
+      Cancel
+    </button>
   </div>
-
-  <button
-    type="submit"
-    class="border border-white/20 px-4 py-1 text-xs uppercase tracking-wider hover:bg-white hover:text-black"
-  >
-    Create Entity
-  </button>
-</form>
+</div>
