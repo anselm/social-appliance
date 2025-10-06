@@ -42,14 +42,6 @@
       
       <nav class="flex items-center gap-4 text-sm">
         {#if $authStore}
-          <span class="text-white/60">
-            {getDisplayName($authStore)}
-          </span>
-          {#if showAdmin}
-            <RouterLink to="/admin" className="hover:text-white/80 transition-colors">
-              Admin
-            </RouterLink>
-          {/if}
           <button 
             on:click={handleLogout}
             class="hover:text-white/80 transition-colors"
@@ -60,11 +52,6 @@
           {#if showLogin}
             <RouterLink to="/login" className="hover:text-white/80 transition-colors">
               Login
-            </RouterLink>
-          {/if}
-          {#if showAdmin}
-            <RouterLink to="/admin" className="hover:text-white/80 transition-colors">
-              Admin
             </RouterLink>
           {/if}
         {/if}

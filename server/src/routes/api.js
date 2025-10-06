@@ -15,6 +15,11 @@ function handleError(res, error) {
   res.status(status).json(message);
 }
 
+// Health check
+router.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // Entity routes
 router.post('/entities', async (req, res) => {
   try {

@@ -67,7 +67,7 @@ window.APP_CONFIG = {
   // Routing configuration
   routing: {
     // Routing mode: 'path' for SPA servers, 'query' for static hosts like GitHub Pages
-    mode: 'query', // 'path' | 'query'
+    mode: 'path', // 'path' | 'query'
     
     // Base path for the application (useful for GitHub Pages with project sites)
     basePath: ''
