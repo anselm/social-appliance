@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
   import { api } from '../services/api'
   import { config } from '../stores/appConfig'
   import RouterLink from '../components/RouterLink.svelte'
@@ -17,37 +16,36 @@
   let children = $state<Entity[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
-  let lastLoadedPath = $state<string>('')
 
-  console.log('EntityView: Component initialized with path:', path, 'wildcard:', wildcard)
+  console.log('EntityView: Component script running - path:', path, 'wildcard:', wildcard)
 
-  // Use onMount to load initial entity
-  onMount(() => {
-    console.log('EntityView: onMount triggered')
+  // Create a derived value that forces tracking
+  let currentSlug = $derived.by(() => {
     const routingMode = $config.routing?.mode || 'query'
     const slug = routingMode === 'query' ? path : (wildcard || '/')
-    console.log('EntityView: Initial slug:', slug)
+    console.log('EntityView: $derived.by computed slug:', slug)
+    return slug
+  })
+
+  // Use $effect.root to ensure it always runs
+  $effect(() => {
+    // Force reading of all dependencies
+    const slug = currentSlug
+    const p = path
+    const w = wildcard
+    
+    console.log('EntityView: $effect TRIGGERED!')
+    console.log('EntityView: slug:', slug)
+    console.log('EntityView: path:', p)
+    console.log('EntityView: wildcard:', w)
+    
+    // Always load
     loadEntity(slug)
   })
 
-  // Watch for path changes with $effect
-  $effect(() => {
-    const routingMode = $config.routing?.mode || 'query'
-    const slug = routingMode === 'query' ? path : (wildcard || '/')
-    
-    console.log('EntityView: Effect triggered - slug:', slug, 'lastLoadedPath:', lastLoadedPath)
-    
-    // Only load if the path has actually changed
-    if (slug !== lastLoadedPath) {
-      console.log('EntityView: Path changed, loading new entity')
-      loadEntity(slug)
-    }
-  })
-
   async function loadEntity(targetSlug: string) {
-    console.log('EntityView: loadEntity called with:', targetSlug)
+    console.log('EntityView: loadEntity START with:', targetSlug)
     
-    lastLoadedPath = targetSlug
     loading = true
     error = null
     entity = null
@@ -104,7 +102,7 @@
       children = []
     } finally {
       loading = false
-      console.log('EntityView: Load complete for:', targetSlug)
+      console.log('EntityView: loadEntity COMPLETE for:', targetSlug)
     }
   }
 </script>
