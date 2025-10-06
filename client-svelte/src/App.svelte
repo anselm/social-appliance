@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Router, Route } from 'svelte-routing'
   import Layout from './components/Layout.svelte'
   import EntityView from './pages/EntityView.svelte'
   import Login from './pages/siwe-magic-login.svelte'
@@ -26,19 +27,21 @@
     queryPath = newPath
   }
   
-  // Listen for navigation events
+  // Listen for navigation events in query mode
   $effect(() => {
-    // Update on popstate (back/forward buttons)
-    window.addEventListener('popstate', updateQueryPath)
-    // Update on our custom navigate event
-    window.addEventListener('navigate', updateQueryPath)
-    
-    // Initial path check
-    updateQueryPath()
-    
-    return () => {
-      window.removeEventListener('popstate', updateQueryPath)
-      window.removeEventListener('navigate', updateQueryPath)
+    if (routingMode === 'query') {
+      // Update on popstate (back/forward buttons)
+      window.addEventListener('popstate', updateQueryPath)
+      // Update on our custom navigate event
+      window.addEventListener('navigate', updateQueryPath)
+      
+      // Initial path check
+      updateQueryPath()
+      
+      return () => {
+        window.removeEventListener('popstate', updateQueryPath)
+        window.removeEventListener('navigate', updateQueryPath)
+      }
     }
   })
   
@@ -57,18 +60,32 @@
   })
 </script>
 
-<Layout>
-  {#snippet children()}
-    {#key queryPath}
-      {#if actualPath === '/login'}
-        <Login />
-      {:else if actualPath === '/admin'}
-        <Admin />
-      {:else if actualPath === '/testmap'}
-        <TestMap />
-      {:else}
-        <EntityView {...queryComponentProps} />
-      {/if}
-    {/key}
-  {/snippet}
-</Layout>
+{#if routingMode === 'query'}
+  <Layout>
+    {#snippet children()}
+      {#key queryPath}
+        {#if actualPath === '/login'}
+          <Login />
+        {:else if actualPath === '/admin'}
+          <Admin />
+        {:else if actualPath === '/testmap'}
+          <TestMap />
+        {:else}
+          <EntityView {...queryComponentProps} />
+        {/if}
+      {/key}
+    {/snippet}
+  </Layout>
+{:else}
+  <Router {url}>
+    <Layout>
+      {#snippet children()}
+        <Route path="/login" component={Login} />
+        <Route path="/admin" component={Admin} />
+        <Route path="/testmap" component={TestMap} />
+        <Route path="/" component={EntityView} />
+        <Route path="/*wildcard" component={EntityView} />
+      {/snippet}
+    </Layout>
+  </Router>
+{/if}
