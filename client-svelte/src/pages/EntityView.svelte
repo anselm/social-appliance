@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
   import { api } from '../services/api'
   import { config } from '../stores/appConfig'
   import RouterLink from '../components/RouterLink.svelte'
@@ -17,10 +18,13 @@
   let loading = $state(true)
   let error = $state<string | null>(null)
 
-  console.log('EntityView: Component rendering with path:', path)
+  console.log('EntityView: Component script executing with path:', path)
 
-  // Call loadEntity immediately with the path
-  loadEntity(path)
+  // Use onMount to ensure component is ready before loading
+  onMount(() => {
+    console.log('EntityView: onMount triggered, calling loadEntity with path:', path)
+    loadEntity(path)
+  })
 
   async function loadEntity(targetSlug: string) {
     console.log('EntityView: loadEntity START with:', targetSlug)
@@ -81,12 +85,15 @@
       children = []
     } finally {
       loading = false
-      console.log('EntityView: loadEntity COMPLETE for:', targetSlug, 'loading:', loading, 'entity:', entity?.id)
+      console.log('EntityView: loadEntity COMPLETE')
+      console.log('EntityView: Final state - loading:', loading, 'entity:', entity?.id, 'error:', error)
     }
   }
 </script>
 
 <div>
+  <div class="mb-2 text-xs text-yellow-400">DEBUG: loading={loading}, entity={entity?.id || 'null'}, error={error || 'null'}</div>
+  
   {#if loading}
     <div class="text-xs text-white/60">Loading...</div>
   {:else if error}
