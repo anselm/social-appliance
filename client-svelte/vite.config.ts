@@ -1,32 +1,31 @@
-import { defineConfig } from 'vite'
-import { svelte } from '@sveltejs/vite-plugin-svelte'
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
+// vite.config.js
+import { defineConfig } from 'vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
-// Generate build info at build time
 function buildInfoPlugin() {
   return {
     name: 'build-info',
     config() {
-      const buildDate = new Date().toISOString()
-      const buildRevision = Date.now().toString(36)
-      
+      const buildDate = new Date().toISOString();
+      const buildRevision = Date.now().toString(36);
       return {
         define: {
           __BUILD_DATE__: JSON.stringify(buildDate),
-          __BUILD_REVISION__: JSON.stringify(buildRevision)
+          __BUILD_REVISION__: JSON.stringify(buildRevision),
         }
-      }
+      };
     }
-  }
+  };
 }
 
 export default defineConfig({
+
   plugins: [
     buildInfoPlugin(),
-    svelte({
-      preprocess: vitePreprocess()
-    })
+    svelte({ preprocess: vitePreprocess() }),
   ],
+
   server: {
     port: 8000,
     proxy: {
@@ -36,6 +35,7 @@ export default defineConfig({
       }
     }
   },
+
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
@@ -47,9 +47,8 @@ export default defineConfig({
         }
       }
     },
-    // Tell Vite to ignore dynamic imports with specific patterns
     dynamicImportVarsOptions: {
       exclude: [/\.info\.js$/]
     }
   }
-})
+});

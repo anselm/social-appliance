@@ -2,7 +2,7 @@
   import { Router, Route } from 'svelte-routing'
   import Layout from './components/Layout.svelte'
   import EntityView from './pages/EntityView.svelte'
-  import Login from './pages/Login.svelte'
+  import Login from './pages/siwe-magic-login.svelte'
   import Admin from './pages/Admin.svelte'
   import { config } from './stores/appConfig'
   import { getCurrentPath } from './utils/navigation'
