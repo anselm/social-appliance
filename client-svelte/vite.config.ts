@@ -23,7 +23,14 @@ export default defineConfig({
 
   plugins: [
     buildInfoPlugin(),
-    svelte({ preprocess: vitePreprocess() }),
+    svelte({ 
+      preprocess: vitePreprocess(),
+      compilerOptions: {
+        compatibility: {
+          componentApi: 4
+        }
+      }
+    }),
   ],
 
   server: {
@@ -50,5 +57,9 @@ export default defineConfig({
     dynamicImportVarsOptions: {
       exclude: [/\.info\.js$/]
     }
+  },
+
+  resolve: {
+    conditions: ['browser', 'default']
   }
 });
