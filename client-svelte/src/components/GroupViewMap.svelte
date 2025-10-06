@@ -11,6 +11,7 @@
   let mapReady = $state(false)
   let initError = $state<string | null>(null)
   let logMessages = $state<string[]>([])
+  let hasInitialized = $state(false)
 
   function log(message: string) {
     console.log('GroupViewMap:', message)
@@ -23,13 +24,12 @@
   ))
 
   $effect(() => {
-    if (!mapContainer) {
-      log('Effect running but no container yet')
+    if (!mapContainer || hasInitialized) {
       return
     }
 
     log('Effect running with container')
-    log('Map container found')
+    hasInitialized = true
 
     async function initMap() {
       try {
