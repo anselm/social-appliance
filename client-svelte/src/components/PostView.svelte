@@ -8,14 +8,14 @@
 </script>
 
 <EntityManagementControls {entity} showNewEntityButton={false}>
-  <div slot="content">
+  {#snippet content()}
     <h1 class="text-2xl mb-4">{entity.title || entity.slug || 'Untitled'}</h1>
     {#if entity.slug}
       <p class="text-xs text-white/40 font-mono mb-4">{entity.slug}</p>
     {/if}
-  </div>
+  {/snippet}
   
-  <div slot="main">
+  {#snippet main()}
     {#if entity.depiction}
       <img 
         src={entity.depiction} 
@@ -33,7 +33,11 @@
       <div>Updated: {new Date(entity.updatedAt).toLocaleString()}</div>
     </div>
     <div class="mt-4">
-      <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">← Back to home</RouterLink>
+      <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">
+        {#snippet children()}
+          ← Back to home
+        {/snippet}
+      </RouterLink>
     </div>
-  </div>
+  {/snippet}
 </EntityManagementControls>

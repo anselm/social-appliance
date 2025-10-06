@@ -32,11 +32,11 @@
 </script>
 
 <EntityManagementControls {entity} showNewEntityButton={true}>
-  <div slot="content">
+  {#snippet content()}
     <!-- Empty - EntityHeader handles the display -->
-  </div>
+  {/snippet}
   
-  <div slot="main">
+  {#snippet main()}
     <EntityHeader {entity} />
 
     {#if children.length > 0}
@@ -59,5 +59,5 @@
     {:else if entity.type === 'group'}
       <div class="text-xs text-white/60">No content in this group yet</div>
     {/if}
-  </div>
+  {/snippet}
 </EntityManagementControls>

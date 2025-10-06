@@ -287,11 +287,11 @@
 </script>
 
 <EntityManagementControls {entity} showNewEntityButton={true}>
-  <div slot="content">
+  {#snippet content()}
     <!-- Empty - EntityHeader handles the display -->
-  </div>
+  {/snippet}
   
-  <div slot="main">
+  {#snippet main()}
     <EntityHeader {entity} />
 
     <div class="mb-4 text-xs text-white/60">
@@ -326,7 +326,7 @@
         </div>
       </div>
     {/if}
-  </div>
+  {/snippet}
 </EntityManagementControls>
 
 <style>
