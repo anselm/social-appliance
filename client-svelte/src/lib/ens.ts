@@ -1,11 +1,20 @@
 /**
  * ENS (Ethereum Name Service) utilities
- * Resolves Ethereum addresses to ENS names using public RPC
+ * Resolves Ethereum addresses to ENS names using viem
  */
+
+import { createPublicClient, http } from 'viem';
+import { mainnet } from 'viem/chains';
+
+// Create a public client for ENS lookups
+const publicClient = createPublicClient({
+  chain: mainnet,
+  transport: http('https://cloudflare-eth.com'),
+});
 
 /**
  * Lookup ENS name for an Ethereum address
- * Uses public Ethereum RPC to resolve reverse ENS records
+ * Returns null if no ENS name is found or if lookup fails
  */
 export async function lookupENSName(address: string): Promise<string | null> {
   if (!address || !address.startsWith('0x')) {
@@ -13,26 +22,20 @@ export async function lookupENSName(address: string): Promise<string | null> {
   }
 
   try {
-    // Use Cloudflare's public Ethereum gateway
-    const RPC_URL = 'https://cloudflare-eth.com';
+    console.log('Looking up ENS name for:', address);
     
-    // Normalize address to lowercase
-    const normalizedAddress = address.toLowerCase();
+    // Use viem's built-in ENS name resolution
+    const ensName = await publicClient.getEnsName({
+      address: address as `0x${string}`,
+    });
 
-    // Create reverse node: addr.reverse
-    const reverseNode = normalizedAddress.slice(2) + '.addr.reverse';
-    
-    // ENS registry address on mainnet
-    const ENS_REGISTRY = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e';
-    
-    // Get the resolver for this reverse node
-    // This is a simplified approach - just try to get the name directly
-    
-    // For now, return null since we need a proper ENS library
-    // A full implementation would require encoding the reverse lookup properly
-    console.log('ENS lookup attempted for:', address);
+    if (ensName) {
+      console.log('Found ENS name:', ensName);
+      return ensName;
+    }
+
+    console.log('No ENS name found for:', address);
     return null;
-    
   } catch (error) {
     console.warn('ENS lookup failed:', error);
     return null;
