@@ -54,6 +54,10 @@
       
       entity = entityData
       
+      console.log('EntityView: Loaded entity:', entity)
+      console.log('EntityView: Entity type:', entity.type)
+      console.log('EntityView: Entity view:', entity.view)
+      
       if (entity.type === 'group') {
         try {
           const childrenData = await api.queryEntities({ 
@@ -66,6 +70,8 @@
             const dateB = new Date(b.updatedAt).getTime()
             return dateB - dateA
           })
+          
+          console.log('EntityView: Loaded children:', children.length)
         } catch (childErr) {
           console.error('EntityView: Failed to load children:', childErr)
           children = []
@@ -90,6 +96,13 @@
       currentLoadingSlug = null
     }
   }
+  
+  // Add reactive logging to see what's happening
+  $: {
+    if (entity) {
+      console.log('EntityView: Reactive check - entity:', entity.id, 'type:', entity.type, 'view:', entity.view)
+    }
+  }
 </script>
 
 {#if loading}
@@ -105,17 +118,26 @@
     <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">← Back to home</RouterLink>
   </div>
 {:else}
+  <div class="mb-4 text-xs text-white/40">
+    DEBUG: Entity type={entity.type}, view={entity.view || '(none)'}
+  </div>
+  
   {#if entity.type === 'post'}
     <PostView {entity} />
-  {:else if entity.view === 'map'}
-    <GroupViewMap {entity} {children} />
-  {:else if entity.view === 'grid'}
-    <GroupViewGrid {entity} {children} />
-  {:else if entity.view === 'cards'}
-    <GroupViewCards {entity} {children} />
-  {:else if entity.view === 'list'}
-    <GroupViewList {entity} {children} />
+  {:else if entity.type === 'group'}
+    {#if entity.view === 'map'}
+      <div class="mb-4 text-xs text-green-400">DEBUG: Rendering GroupViewMap</div>
+      <GroupViewMap {entity} {children} />
+    {:else if entity.view === 'grid'}
+      <GroupViewGrid {entity} {children} />
+    {:else if entity.view === 'cards'}
+      <GroupViewCards {entity} {children} />
+    {:else if entity.view === 'list'}
+      <GroupViewList {entity} {children} />
+    {:else}
+      <GroupViewDefault {entity} {children} />
+    {/if}
   {:else}
-    <GroupViewDefault {entity} {children} />
+    <div class="text-xs text-white/60">Unknown entity type: {entity.type}</div>
   {/if}
 {/if}
