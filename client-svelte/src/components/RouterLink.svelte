@@ -1,31 +1,25 @@
 <script lang="ts">
-  import { Link } from 'svelte-routing'
-  import { navigateTo, createHref } from '../utils/navigation'
   import { config } from '../stores/appConfig'
+  import { navigateTo } from '../utils/navigation'
   
   export let to: string
   export let className: string = ''
   
-  $: routingMode = $config.routing.mode
+  $: routingMode = $config.routing?.mode || 'query'
   
-  function handleClick(e: MouseEvent) {
-    e.preventDefault()
+  function handleClick(event: MouseEvent) {
     if (routingMode === 'query') {
-      navigateTo(to)
-    } else {
-      // For path mode, let svelte-routing handle it
-      // But we still need to prevent default and call navigate
+      event.preventDefault()
       navigateTo(to)
     }
+    // For path mode, let the default link behavior work
   }
 </script>
 
-{#if routingMode === 'path'}
-  <Link {to} class={className}>
-    <slot />
-  </Link>
-{:else}
-  <a href={createHref(to)} class={className} on:click={handleClick}>
-    <slot />
-  </a>
-{/if}
+<a 
+  href={routingMode === 'query' ? `?path=${encodeURIComponent(to)}` : to}
+  class={className}
+  on:click={handleClick}
+>
+  <slot />
+</a>

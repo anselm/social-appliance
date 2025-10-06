@@ -5,10 +5,14 @@
   import Login from './pages/siwe-magic-login.svelte'
   import Admin from './pages/Admin.svelte'
   import { config } from './stores/appConfig'
+  import { authStore } from './stores/auth'
   import { getCurrentPath } from './utils/navigation'
   import { onMount } from 'svelte'
   
   export let url = ""
+  
+  // Initialize auth store
+  authStore.init()
   
   // Check routing mode from config
   $: routingMode = $config.routing?.mode || 'query'
@@ -20,13 +24,17 @@
   // Update queryPath when navigation events occur
   function updateQueryPath() {
     const newPath = getCurrentPath()
-    queryPath = newPath
+    if (newPath !== queryPath) {
+      queryPath = newPath
+    }
   }
   
   // Listen for navigation events in query mode
   onMount(() => {
     if (routingMode === 'query') {
+      // Update on popstate (back/forward buttons)
       window.addEventListener('popstate', updateQueryPath)
+      // Update on our custom navigate event
       window.addEventListener('navigate', updateQueryPath)
       
       return () => {
