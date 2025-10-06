@@ -62,26 +62,30 @@
 
 {#if routingMode === 'query'}
   <Layout>
-    {#key queryPath}
-      {#if actualPath === '/login'}
-        <Login />
-      {:else if actualPath === '/admin'}
-        <Admin />
-      {:else if actualPath === '/testmap'}
-        <TestMap />
-      {:else}
-        <EntityView {...queryComponentProps} />
-      {/if}
-    {/key}
+    {#snippet children()}
+      {#key queryPath}
+        {#if actualPath === '/login'}
+          <Login />
+        {:else if actualPath === '/admin'}
+          <Admin />
+        {:else if actualPath === '/testmap'}
+          <TestMap />
+        {:else}
+          <EntityView {...queryComponentProps} />
+        {/if}
+      {/key}
+    {/snippet}
   </Layout>
 {:else}
   <Router {url}>
     <Layout>
-      <Route path="/login" component={Login} />
-      <Route path="/admin" component={Admin} />
-      <Route path="/testmap" component={TestMap} />
-      <Route path="/" component={EntityView} />
-      <Route path="/*wildcard" component={EntityView} />
+      {#snippet children()}
+        <Route path="/login" component={Login} />
+        <Route path="/admin" component={Admin} />
+        <Route path="/testmap" component={TestMap} />
+        <Route path="/" component={EntityView} />
+        <Route path="/*wildcard" component={EntityView} />
+      {/snippet}
     </Layout>
   </Router>
 {/if}
