@@ -74,6 +74,8 @@
         address: account
       });
       
+      // Success - user can now click "Back to Home" button
+      
     } catch (e: any) {
       console.error('MetaMask error:', e);
       error = e?.message || String(e);
@@ -120,6 +122,8 @@
         issuer: metadata.issuer,
         didToken: didToken
       });
+      
+      // Success - user can now click "Back to Home" button
       
     } catch (e: any) {
       console.error('Magic error:', e);
