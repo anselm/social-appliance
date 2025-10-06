@@ -38,45 +38,54 @@ export async function lookupENSName(address: string): Promise<string | null> {
       // Create a client for this specific RPC
       const publicClient = createPublicClient({
         chain: mainnet,
-        transport: http(rpcUrl),
+        transport: http(rpcUrl, {
+          timeout: 5000, // 5 second timeout
+        }),
       });
       
-      // Set a timeout for the ENS lookup
-      const timeoutPromise = new Promise<null>((resolve) => {
-        setTimeout(() => {
-          console.warn(`ENS lookup timed out after 3 seconds for RPC: ${rpcUrl.substring(0, 30)}...`);
-          resolve(null);
-        }, 3000);
-      });
-      
-      // Race between the ENS lookup and the timeout
+      // Try the ENS lookup with a timeout
       const ensNamePromise = publicClient.getEnsName({
         address: address as `0x${string}`,
-      }).catch((error) => {
-        console.warn(`ENS lookup error with ${rpcUrl.substring(0, 30)}...:`, error.message || error);
-        return null;
       });
       
-      const ensName = await Promise.race([ensNamePromise, timeoutPromise]);
-
-      if (ensName) {
-        console.log('Found ENS name:', ensName);
-        return ensName;
+      const timeoutPromise = new Promise<'timeout'>((resolve) => {
+        setTimeout(() => {
+          resolve('timeout');
+        }, 5000);
+      });
+      
+      const result = await Promise.race([ensNamePromise, timeoutPromise]);
+      
+      if (result === 'timeout') {
+        console.warn(`ENS lookup timed out for RPC ${i + 1}: ${rpcUrl.substring(0, 30)}...`);
+        // Continue to next RPC
+        continue;
       }
       
-      // If we got null but no error, the address just doesn't have an ENS name
-      // No need to try other RPCs
-      if (i === 0) {
-        console.log('No ENS name found for:', address);
-        return null;
+      if (result) {
+        console.log('Found ENS name:', result);
+        return result;
       }
+      
+      // If we got null from the first RPC, it might mean no ENS name exists
+      // But let's try at least one more RPC to be sure
+      if (i === 0) {
+        console.log('First RPC returned no ENS name, trying backup RPC...');
+        continue;
+      }
+      
+      // If second RPC also returns null, there's probably no ENS name
+      console.log('No ENS name found for:', address);
+      return null;
+      
     } catch (error: any) {
       console.warn(`ENS lookup failed with RPC ${i + 1}:`, error.message || error);
       // Continue to next RPC endpoint
+      continue;
     }
   }
 
-  // All RPC endpoints failed
+  // All RPC endpoints failed or timed out
   console.warn('ENS lookup failed with all RPC endpoints');
   return null;
 }
