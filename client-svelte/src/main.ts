@@ -18,10 +18,12 @@ async function initApp() {
       throw new Error('App target element not found')
     }
     
-    // Create the app instance using Svelte 5 API
+    // Create the app instance using Svelte 5 API with proper props
     const app = App({
       target,
-      props: {}
+      props: {
+        url: window.location.pathname
+      }
     })
     
     log.info('Application mounted successfully')
