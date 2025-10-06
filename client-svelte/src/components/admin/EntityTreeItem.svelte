@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { EntityWithChildren } from '../types'
+  import type { EntityWithChildren } from '../../types'
   import EntityItem from './EntityItem.svelte'
   
   export let entity: EntityWithChildren

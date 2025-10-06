@@ -4,7 +4,6 @@
   import { config } from '../stores/appConfig'
   import RouterLink from '../components/RouterLink.svelte'
   import EntityForm from '../components/EntityForm.svelte'
-  import EntityDisplay from '../components/EntityDisplay.svelte'
   import EntityActions from '../components/EntityActions.svelte'
   import PostView from '../components/PostView.svelte'
   import GroupViewGrid from '../components/GroupViewGrid.svelte'

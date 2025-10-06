@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Entity } from '../types'
+  import type { Entity } from '../../types'
   
   export let entity: Entity
   export let onEdit: (entity: Entity) => void

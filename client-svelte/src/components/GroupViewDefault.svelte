@@ -13,16 +13,6 @@
 
 <EntityHeader {entity} />
 
-{#if entity.depiction}
-  <div class="mb-6 -mx-4 md:mx-0">
-    <img 
-      src={entity.depiction} 
-      alt={entity.title || 'Banner'} 
-      class="w-full h-32 md:h-40 object-cover rounded-none md:rounded"
-    />
-  </div>
-{/if}
-
 {#if children.length > 0}
   <div class="space-y-4">
     {#each children as child}
