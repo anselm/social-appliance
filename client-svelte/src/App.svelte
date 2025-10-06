@@ -8,18 +8,17 @@
   import { config } from './stores/appConfig'
   import { authStore } from './stores/auth'
   import { getCurrentPath } from './utils/navigation'
-  import { onMount } from 'svelte'
   
-  export let url = ""
+  let { url = "" }: { url?: string } = $props()
   
   // Initialize auth store
   authStore.init()
   
   // Check routing mode from config
-  $: routingMode = $config.routing?.mode || 'query'
+  let routingMode = $derived($config.routing?.mode || 'query')
   
   // For query parameter routing
-  let queryPath = getCurrentPath()
+  let queryPath = $state(getCurrentPath())
   
   // Update queryPath when navigation events occur
   function updateQueryPath() {
@@ -29,7 +28,7 @@
   }
   
   // Listen for navigation events in query mode
-  onMount(() => {
+  $effect(() => {
     if (routingMode === 'query') {
       // Update on popstate (back/forward buttons)
       window.addEventListener('popstate', updateQueryPath)
@@ -47,23 +46,29 @@
   })
   
   // Check if this is an invalid route (path without query parameter in query mode)
-  $: isInvalidRoute = queryPath.startsWith('__INVALID__')
-  $: actualPath = isInvalidRoute ? queryPath.substring('__INVALID__'.length) : queryPath
+  let isInvalidRoute = $derived(queryPath.startsWith('__INVALID__'))
+  let actualPath = $derived(isInvalidRoute ? queryPath.substring('__INVALID__'.length) : queryPath)
   
   // Determine which component to show based on path (for query mode)
-  $: queryComponent = isInvalidRoute ? EntityView :
-                      actualPath === '/login' ? Login :
-                      actualPath === '/admin' ? Admin :
-                      actualPath === '/testmap' ? TestMap :
-                      EntityView
+  let queryComponent = $derived(
+    isInvalidRoute ? EntityView :
+    actualPath === '/login' ? Login :
+    actualPath === '/admin' ? Admin :
+    actualPath === '/testmap' ? TestMap :
+    EntityView
+  )
   
   // Pass the path as a prop to EntityView (for query mode)
-  $: queryComponentProps = queryComponent === EntityView ? { 
-    path: isInvalidRoute ? actualPath : actualPath 
-  } : {}
+  let queryComponentProps = $derived(
+    queryComponent === EntityView ? { 
+      path: isInvalidRoute ? actualPath : actualPath 
+    } : {}
+  )
   
   // Debug logging
-  $: console.log('App state:', { routingMode, queryPath, actualPath, componentName: queryComponent.name })
+  $effect(() => {
+    console.log('App state:', { routingMode, queryPath, actualPath, componentName: queryComponent.name })
+  })
 </script>
 
 {#if routingMode === 'query'}
