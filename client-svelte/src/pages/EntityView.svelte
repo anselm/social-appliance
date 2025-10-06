@@ -10,32 +10,17 @@
   import GroupViewMap from '../components/GroupViewMap.svelte'
   import type { Entity } from '../types'
 
-  let { path = '/', wildcard = '' }: { path?: string, wildcard?: string } = $props()
+  let { path = '/' }: { path?: string } = $props()
 
   let entity = $state<Entity | null>(null)
   let children = $state<Entity[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
 
-  console.log('EntityView: Component script executing - path:', path, 'wildcard:', wildcard)
+  console.log('EntityView: Component rendering with path:', path)
 
-  // Watch the path prop and load entity when it changes
-  $effect(() => {
-    // Force reading all reactive dependencies
-    const currentPath = path
-    const currentWildcard = wildcard
-    const routingMode = $config.routing?.mode || 'query'
-    const slug = routingMode === 'query' ? currentPath : (currentWildcard || '/')
-    
-    console.log('EntityView: $effect RUNNING!')
-    console.log('EntityView: currentPath:', currentPath)
-    console.log('EntityView: currentWildcard:', currentWildcard)
-    console.log('EntityView: routingMode:', routingMode)
-    console.log('EntityView: computed slug:', slug)
-    
-    // Call loadEntity
-    loadEntity(slug)
-  })
+  // Call loadEntity immediately with the path
+  loadEntity(path)
 
   async function loadEntity(targetSlug: string) {
     console.log('EntityView: loadEntity START with:', targetSlug)
