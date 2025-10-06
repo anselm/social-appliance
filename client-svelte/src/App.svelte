@@ -60,13 +60,13 @@
     console.log('App state:', { routingMode, queryPath, actualPath })
   })
   
-  // Routes for path-based routing
+  // Routes for path-based routing - keep both explicit root and wildcard
   const routes = {
     '/': EntityView,
     '/login': Login,
     '/admin': Admin,
     '/testmap': TestMap,
-    '*': wrap({
+    '/*': wrap({
       component: EntityView,
       props: (params: any) => ({ wildcard: params.wild })
     })
