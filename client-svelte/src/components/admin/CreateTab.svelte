@@ -1,6 +1,6 @@
 <script lang="ts">
   import { api } from '../../services/api'
-  import { auth } from '../../stores/auth'
+  import { authStore } from '../../stores/auth'
   import EntityForm from '../EntityForm.svelte'
   import { createEventDispatcher } from 'svelte'
   
@@ -13,7 +13,7 @@
       const data: any = {
         title: newEntity.title,
         content: newEntity.content,
-        auth: $auth?.id
+        auth: $authStore?.address || $authStore?.issuer
       }
       
       if (newEntity.slug) data.slug = newEntity.slug
