@@ -15,6 +15,9 @@ const publicClient = createPublicClient({
 /**
  * Lookup ENS name for an Ethereum address
  * Returns null if no ENS name is found or if lookup fails
+ * 
+ * Note: ENS lookups can be unreliable with public RPC endpoints.
+ * This function will fail gracefully and return null on any error.
  */
 export async function lookupENSName(address: string): Promise<string | null> {
   if (!address || !address.startsWith('0x')) {
@@ -24,10 +27,23 @@ export async function lookupENSName(address: string): Promise<string | null> {
   try {
     console.log('Looking up ENS name for:', address);
     
-    // Use viem's built-in ENS name resolution
-    const ensName = await publicClient.getEnsName({
-      address: address as `0x${string}`,
+    // Set a timeout for the ENS lookup
+    const timeoutPromise = new Promise<null>((resolve) => {
+      setTimeout(() => {
+        console.warn('ENS lookup timed out after 3 seconds');
+        resolve(null);
+      }, 3000);
     });
+    
+    // Race between the ENS lookup and the timeout
+    const ensNamePromise = publicClient.getEnsName({
+      address: address as `0x${string}`,
+    }).catch((error) => {
+      console.warn('ENS lookup error:', error.message || error);
+      return null;
+    });
+    
+    const ensName = await Promise.race([ensNamePromise, timeoutPromise]);
 
     if (ensName) {
       console.log('Found ENS name:', ensName);
@@ -36,8 +52,9 @@ export async function lookupENSName(address: string): Promise<string | null> {
 
     console.log('No ENS name found for:', address);
     return null;
-  } catch (error) {
-    console.warn('ENS lookup failed:', error);
+  } catch (error: any) {
+    // Log but don't throw - ENS lookup is optional
+    console.warn('ENS lookup failed:', error.message || error);
     return null;
   }
 }
