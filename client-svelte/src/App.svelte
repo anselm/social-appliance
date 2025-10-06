@@ -17,7 +17,6 @@
   
   // Check routing mode from config
   $: routingMode = $config.routing?.mode || 'query'
-  $: basePath = $config.routing?.basePath || ''
   
   // For query parameter routing
   let queryPath = getCurrentPath()
@@ -74,7 +73,7 @@
     {/key}
   </Layout>
 {:else}
-  <Router {url} {basePath}>
+  <Router {url}>
     <Layout>
       <Route path="/login" component={Login} />
       <Route path="/admin" component={Admin} />
