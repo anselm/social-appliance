@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
   import { api } from '../services/api'
   import { config } from '../stores/appConfig'
   import RouterLink from '../components/RouterLink.svelte'
@@ -16,30 +17,37 @@
   let children = $state<Entity[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
+  let lastLoadedPath = $state<string>('')
 
   console.log('EntityView: Component initialized with path:', path, 'wildcard:', wildcard)
 
-  // Watch for path changes and load entity
-  $effect(() => {
-    // Read the props to track them
-    const currentPath = path
-    const currentWildcard = wildcard
+  // Use onMount to load initial entity
+  onMount(() => {
+    console.log('EntityView: onMount triggered')
     const routingMode = $config.routing?.mode || 'query'
-    const slug = routingMode === 'query' ? currentPath : (currentWildcard || '/')
-    
-    console.log('EntityView: Effect triggered!')
-    console.log('EntityView: path:', currentPath)
-    console.log('EntityView: wildcard:', currentWildcard)
-    console.log('EntityView: routingMode:', routingMode)
-    console.log('EntityView: computed slug:', slug)
-    
-    // Load the entity
+    const slug = routingMode === 'query' ? path : (wildcard || '/')
+    console.log('EntityView: Initial slug:', slug)
     loadEntity(slug)
+  })
+
+  // Watch for path changes with $effect
+  $effect(() => {
+    const routingMode = $config.routing?.mode || 'query'
+    const slug = routingMode === 'query' ? path : (wildcard || '/')
+    
+    console.log('EntityView: Effect triggered - slug:', slug, 'lastLoadedPath:', lastLoadedPath)
+    
+    // Only load if the path has actually changed
+    if (slug !== lastLoadedPath) {
+      console.log('EntityView: Path changed, loading new entity')
+      loadEntity(slug)
+    }
   })
 
   async function loadEntity(targetSlug: string) {
     console.log('EntityView: loadEntity called with:', targetSlug)
     
+    lastLoadedPath = targetSlug
     loading = true
     error = null
     entity = null
