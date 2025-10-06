@@ -227,9 +227,6 @@
     </div>
   {:else}
     <div class="flex items-start justify-between gap-4 mb-6">
-      <div class="flex-1">
-        <EntityDisplay {entity} />
-      </div>
       <EntityActions 
         {canEdit} 
         {deleting}
@@ -237,30 +234,6 @@
         on:delete={handleDeleteEntity}
       />
     </div>
-    
-    {#if entity.type === 'group'}
-      {#if canCreateChild && !showNewEntityForm}
-        <div class="mb-6">
-          <button
-            on:click={() => showNewEntityForm = true}
-            class="px-3 py-1 border border-white/20 hover:bg-white hover:text-black transition-colors text-xs uppercase tracking-wider"
-          >
-            + New Entity
-          </button>
-        </div>
-      {/if}
-      
-      {#if showNewEntityForm}
-        <div class="mb-8">
-          <EntityForm
-            parentSlug={entity.slug || '/'}
-            mode="create"
-            on:submit={handleCreateChildEntity}
-            on:cancel={() => showNewEntityForm = false}
-          />
-        </div>
-      {/if}
-    {/if}
     
     {#if entity.type === 'post'}
       <PostView {entity} />
@@ -273,5 +246,35 @@
     {:else}
       <GroupViewDefault {entity} {children} />
     {/if}
+
+    <br/>
+    <hr/>
+    <br/>
+
+    {#if entity.type === 'group'}
+      {#if canCreateChild && !showNewEntityForm}
+        <div class="mb-6">
+          <button
+            on:click={() => showNewEntityForm = true}
+            class="px-3 py-1 border border-white/20 hover:bg-white hover:text-black transition-colors text-xs uppercase tracking-wider"
+          >
+            + New Entity
+          </button>
+        </div>
+      {/if}
+
+      {#if showNewEntityForm}
+        <div class="mb-8">
+          <EntityForm
+            parentSlug={entity.slug || '/'}
+            mode="create"
+            on:submit={handleCreateChildEntity}
+            on:cancel={() => showNewEntityForm = false}
+          />
+        </div>
+      {/if}
+    {/if}
+
+
   {/if}
 {/if}

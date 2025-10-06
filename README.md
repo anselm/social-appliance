@@ -344,7 +344,7 @@ Console commands:
 
 ## License
 
-ISC
+MIT
 
 ## Contributing
 
