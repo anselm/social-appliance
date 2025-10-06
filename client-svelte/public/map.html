@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaflet Map Test</title>
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #1a1a1a;
+      color: white;
+    }
+    
+    h1 {
+      margin-bottom: 20px;
+    }
+    
+    #map {
+      height: 600px;
+      width: 100%;
+      border: 2px solid #333;
+    }
+    
+    #log {
+      margin-top: 20px;
+      padding: 10px;
+      background: #000;
+      border: 1px solid #333;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .log-entry {
+      margin: 2px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Leaflet Map Test (Pure HTML)</h1>
+  <div id="map"></div>
+  <div id="log"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+  
+  <script>
+    const logEl = document.getElementById('log');
+    
+    function log(message) {
+      console.log(message);
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.textContent = new Date().toISOString().substr(11, 8) + ' - ' + message;
+      logEl.appendChild(entry);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    
+    log('Starting map initialization...');
+    log('Leaflet version: ' + L.version);
+    
+    try {
+      // Create map
+      log('Creating map instance...');
+      const map = L.map('map').setView([45.5152, -122.6784], 13);
+      log('Map instance created');
+      
+      // Add OpenStreetMap tiles
+      log('Adding tile layer...');
+      const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+      });
+      
+      tileLayer.on('loading', () => log('Tiles loading...'));
+      tileLayer.on('load', () => log('Tiles loaded!'));
+      tileLayer.on('tileerror', (e) => log('Tile error: ' + JSON.stringify(e)));
+      
+      tileLayer.addTo(map);
+      log('Tile layer added to map');
+      
+      // Add a marker
+      log('Adding marker...');
+      const marker = L.marker([45.5152, -122.6784]).addTo(map);
+      marker.bindPopup('<b>Portland, Oregon</b><br>Test marker').openPopup();
+      log('Marker added');
+      
+      // Force map to recalculate size
+      setTimeout(() => {
+        log('Invalidating map size...');
+        map.invalidateSize();
+        log('Map size invalidated');
+      }, 100);
+      
+      log('✅ Map initialization complete!');
+      
+    } catch (error) {
+      log('❌ ERROR: ' + error.message);
+      console.error('Full error:', error);
+    }
+  </script>
+</body>
+</html>
