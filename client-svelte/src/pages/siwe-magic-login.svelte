@@ -75,10 +75,16 @@
         throw new Error("Signature verification failed");
       }
 
-      // Look up ENS name
-      lookingUpENS = true;
-      const ensName = await lookupENSName(account);
-      lookingUpENS = false;
+      // Try to look up ENS name (optional, won't fail if it doesn't work)
+      let ensName: string | null = null;
+      try {
+        lookingUpENS = true;
+        ensName = await lookupENSName(account);
+        lookingUpENS = false;
+      } catch (ensError) {
+        console.warn('ENS lookup failed, continuing without it:', ensError);
+        lookingUpENS = false;
+      }
 
       // Store auth data with ENS name if found
       authStore.login({
@@ -252,7 +258,7 @@
         <div class="space-y-3 text-sm text-white/70">
           <div>
             <strong class="text-white/90">MetaMask (SIWE):</strong>
-            <p class="mt-1">Sign in with your Ethereum wallet using the Sign-In with Ethereum standard. Your signature is verified client-side for instant authentication. ENS names are automatically resolved.</p>
+            <p class="mt-1">Sign in with your Ethereum wallet using the Sign-In with Ethereum standard. Your signature is verified client-side for instant authentication.</p>
           </div>
           <div>
             <strong class="text-white/90">Magic (Email):</strong>

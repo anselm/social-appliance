@@ -3,12 +3,12 @@
  * Resolves Ethereum addresses to ENS names
  */
 
-const ENS_REGISTRY_ADDRESS = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e';
-const MAINNET_RPC = 'https://rpc.ankr.com/eth';
-
 /**
  * Lookup ENS name for an Ethereum address
- * Returns null if no ENS name is found
+ * Returns null if no ENS name is found or if lookup fails
+ * 
+ * Note: This uses a public RPC which may have rate limits.
+ * For production, consider using a dedicated RPC provider like Infura or Alchemy.
  */
 export async function lookupENSName(address: string): Promise<string | null> {
   if (!address || !address.startsWith('0x')) {
@@ -16,80 +16,99 @@ export async function lookupENSName(address: string): Promise<string | null> {
   }
 
   try {
+    // For now, we'll skip ENS lookup to avoid rate limiting issues
+    // In production, you would:
+    // 1. Use a dedicated RPC provider (Infura, Alchemy, etc.)
+    // 2. Implement proper caching
+    // 3. Handle rate limits gracefully
+    
+    console.log('ENS lookup skipped - configure RPC provider for production');
+    return null;
+    
+    // Uncomment and configure when you have an RPC provider:
+    /*
+    const RPC_URL = import.meta.env.VITE_ETHEREUM_RPC_URL || 'https://eth.llamarpc.com';
+    
     // Normalize address to lowercase
     const normalizedAddress = address.toLowerCase();
 
-    // Use a public RPC endpoint to lookup the reverse record
-    const response = await fetch(MAINNET_RPC, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'eth_call',
-        params: [
-          {
-            to: ENS_REGISTRY_ADDRESS,
-            data: getReverseRecordData(normalizedAddress),
-          },
-          'latest',
-        ],
-      }),
-    });
+    // Simple timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-    const data = await response.json();
+    try {
+      const response = await fetch(RPC_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'eth_call',
+          params: [
+            {
+              to: '0x3671aE578E63FdF66ad4F3E12CC0c0d71Ac7510C', // ENS Public Resolver
+              data: getResolverData(normalizedAddress),
+            },
+            'latest',
+          ],
+        }),
+        signal: controller.signal,
+      });
 
-    if (data.error) {
-      console.warn('ENS lookup error:', data.error);
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.warn('ENS lookup failed:', response.status);
+        return null;
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        console.warn('ENS lookup error:', data.error);
+        return null;
+      }
+
+      if (!data.result || data.result === '0x') {
+        return null;
+      }
+
+      // Decode the result
+      const ensName = decodeENSName(data.result);
+      
+      // Basic validation
+      if (ensName && ensName.endsWith('.eth') && ensName.length > 4) {
+        return ensName;
+      }
+
+      return null;
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        console.warn('ENS lookup timed out');
+      } else {
+        console.warn('ENS lookup fetch error:', fetchError);
+      }
       return null;
     }
-
-    if (!data.result || data.result === '0x') {
-      return null;
-    }
-
-    // Decode the result
-    const ensName = decodeENSName(data.result);
-    
-    // Verify the forward resolution matches
-    if (ensName) {
-      const verified = await verifyENSName(ensName, normalizedAddress);
-      return verified ? ensName : null;
-    }
-
-    return null;
+    */
   } catch (error) {
-    console.warn('Failed to lookup ENS name:', error);
+    console.warn('ENS lookup failed:', error);
     return null;
   }
 }
 
 /**
- * Get the data for reverse record lookup
+ * Get the data for resolver lookup
  */
-function getReverseRecordData(address: string): string {
-  // Remove 0x prefix and pad to 32 bytes
-  const addr = address.slice(2).padStart(64, '0');
-  
-  // Function selector for name(bytes32)
-  const selector = '0x691f3431';
-  
-  // Construct the reverse node
-  const reverseNode = getReverseNode(address);
-  
-  return selector + reverseNode;
-}
-
-/**
- * Get the reverse node for an address
- */
-function getReverseNode(address: string): string {
-  // This is a simplified version - in production you'd use a proper ENS library
-  // For now, we'll use a basic implementation
-  const addr = address.slice(2).toLowerCase();
-  return addr.padStart(64, '0');
+function getResolverData(address: string): string {
+  // This is a simplified version
+  // In production, you'd use a proper ENS library
+  const addr = address.slice(2).toLowerCase().padStart(64, '0');
+  const selector = '0x691f3431'; // name(bytes32)
+  return selector + addr;
 }
 
 /**
@@ -97,11 +116,12 @@ function getReverseNode(address: string): string {
  */
 function decodeENSName(hexResult: string): string | null {
   try {
-    // Remove 0x prefix
     const hex = hexResult.slice(2);
     
-    // Skip the first 64 characters (offset)
-    // Next 64 characters are the length
+    if (hex.length < 128) {
+      return null;
+    }
+    
     const lengthHex = hex.slice(64, 128);
     const length = parseInt(lengthHex, 16);
     
@@ -109,10 +129,8 @@ function decodeENSName(hexResult: string): string | null {
       return null;
     }
     
-    // Get the actual name data
     const nameHex = hex.slice(128, 128 + length * 2);
     
-    // Convert hex to string
     let name = '';
     for (let i = 0; i < nameHex.length; i += 2) {
       const charCode = parseInt(nameHex.substr(i, 2), 16);
@@ -124,20 +142,6 @@ function decodeENSName(hexResult: string): string | null {
   } catch (error) {
     console.warn('Failed to decode ENS name:', error);
     return null;
-  }
-}
-
-/**
- * Verify that an ENS name resolves to the expected address
- */
-async function verifyENSName(ensName: string, expectedAddress: string): Promise<boolean> {
-  try {
-    // Use a simpler verification - just check if the name looks valid
-    // In production, you'd do a forward lookup to verify
-    return ensName.endsWith('.eth') && ensName.length > 4;
-  } catch (error) {
-    console.warn('Failed to verify ENS name:', error);
-    return false;
   }
 }
 
