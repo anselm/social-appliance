@@ -1,86 +1,142 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte'
-  import 'leaflet/dist/leaflet.css'
-  import L from 'leaflet'
 
   let mapContainer: HTMLDivElement
   let map: any = null
+  let logMessages: string[] = []
+
+  function log(message: string) {
+    console.log('TestMap:', message)
+    logMessages = [...logMessages, `${new Date().toISOString().substr(11, 8)} - ${message}`]
+  }
 
   onMount(async () => {
-    console.log('TestMap: onMount START')
-    console.log('TestMap: mapContainer:', mapContainer)
-    console.log('TestMap: Leaflet L object:', L)
+    log('onMount START')
+    log('Map container: ' + (mapContainer ? 'found' : 'NOT FOUND'))
 
     if (!mapContainer) {
-      console.error('TestMap: No map container!')
+      log('ERROR: No map container!')
       return
     }
 
     try {
-      // Fix marker icons
-      console.log('TestMap: Fixing marker icons...')
-      delete (L.Icon.Default.prototype as any)._getIconUrl
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      })
-      console.log('TestMap: Marker icons fixed')
+      // Load Leaflet CSS from CDN
+      log('Loading Leaflet CSS from CDN...')
+      const existingLink = document.querySelector('link[href*="leaflet"]')
+      if (!existingLink) {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+        link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY='
+        link.crossOrigin = ''
+        document.head.appendChild(link)
+        log('CSS link added to head')
+        
+        await new Promise((resolve) => {
+          link.onload = () => {
+            log('CSS loaded successfully')
+            resolve(true)
+          }
+          link.onerror = () => {
+            log('CSS failed to load')
+            resolve(false)
+          }
+          setTimeout(() => {
+            log('CSS load timeout (2s)')
+            resolve(true)
+          }, 2000)
+        })
+      } else {
+        log('CSS already loaded')
+      }
+
+      // Load Leaflet JS from CDN
+      log('Loading Leaflet JS from CDN...')
+      const existingScript = document.querySelector('script[src*="leaflet"]')
+      if (!existingScript) {
+        const script = document.createElement('script')
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+        script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo='
+        script.crossOrigin = ''
+        document.head.appendChild(script)
+        log('JS script added to head')
+        
+        await new Promise((resolve) => {
+          script.onload = () => {
+            log('JS loaded successfully')
+            resolve(true)
+          }
+          script.onerror = () => {
+            log('JS failed to load')
+            resolve(false)
+          }
+          setTimeout(() => {
+            log('JS load timeout (3s)')
+            resolve(true)
+          }, 3000)
+        })
+      } else {
+        log('JS already loaded')
+      }
+
+      // Check if Leaflet is available
+      // @ts-ignore
+      if (typeof window.L === 'undefined') {
+        log('ERROR: Leaflet (L) is not available on window!')
+        return
+      }
+
+      // @ts-ignore
+      const L = window.L
+      log('Leaflet version: ' + L.version)
+
+      // Container dimensions
+      log('Container dimensions: ' + mapContainer.offsetWidth + 'x' + mapContainer.offsetHeight)
 
       // Create map
-      console.log('TestMap: Creating map...')
-      console.log('TestMap: Container dimensions:', {
-        offsetWidth: mapContainer.offsetWidth,
-        offsetHeight: mapContainer.offsetHeight,
-        clientWidth: mapContainer.clientWidth,
-        clientHeight: mapContainer.clientHeight
-      })
-      
+      log('Creating map instance...')
       map = L.map(mapContainer).setView([45.5152, -122.6784], 13)
-      console.log('TestMap: Map created:', map)
-      console.log('TestMap: Map container innerHTML length:', mapContainer.innerHTML.length)
+      log('Map instance created')
 
       // Add tile layer
-      console.log('TestMap: Adding tiles...')
+      log('Adding tile layer...')
       const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
       })
       
-      tileLayer.on('loading', () => console.log('TestMap: Tiles LOADING'))
-      tileLayer.on('load', () => console.log('TestMap: Tiles LOADED'))
-      tileLayer.on('tileerror', (e) => console.error('TestMap: Tile ERROR:', e))
+      tileLayer.on('loading', () => log('Tiles loading...'))
+      tileLayer.on('load', () => log('Tiles loaded!'))
+      tileLayer.on('tileerror', (e: any) => log('Tile error: ' + JSON.stringify(e)))
       
       tileLayer.addTo(map)
-      console.log('TestMap: Tiles added')
+      log('Tile layer added to map')
 
       // Add a marker
-      console.log('TestMap: Adding marker...')
-      L.marker([45.5152, -122.6784]).addTo(map)
-        .bindPopup('Test Marker')
-        .openPopup()
-      console.log('TestMap: Marker added')
+      log('Adding marker...')
+      const marker = L.marker([45.5152, -122.6784]).addTo(map)
+      marker.bindPopup('<b>Portland, Oregon</b><br>Test marker').openPopup()
+      log('Marker added')
 
-      // Force resize
+      // Force map to recalculate size
       setTimeout(() => {
         if (map) {
-          console.log('TestMap: Invalidating size...')
+          log('Invalidating map size...')
           map.invalidateSize()
-          console.log('TestMap: Size invalidated')
-          console.log('TestMap: Final container innerHTML length:', mapContainer.innerHTML.length)
-          console.log('TestMap: Final container children count:', mapContainer.children.length)
+          log('Map size invalidated')
         }
       }, 100)
 
-      console.log('TestMap: ✅ Initialization complete')
+      log('✅ Map initialization complete!')
+      
     } catch (error) {
-      console.error('TestMap: ❌ Error:', error)
-      console.error('TestMap: Error stack:', error instanceof Error ? error.stack : 'No stack')
+      log('❌ ERROR: ' + (error instanceof Error ? error.message : String(error)))
+      console.error('TestMap error:', error)
     }
   })
 
   onDestroy(() => {
-    console.log('TestMap: onDestroy')
+    log('onDestroy called')
     if (map) {
       map.remove()
       map = null
@@ -89,14 +145,25 @@
 </script>
 
 <div class="space-y-4">
-  <h1 class="text-2xl font-bold">Test Map</h1>
-  <p class="text-white/60">Simple Leaflet map test</p>
+  <h1 class="text-2xl font-bold">Test Map (CDN Version)</h1>
+  <p class="text-white/60">Simple Leaflet map test using CDN links</p>
   
   <div 
     bind:this={mapContainer}
     class="w-full border border-white/20 rounded"
     style="height: 600px; background: #1a1a1a;"
   ></div>
+
+  {#if logMessages.length > 0}
+    <div class="mt-4 p-4 bg-black border border-white/20 rounded">
+      <h2 class="text-sm font-bold mb-2">Log Messages:</h2>
+      <div class="space-y-1 text-xs font-mono max-h-48 overflow-y-auto">
+        {#each logMessages as message}
+          <div class="text-white/70">{message}</div>
+        {/each}
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style>
