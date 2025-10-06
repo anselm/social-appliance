@@ -40,6 +40,13 @@ export default defineConfig({
         target: 'http://localhost:8001',
         changeOrigin: true
       }
+    },
+    // SPA fallback - serve index.html for all routes
+    historyApiFallback: {
+      rewrites: [
+        { from: /^\/api\/.*$/, to: context => context.parsedUrl.path },
+        { from: /./, to: '/index.html' }
+      ]
     }
   },
 
@@ -50,7 +57,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['svelte', 'svelte-routing']
+          vendor: ['svelte']
         }
       }
     },

@@ -28,7 +28,6 @@
     "loglevel": "^1.9.2",
     "magic-sdk": "^31.0.0",
     "marked": "^9.1.6",
-    "svelte-spa-router": "^4.0.1",
     "viem": "^2.37.12"
   }
 }

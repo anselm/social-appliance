@@ -1,6 +1,4 @@
 <script lang="ts">
-  import Router from 'svelte-spa-router'
-  import { wrap } from 'svelte-spa-router/wrap'
   import Layout from './components/Layout.svelte'
   import EntityView from './pages/EntityView.svelte'
   import Login from './pages/siwe-magic-login.svelte'
@@ -8,91 +6,62 @@
   import TestMap from './pages/TestMap.svelte'
   import { config } from './stores/appConfig'
   import { authStore } from './stores/auth'
-  import { getCurrentPath } from './utils/navigation'
+  import { router } from './lib/router'
   
   let { url = "" }: { url?: string } = $props()
   
   // Initialize auth store
   authStore.init()
   
-  // Check routing mode from config
+  // Get routing config
   let routingMode = $derived($config.routing?.mode || 'query')
+  let basePath = $derived($config.routing?.basePath || '')
   
-  // For query parameter routing
-  let queryPath = $state(getCurrentPath())
-  
-  // Update queryPath when navigation events occur
-  function updateQueryPath() {
-    const newPath = getCurrentPath()
-    console.log('Navigation detected, new path:', newPath, 'old path:', queryPath)
-    queryPath = newPath
-  }
-  
-  // Listen for navigation events in query mode
+  // Initialize router
   $effect(() => {
-    if (routingMode === 'query') {
-      // Update on popstate (back/forward buttons)
-      window.addEventListener('popstate', updateQueryPath)
-      // Update on our custom navigate event
-      window.addEventListener('navigate', updateQueryPath)
-      
-      // Initial path check
-      updateQueryPath()
-      
-      return () => {
-        window.removeEventListener('popstate', updateQueryPath)
-        window.removeEventListener('navigate', updateQueryPath)
-      }
+    router.init({
+      mode: routingMode,
+      basePath: basePath
+    })
+  })
+  
+  // Subscribe to current path
+  let currentPath = $state('/')
+  
+  $effect(() => {
+    const unsubscribe = router.path.subscribe(path => {
+      currentPath = path
+      console.log('Router path changed:', path)
+    })
+    
+    return unsubscribe
+  })
+  
+  // Determine which component to render based on path
+  let currentComponent = $derived.by(() => {
+    if (currentPath === '/login') {
+      return Login
+    } else if (currentPath === '/admin') {
+      return Admin
+    } else if (currentPath === '/testmap') {
+      return TestMap
+    } else {
+      return EntityView
     }
   })
   
-  // Check if this is an invalid route (path without query parameter in query mode)
-  let isInvalidRoute = $derived(queryPath.startsWith('__INVALID__'))
-  let actualPath = $derived(isInvalidRoute ? queryPath.substring('__INVALID__'.length) : queryPath)
-  
-  // Pass the path as a prop to EntityView (for query mode)
-  let queryComponentProps = $derived({ 
-    path: isInvalidRoute ? actualPath : actualPath 
+  let componentProps = $derived.by(() => {
+    if (currentComponent === EntityView) {
+      return { path: currentPath }
+    }
+    return {}
   })
-  
-  // Debug logging
-  $effect(() => {
-    console.log('App state:', { routingMode, queryPath, actualPath })
-  })
-  
-  // Routes for path-based routing - keep both explicit root and wildcard
-  const routes = {
-    '/': EntityView,
-    '/login': Login,
-    '/admin': Admin,
-    '/testmap': TestMap,
-    '/*': wrap({
-      component: EntityView,
-      props: (params: any) => ({ wildcard: params.wild })
-    })
-  }
 </script>
 
-{#if routingMode === 'query'}
-  <Layout>
-    {#snippet children()}
-      {#key queryPath}
-        {#if actualPath === '/login'}
-          <Login />
-        {:else if actualPath === '/admin'}
-          <Admin />
-        {:else if actualPath === '/testmap'}
-          <TestMap />
-        {:else}
-          <EntityView {...queryComponentProps} />
-        {/if}
-      {/key}
-    {/snippet}
-  </Layout>
-{:else}
-  <Layout>
-    {#snippet children()}
-      <Router {routes} />
-    {/snippet}
-  </Layout>
-{/if}
+<Layout>
+  {#snippet children()}
+    {#key currentPath}
+      <svelte:component this={currentComponent} {...componentProps} />
+    {/key}
+  {/snippet}
+</Layout>
