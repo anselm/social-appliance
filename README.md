@@ -28,6 +28,7 @@ A decentralized social platform built with Node.js, MongoDB, and Svelte, featuri
 - MongoDB (local or Atlas)
 - MetaMask browser extension (for SIWE authentication)
 - Magic.link account (for email authentication)
+- Infura account (recommended for ENS name resolution)
 
 ### Installation
 
@@ -63,10 +64,14 @@ cp .env.example .env
    - Copy the publishable key to `client-svelte/.env` as `VITE_MAGIC_PUBLISHABLE_KEY`
    - Copy the secret key to root `.env` as `MAGIC_SECRET_KEY`
 
-5. (Optional) Configure ENS lookups:
-   - Sign up at https://www.infura.io/ (owned by MetaMask/ConsenSys) for a free API key
-   - Or use Alchemy at https://www.alchemy.com/
-   - Add to `client-svelte/.env` as `VITE_ETHEREUM_RPC_URL`
+5. Get your Infura API key (recommended for ENS lookups):
+   - Sign up at https://www.infura.io/ (owned by MetaMask/ConsenSys)
+   - Create a new project
+   - Copy the project ID
+   - Add to `client-svelte/.env` as:
+     ```
+     VITE_ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/YOUR_PROJECT_ID
+     ```
 
 ### Development
 
@@ -143,17 +148,19 @@ SIWE allows users to authenticate using their Ethereum wallet through MetaMask.
 
 **No additional setup required** beyond having MetaMask installed.
 
-**ENS Name Resolution (Optional):**
-- The app can automatically resolve Ethereum addresses to ENS names (like "vitalik.eth")
-- Requires an RPC provider API key (Infura or Alchemy)
+**ENS Name Resolution:**
+- The app automatically resolves Ethereum addresses to ENS names (like "vitalik.eth")
+- Requires an Infura API key (recommended) or other RPC provider
+- Get a free API key at https://www.infura.io/
 - Without an API key, the app will show truncated addresses instead
+- Falls back to public RPC endpoints if Infura is not configured
 
 ### Magic.link Email Authentication
 
 Magic.link provides passwordless authentication via email.
 
 **Setup:**
-1. Create account at https://magic.link
+1. Create account at https://magic.Link
 2. Get your keys from the dashboard
 3. Add to environment files:
    - `VITE_MAGIC_PUBLISHABLE_KEY` in `client-svelte/.env`
@@ -223,8 +230,8 @@ VITE_MAGIC_PUBLISHABLE_KEY=pk_live_your_key
 # API
 VITE_API_BASE_URL=
 
-# Ethereum RPC (optional, for ENS)
-VITE_ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/YOUR_API_KEY
+# Ethereum RPC (recommended for ENS)
+VITE_ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID
 ```
 
 ## Deployment Options
@@ -268,6 +275,7 @@ Console commands:
 - **Change default secrets in production**: Update `SESSION_SECRET` and `JWT_SECRET` in your `.env` file
 - **Use HTTPS in production**: Set `secure: true` for cookies
 - **Keep Magic.link secret key secure**: Never commit to git
+- **Keep Infura API key secure**: Never commit to git
 - **Use environment variables**: For all secrets and configuration
 - **Enable CORS properly**: Set `CORS_ORIGIN` to your production domain
 - **Nonce expiration**: Nonces expire after 5 minutes to prevent replay attacks
@@ -280,6 +288,7 @@ Console commands:
 - Use browser DevTools to inspect authentication tokens
 - Test both authentication methods to ensure proper setup
 - Monitor MongoDB for session and entity data
+- Check browser console for ENS lookup status and results
 
 ## Troubleshooting
 
@@ -295,10 +304,12 @@ Console commands:
 - Check server logs for Magic.link errors
 
 ### ENS names not resolving
-- ENS lookup is optional and will fail gracefully
-- To enable ENS lookups, get a free API key from Infura (https://www.infura.io/) or Alchemy (https://www.alchemy.com/)
-- Add the RPC URL to `client-svelte/.env` as `VITE_ETHEREUM_RPC_URL`
+- ENS lookup requires an Infura API key (recommended)
+- Get a free API key at https://www.infura.io/
+- Add to `client-svelte/.env` as `VITE_ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/YOUR_PROJECT_ID`
+- Check browser console for ENS lookup errors
 - Without an API key, addresses will be displayed in truncated format (0x1234...5678)
+- The app will fall back to public RPC endpoints, but these may be rate-limited
 
 ### CORS errors
 - Verify `CORS_ORIGIN` matches your client URL
@@ -312,11 +323,12 @@ Console commands:
 
 ## External Services
 
-### Infura (MetaMask/ConsenSys)
+### Infura (MetaMask/ConsenSys) - Recommended
 - **Purpose**: Ethereum RPC provider for ENS lookups
 - **Website**: https://www.infura.io/
 - **Free Tier**: Yes, 100,000 requests/day
-- **Setup**: Sign up, create project, copy API key
+- **Setup**: Sign up, create project, copy project ID
+- **Why Recommended**: Most reliable, owned by MetaMask, excellent uptime
 
 ### Alchemy (Alternative to Infura)
 - **Purpose**: Ethereum RPC provider for ENS lookups
@@ -326,7 +338,7 @@ Console commands:
 
 ### Magic.link
 - **Purpose**: Passwordless email authentication
-- **Website**: https://magic.link
+- **Website**: https://magic.Link
 - **Free Tier**: Yes, 1,000 MAUs
 - **Setup**: Sign up, create app, copy publishable and secret keys
 

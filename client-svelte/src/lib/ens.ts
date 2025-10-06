@@ -7,12 +7,14 @@ import { createPublicClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
 
 // List of RPC endpoints to try in order
+// Infura is prioritized when configured as it's the most reliable
 const RPC_ENDPOINTS = [
+  // Use Infura first if configured (recommended)
+  ...(import.meta.env.VITE_ETHEREUM_RPC_URL ? [import.meta.env.VITE_ETHEREUM_RPC_URL] : []),
+  // Fallback to public endpoints
   'https://cloudflare-eth.com',
   'https://eth.llamarpc.com',
-  'https://rpc.ankr.com/eth',
-  // Add Infura if configured
-  ...(import.meta.env.VITE_ETHEREUM_RPC_URL ? [import.meta.env.VITE_ETHEREUM_RPC_URL] : [])
+  'https://rpc.ankr.com/eth'
 ];
 
 /**
@@ -33,7 +35,12 @@ export async function lookupENSName(address: string): Promise<string | null> {
     const rpcUrl = RPC_ENDPOINTS[i];
     
     try {
-      console.log(`Trying ENS lookup with RPC ${i + 1}/${RPC_ENDPOINTS.length}:`, rpcUrl.substring(0, 30) + '...');
+      const rpcLabel = rpcUrl.includes('infura') ? 'Infura' : 
+                       rpcUrl.includes('cloudflare') ? 'Cloudflare' :
+                       rpcUrl.includes('llama') ? 'LlamaRPC' :
+                       rpcUrl.includes('ankr') ? 'Ankr' : 'Custom RPC';
+      
+      console.log(`Trying ENS lookup with ${rpcLabel} (${i + 1}/${RPC_ENDPOINTS.length})`);
       
       // Create a client for this specific RPC
       const publicClient = createPublicClient({
@@ -57,7 +64,7 @@ export async function lookupENSName(address: string): Promise<string | null> {
       const result = await Promise.race([ensNamePromise, timeoutPromise]);
       
       if (result === 'timeout') {
-        console.warn(`ENS lookup timed out for RPC ${i + 1}: ${rpcUrl.substring(0, 30)}...`);
+        console.warn(`ENS lookup timed out for ${rpcLabel}`);
         // Continue to next RPC
         continue;
       }
