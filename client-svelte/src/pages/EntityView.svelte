@@ -17,29 +17,23 @@
   let loading = $state(true)
   let error = $state<string | null>(null)
 
-  console.log('EntityView: Component script running - path:', path, 'wildcard:', wildcard)
+  console.log('EntityView: Component initialized - path:', path, 'wildcard:', wildcard)
 
-  // Create a derived value that forces tracking
-  let currentSlug = $derived.by(() => {
-    const routingMode = $config.routing?.mode || 'query'
-    const slug = routingMode === 'query' ? path : (wildcard || '/')
-    console.log('EntityView: $derived.by computed slug:', slug)
-    return slug
-  })
-
-  // Use $effect.root to ensure it always runs
+  // Direct effect that reads props
   $effect(() => {
-    // Force reading of all dependencies
-    const slug = currentSlug
-    const p = path
-    const w = wildcard
+    // Read props directly to track them
+    const currentPath = path
+    const currentWildcard = wildcard
+    const routingMode = $config.routing?.mode || 'query'
+    const slug = routingMode === 'query' ? currentPath : (currentWildcard || '/')
     
     console.log('EntityView: $effect TRIGGERED!')
-    console.log('EntityView: slug:', slug)
-    console.log('EntityView: path:', p)
-    console.log('EntityView: wildcard:', w)
+    console.log('EntityView: path:', currentPath)
+    console.log('EntityView: wildcard:', currentWildcard)
+    console.log('EntityView: routingMode:', routingMode)
+    console.log('EntityView: computed slug:', slug)
     
-    // Always load
+    // Call loadEntity
     loadEntity(slug)
   })
 
