@@ -59,7 +59,7 @@
   
   function toggleExpanded(entityId: string) {
     if (expandedNodes.has(entityId)) {
-      expandedNodes.delete(entity Id)
+      expandedNodes.delete(entityId)
     } else {
       expandedNodes.add(entityId)
     }
