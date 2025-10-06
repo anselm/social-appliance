@@ -25,9 +25,7 @@
   function updateQueryPath() {
     const newPath = getCurrentPath()
     console.log('Navigation detected, new path:', newPath, 'old path:', queryPath)
-    if (newPath !== queryPath) {
-      queryPath = newPath
-    }
+    queryPath = newPath
   }
   
   // Listen for navigation events in query mode
@@ -64,12 +62,14 @@
   } : {}
   
   // Debug logging
-  $: console.log('App state:', { routingMode, queryPath, actualPath, queryComponent: queryComponent.name })
+  $: console.log('App state:', { routingMode, queryPath, actualPath, componentName: queryComponent.name })
 </script>
 
 {#if routingMode === 'query'}
   <Layout>
-    <svelte:component this={queryComponent} {...queryComponentProps} />
+    {#key queryPath}
+      <svelte:component this={queryComponent} {...queryComponentProps} />
+    {/key}
   </Layout>
 {:else}
   <Router {url} {basePath}>
