@@ -18,9 +18,26 @@
     child.latitude != null && child.longitude != null
   )
 
+  $: {
+    console.log('GroupViewMap: Component reactive update', {
+      entityId: entity?.id,
+      entitySlug: entity?.slug,
+      totalChildren: children.length,
+      locatedChildren: locatedChildren.length,
+      mapReady
+    })
+  }
+
   onMount(async () => {
+    console.log('GroupViewMap: onMount started')
+    console.log('GroupViewMap: Entity:', entity)
+    console.log('GroupViewMap: Children count:', children.length)
+    console.log('GroupViewMap: Located children count:', locatedChildren.length)
+    console.log('GroupViewMap: Map container element:', mapContainer)
+
     try {
       // Import Leaflet CSS first
+      console.log('GroupViewMap: Loading Leaflet CSS...')
       const link = document.createElement('link')
       link.rel = 'stylesheet'
       link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
@@ -30,54 +47,117 @@
 
       // Wait for CSS to load
       await new Promise(resolve => {
-        link.onload = resolve
-        setTimeout(resolve, 1000) // Fallback timeout
+        link.onload = () => {
+          console.log('GroupViewMap: Leaflet CSS loaded')
+          resolve(true)
+        }
+        link.onerror = () => {
+          console.error('GroupViewMap: Failed to load Leaflet CSS')
+          resolve(false)
+        }
+        setTimeout(() => {
+          console.log('GroupViewMap: CSS load timeout reached')
+          resolve(true)
+        }, 2000)
       })
 
       // Dynamically import Leaflet
+      console.log('GroupViewMap: Importing Leaflet library...')
       L = await import('leaflet')
+      console.log('GroupViewMap: Leaflet imported successfully', L)
 
       // Fix for default marker icons in Leaflet with bundlers
+      console.log('GroupViewMap: Fixing default marker icons...')
       delete (L.Icon.Default.prototype as any)._getIconUrl
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       })
+      console.log('GroupViewMap: Default marker icons configured')
 
       // Initialize map centered on the group's location or first child
       const centerLat = entity.latitude || locatedChildren[0]?.latitude || 45.5152
       const centerLng = entity.longitude || locatedChildren[0]?.longitude || -122.6784
       
+      console.log('GroupViewMap: Initializing map with center:', { centerLat, centerLng })
+      console.log('GroupViewMap: Map container dimensions:', {
+        width: mapContainer.offsetWidth,
+        height: mapContainer.offsetHeight,
+        clientWidth: mapContainer.clientWidth,
+        clientHeight: mapContainer.clientHeight
+      })
+
       map = L.map(mapContainer, {
         center: [centerLat, centerLng],
         zoom: 13,
         zoomControl: true
       })
+      
+      console.log('GroupViewMap: Map object created:', map)
 
       // Add satellite imagery layer (ESRI World Imagery)
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      console.log('GroupViewMap: Adding satellite tile layer...')
+      const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri',
         maxZoom: 19
-      }).addTo(map)
+      })
+      satelliteLayer.addTo(map)
+      console.log('GroupViewMap: Satellite layer added')
+
+      satelliteLayer.on('loading', () => {
+        console.log('GroupViewMap: Satellite tiles loading...')
+      })
+      satelliteLayer.on('load', () => {
+        console.log('GroupViewMap: Satellite tiles loaded')
+      })
+      satelliteLayer.on('tileerror', (error) => {
+        console.error('GroupViewMap: Satellite tile error:', error)
+      })
 
       // Add roads/labels overlay (CartoDB Positron Labels)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+      console.log('GroupViewMap: Adding labels overlay...')
+      const labelsLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap, &copy; CARTO',
         subdomains: 'abcd',
         maxZoom: 19
-      }).addTo(map)
+      })
+      labelsLayer.addTo(map)
+      console.log('GroupViewMap: Labels layer added')
+
+      labelsLayer.on('loading', () => {
+        console.log('GroupViewMap: Label tiles loading...')
+      })
+      labelsLayer.on('load', () => {
+        console.log('GroupViewMap: Label tiles loaded')
+      })
+      labelsLayer.on('tileerror', (error) => {
+        console.error('GroupViewMap: Label tile error:', error)
+      })
 
       // Force map to recalculate size
+      console.log('GroupViewMap: Invalidating map size...')
       setTimeout(() => {
         if (map) {
           map.invalidateSize()
+          console.log('GroupViewMap: Map size invalidated')
         }
       }, 100)
 
       // Add markers for each located child
-      locatedChildren.forEach(child => {
-        if (child.latitude == null || child.longitude == null) return
+      console.log('GroupViewMap: Adding markers for', locatedChildren.length, 'children')
+      locatedChildren.forEach((child, index) => {
+        if (child.latitude == null || child.longitude == null) {
+          console.warn('GroupViewMap: Child missing coordinates:', child)
+          return
+        }
+
+        console.log(`GroupViewMap: Adding marker ${index + 1}/${locatedChildren.length}:`, {
+          title: child.title,
+          lat: child.latitude,
+          lng: child.longitude,
+          hasDepiction: !!child.depiction
+        })
 
         // Create custom icon with depiction if available
         let icon
@@ -111,13 +191,17 @@
             iconAnchor: [20, 20],
             popupAnchor: [0, -20]
           })
+          console.log(`GroupViewMap: Created custom icon for marker ${index + 1}`)
         } else {
           // Default marker
           icon = new L.Icon.Default()
+          console.log(`GroupViewMap: Using default icon for marker ${index + 1}`)
         }
 
         const marker = L.marker([child.latitude, child.longitude], { icon })
           .addTo(map)
+        
+        console.log(`GroupViewMap: Marker ${index + 1} added to map`)
 
         // Create popup content
         const popupContent = `
@@ -159,34 +243,58 @@
           maxWidth: 250,
           className: 'custom-popup'
         })
+        
+        console.log(`GroupViewMap: Popup bound to marker ${index + 1}`)
       })
 
       // Fit bounds to show all markers if there are any
       if (locatedChildren.length > 0) {
+        console.log('GroupViewMap: Fitting bounds to show all markers...')
         const bounds = L.latLngBounds(
           locatedChildren.map(child => [child.latitude!, child.longitude!])
         )
+        console.log('GroupViewMap: Bounds:', bounds)
         map.fitBounds(bounds, { padding: [50, 50] })
+        console.log('GroupViewMap: Bounds fitted')
       }
 
       // Add global handler for marker clicks
       ;(window as any).handleMarkerClick = (slug: string) => {
+        console.log('GroupViewMap: Marker clicked, navigating to:', slug)
         navigateTo(slug)
       }
 
       mapReady = true
+      console.log('GroupViewMap: Map initialization complete, mapReady =', mapReady)
+      
+      // Log final map state
+      setTimeout(() => {
+        console.log('GroupViewMap: Final map state check:', {
+          mapReady,
+          mapCenter: map.getCenter(),
+          mapZoom: map.getZoom(),
+          mapSize: map.getSize(),
+          containerHasChildren: mapContainer.children.length > 0,
+          containerInnerHTML: mapContainer.innerHTML.substring(0, 200)
+        })
+      }, 500)
+      
     } catch (error) {
-      console.error('Failed to initialize map:', error)
+      console.error('GroupViewMap: Failed to initialize map:', error)
+      console.error('GroupViewMap: Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     }
   })
 
   onDestroy(() => {
+    console.log('GroupViewMap: onDestroy called')
     if (map) {
+      console.log('GroupViewMap: Removing map')
       map.remove()
       map = null
     }
     // Clean up global handler
     delete (window as any).handleMarkerClick
+    console.log('GroupViewMap: Cleanup complete')
   })
 </script>
 
