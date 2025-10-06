@@ -1,17 +1,24 @@
 <script lang="ts">
   import { getMagic } from "../lib/magic";
   import { verifyMessage } from "../lib/siweVerify";
+  import { lookupENSName, formatDisplayName } from "../lib/ens";
   import { authStore } from "../stores/auth";
   import { navigateTo } from "../utils/navigation";
   import RouterLink from "../components/RouterLink.svelte";
 
   let error = "";
   let loading = false;
+  let lookingUpENS = false;
 
   function getDisplayName(auth: any): string {
     if (!auth) return ''
-    if (auth.type === 'siwe' && auth.address) {
-      return `${auth.address.substring(0, 6)}...${auth.address.substring(auth.address.length - 4)}`
+    if (auth.type === 'siwe') {
+      if (auth.ensName) {
+        return auth.ensName;
+      }
+      if (auth.address) {
+        return `${auth.address.substring(0, 6)}...${auth.address.substring(auth.address.length - 4)}`
+      }
     }
     if (auth.type === 'magic' && auth.email) {
       return auth.email
@@ -68,10 +75,16 @@
         throw new Error("Signature verification failed");
       }
 
-      // Store auth data
+      // Look up ENS name
+      lookingUpENS = true;
+      const ensName = await lookupENSName(account);
+      lookingUpENS = false;
+
+      // Store auth data with ENS name if found
       authStore.login({
         type: 'siwe',
-        address: account
+        address: account,
+        ensName: ensName || undefined
       });
       
       // Success - user can now click "Back to Home" button
@@ -79,6 +92,7 @@
     } catch (e: any) {
       console.error('MetaMask error:', e);
       error = e?.message || String(e);
+      lookingUpENS = false;
     } finally {
       loading = false;
     }
@@ -160,6 +174,11 @@
           <div>
             <div class="text-sm text-white/60 mb-1">Signed in as</div>
             <div class="text-lg font-semibold">{getDisplayName($authStore)}</div>
+            {#if $authStore.type === 'siwe' && $authStore.address && $authStore.ensName}
+              <div class="text-xs text-white/40 mt-1">
+                {$authStore.address.substring(0, 6)}...{$authStore.address.substring($authStore.address.length - 4)}
+              </div>
+            {/if}
             <div class="text-xs text-white/40 mt-1">
               {$authStore.type === 'siwe' ? 'MetaMask (SIWE)' : 'Magic.link Email'}
             </div>
@@ -194,9 +213,9 @@
           disabled={loading}
           class="w-full px-6 py-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-3"
         >
-          {#if loading}
+          {#if loading || lookingUpENS}
             <span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            Connecting...
+            {lookingUpENS ? 'Looking up ENS name...' : 'Connecting...'}
           {:else}
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.05 11.52l-3.88-6.7c-.34-.59-.98-.95-1.67-.95H7.5c-.69 0-1.33.36-1.67.95l-3.88 6.7c-.34.59-.34 1.31 0 1.9l3.88 6.7c.34.59.98.95 1.67.95h9c.69 0 1.33-.36 1.67-.95l3.88-6.7c.34-.59.34-1.31 0-1.9zM12 16.5c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5z"/>
@@ -233,7 +252,7 @@
         <div class="space-y-3 text-sm text-white/70">
           <div>
             <strong class="text-white/90">MetaMask (SIWE):</strong>
-            <p class="mt-1">Sign in with your Ethereum wallet using the Sign-In with Ethereum standard. Your signature is verified client-side for instant authentication.</p>
+            <p class="mt-1">Sign in with your Ethereum wallet using the Sign-In with Ethereum standard. Your signature is verified client-side for instant authentication. ENS names are automatically resolved.</p>
           </div>
           <div>
             <strong class="text-white/90">Magic (Email):</strong>

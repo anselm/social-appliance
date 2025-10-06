@@ -3,6 +3,7 @@ import { writable } from 'svelte/store';
 export interface AuthData {
   type: 'siwe' | 'magic';
   address?: string;
+  ensName?: string;
   email?: string;
   issuer?: string;
   didToken?: string;

@@ -10,8 +10,13 @@
   
   function getDisplayName(auth: any): string {
     if (!auth) return ''
-    if (auth.type === 'siwe' && auth.address) {
-      return `${auth.address.substring(0, 6)}...${auth.address.substring(auth.address.length - 4)}`
+    if (auth.type === 'siwe') {
+      if (auth.ensName) {
+        return auth.ensName
+      }
+      if (auth.address) {
+        return `${auth.address.substring(0, 6)}...${auth.address.substring(auth.address.length - 4)}`
+      }
     }
     if (auth.type === 'magic' && auth.email) {
       return auth.email
@@ -42,6 +47,9 @@
       
       <nav class="flex items-center gap-4 text-sm">
         {#if $authStore}
+          <span class="text-white/60">
+            {getDisplayName($authStore)}
+          </span>
           <button 
             on:click={handleLogout}
             class="hover:text-white/80 transition-colors"
