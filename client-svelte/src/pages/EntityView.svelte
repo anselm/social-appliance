@@ -9,6 +9,7 @@
   import GroupViewDefault from '../components/GroupViewDefault.svelte'
   import GroupViewMap from '../components/GroupViewMap.svelte'
   import type { Entity } from '../types'
+  import { onMount } from 'svelte'
 
   let { path = '/', wildcard = '' }: { path?: string, wildcard?: string } = $props()
 
@@ -19,22 +20,28 @@
 
   console.log('EntityView: Component initialized - path:', path, 'wildcard:', wildcard)
 
-  // Direct effect that reads props
+  // Use onMount to ensure initial load
+  onMount(() => {
+    console.log('EntityView: onMount triggered')
+    const routingMode = $config.routing?.mode || 'query'
+    const slug = routingMode === 'query' ? path : (wildcard || '/')
+    console.log('EntityView: Initial load with slug:', slug)
+    loadEntity(slug)
+  })
+
+  // Watch for path changes
   $effect(() => {
-    // Read props directly to track them
     const currentPath = path
     const currentWildcard = wildcard
     const routingMode = $config.routing?.mode || 'query'
     const slug = routingMode === 'query' ? currentPath : (currentWildcard || '/')
     
-    console.log('EntityView: $effect TRIGGERED!')
-    console.log('EntityView: path:', currentPath)
-    console.log('EntityView: wildcard:', currentWildcard)
-    console.log('EntityView: routingMode:', routingMode)
-    console.log('EntityView: computed slug:', slug)
+    console.log('EntityView: $effect triggered with slug:', slug)
     
-    // Call loadEntity
-    loadEntity(slug)
+    // Only load if we have a slug
+    if (slug) {
+      loadEntity(slug)
+    }
   })
 
   async function loadEntity(targetSlug: string) {
