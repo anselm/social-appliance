@@ -24,6 +24,7 @@
   // Update queryPath when navigation events occur
   function updateQueryPath() {
     const newPath = getCurrentPath()
+    console.log('Navigation detected, new path:', newPath, 'old path:', queryPath)
     if (newPath !== queryPath) {
       queryPath = newPath
     }
@@ -36,6 +37,9 @@
       window.addEventListener('popstate', updateQueryPath)
       // Update on our custom navigate event
       window.addEventListener('navigate', updateQueryPath)
+      
+      // Initial path check
+      updateQueryPath()
       
       return () => {
         window.removeEventListener('popstate', updateQueryPath)
@@ -58,6 +62,9 @@
   $: queryComponentProps = queryComponent === EntityView ? { 
     path: isInvalidRoute ? actualPath : actualPath 
   } : {}
+  
+  // Debug logging
+  $: console.log('App state:', { routingMode, queryPath, actualPath, queryComponent: queryComponent.name })
 </script>
 
 {#if routingMode === 'query'}

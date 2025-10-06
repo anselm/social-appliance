@@ -62,6 +62,9 @@
         address: account
       });
       
+      // Small delay to ensure store is updated before navigation
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Redirect to home
       navigateTo('/');
       
@@ -111,6 +114,9 @@
         issuer: metadata.issuer,
         didToken: didToken
       });
+      
+      // Small delay to ensure store is updated before navigation
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Redirect to home
       navigateTo('/');
