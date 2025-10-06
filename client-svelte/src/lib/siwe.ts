@@ -1,23 +1,23 @@
 export async function fetchNonce(): Promise<string> {
-  const r = await fetch("/api/nonce", { credentials: "include" });
-  if (!r.ok) throw new Error("nonce failed");
-  const { nonce } = await r.json();
+  const baseURL = import.meta.env.VITE_API_BASE_URL || '';
+  const r = await fetch(baseURL + "/api/nonce", { credentials: "include" });
+  if (!r.ok) throw new Error(`Failed to fetch nonce: ${r.status}`);
+  const { n } = await r.json();
   return nonce;
 }
 
-export function buildSiweMessage(address: string, nonce: string) {
-  // Minimal SIWE-like message (you can use full EIP-4361 fields if you want)
+export function buildSiweMessage(address: string, nonce: string): string {
   const domain = window.location.host;
   const uri = window.location.origin;
-  const statement = "Sign in with Ethereum.";
+  const statement = "Sign in with Ethereum to the app.";
   const version = "1";
-  const chainId = 1; // adjust if you want to enforce a chain
+  const chainId = 1;
 
   return [
     `${domain} wants you to sign in with your Ethereum account:`,
-    `${address}`,
+    address,
     "",
-    `${statement}`,
+    statement,
     "",
     `URI: ${uri}`,
     `Version: ${version}`,

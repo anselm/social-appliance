@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import session from 'express-session';
 import dotenv from 'dotenv';
 import { connectDB } from './db/connection.js';
 import apiRoutes from './routes/api.js';
+import authRoutes from './routes/auth.js';
 import { SeedLoader } from './services/seedLoader.js';
 import { Logger } from './utils/logger.js';
 import { join, dirname } from 'path';
@@ -17,10 +19,27 @@ const app = express();
 const PORT = process.env.SERVERPORT || 8001;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:8000',
+  credentials: true
+}));
 app.use(express.json());
 
+// Session middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+  }
+}));
+
 // API Routes
+app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
 
 // Health check
@@ -56,6 +75,12 @@ if (process.env.NODE_ENV === 'production') {
   Logger.info('Running in development mode - not serving static files');
 }
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  Logger.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
 // Start server
 async function start() {
   try {
@@ -83,6 +108,21 @@ async function start() {
     
     app.listen(PORT, () => {
       Logger.success(`Server running on http://localhost:${PORT}`);
+      Logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      Logger.info(`CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:8000'}`);
+      
+      // Log authentication status
+      if (process.env.MAGIC_SECRET_KEY) {
+        Logger.success('Magic.link authentication enabled');
+      } else {
+        Logger.warn('Magic.link authentication disabled (MAGIC_SECRET_KEY not set)');
+      }
+      
+      if (process.env.JWT_SECRET && process.env.JWT_SECRET !== 'default-secret-change-in-production') {
+        Logger.success('JWT authentication configured');
+      } else {
+        Logger.warn('Using default JWT secret - change in production!');
+      }
     });
   } catch (error) {
     Logger.error('Failed to start server:', error);
