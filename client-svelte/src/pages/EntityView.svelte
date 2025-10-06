@@ -17,14 +17,21 @@
   let loading = $state(true)
   let error = $state<string | null>(null)
 
-  console.log('EntityView: Component initialized with path:', path, 'wildcard:', wildcard)
+  console.log('EntityView: Component script executing - path:', path, 'wildcard:', wildcard)
 
   // Watch the path prop and load entity when it changes
   $effect(() => {
+    // Force reading all reactive dependencies
+    const currentPath = path
+    const currentWildcard = wildcard
     const routingMode = $config.routing?.mode || 'query'
-    const slug = routingMode === 'query' ? path : (wildcard || '/')
+    const slug = routingMode === 'query' ? currentPath : (currentWildcard || '/')
     
-    console.log('EntityView: $effect triggered with slug:', slug)
+    console.log('EntityView: $effect RUNNING!')
+    console.log('EntityView: currentPath:', currentPath)
+    console.log('EntityView: currentWildcard:', currentWildcard)
+    console.log('EntityView: routingMode:', routingMode)
+    console.log('EntityView: computed slug:', slug)
     
     // Call loadEntity
     loadEntity(slug)
