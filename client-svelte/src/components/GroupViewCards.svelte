@@ -26,7 +26,7 @@
   {/snippet}
   
   {#snippet main()}
-    <EntityHeader {entity} />
+    <EntityHeader {entity} showStats={true} />
 
     {#if children.length > 0}
       <div class="space-y-6">

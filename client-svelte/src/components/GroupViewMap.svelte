@@ -565,7 +565,7 @@
   {/snippet}
   
   {#snippet main()}
-    <EntityHeader {entity} />
+    <EntityHeader {entity} showContent={false} showStats={true} />
 
     <div class="mb-4 text-xs text-white/60">
       {#if initError}
