@@ -32,6 +32,8 @@
     loading = true
     
     try {
+      console.log('LoginModal: Starting MetaMask connection')
+      
       // @ts-ignore
       if (!window.ethereum) {
         throw new Error('MetaMask is not installed. Please install MetaMask to continue.')
@@ -41,6 +43,8 @@
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
       const account = accounts?.[0]
       if (!account) throw new Error('No account found')
+
+      console.log('LoginModal: Got account:', account)
 
       const nonce = Math.random().toString(36).substring(2, 15)
       const domain = window.location.host
@@ -68,21 +72,35 @@
         params: [message, account],
       })
 
+      console.log('LoginModal: Got signature')
+
       const isValid = await verifyMessage(message, signature, account)
       
       if (!isValid) {
         throw new Error('Signature verification failed')
       }
 
+      console.log('LoginModal: Signature verified')
+
       let ensName: string | null = null
       try {
         lookingUpENS = true
         ensName = await lookupENSName(account)
+        console.log('LoginModal: ENS name:', ensName)
       } catch (ensError: any) {
         console.warn('ENS lookup failed:', ensError.message || ensError)
       } finally {
         lookingUpENS = false
       }
+
+      // Store temp auth data first
+      tempAuthData = {
+        type: 'siwe',
+        address: account,
+        ensName: ensName || undefined
+      }
+
+      console.log('LoginModal: Checking for existing party')
 
       // Check if user already has a party
       const authIdentifier = account
@@ -92,19 +110,27 @@
         limit: 1
       })
       
+      console.log('LoginModal: Found parties:', existingParties)
+      
       if (existingParties && existingParties.length > 0) {
         // User has a party, complete login
         const party = existingParties[0]
+        console.log('LoginModal: Completing signup with party:', party)
+        
+        // First set the auth data with party info
+        await authStore.login(tempAuthData)
         authStore.completeSignup(party.id, party.slug || '')
+        
+        console.log('LoginModal: Login complete, navigating to profile')
         handleClose()
-        navigateTo('/profile')
+        
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          navigateTo('/profile')
+        }, 100)
       } else {
         // User needs to create a party
-        tempAuthData = {
-          type: 'siwe',
-          address: account,
-          ensName: ensName || undefined
-        }
+        console.log('LoginModal: No party found, showing creation form')
         needsPartyCreation = true
       }
       
@@ -122,6 +148,8 @@
     loading = true
     
     try {
+      console.log('LoginModal: Starting Magic login')
+      
       const magic = getMagic()
 
       if (!import.meta.env.VITE_MAGIC_PUBLISHABLE_KEY) {
@@ -145,6 +173,18 @@
       const didToken = await magic.user.getIdToken()
       const metadata = await magic.user.getInfo()
 
+      console.log('LoginModal: Magic authenticated')
+
+      // Store temp auth data first
+      tempAuthData = {
+        type: 'magic',
+        email: metadata.email || userEmail,
+        issuer: metadata.issuer,
+        didToken: didToken
+      }
+
+      console.log('LoginModal: Checking for existing party')
+
       // Check if user already has a party
       const authIdentifier = metadata.issuer
       const existingParties = await api.queryEntities({
@@ -153,20 +193,27 @@
         limit: 1
       })
       
+      console.log('LoginModal: Found parties:', existingParties)
+      
       if (existingParties && existingParties.length > 0) {
         // User has a party, complete login
         const party = existingParties[0]
+        console.log('LoginModal: Completing signup with party:', party)
+        
+        // First set the auth data with party info
+        await authStore.login(tempAuthData)
         authStore.completeSignup(party.id, party.slug || '')
+        
+        console.log('LoginModal: Login complete, navigating to profile')
         handleClose()
-        navigateTo('/profile')
+        
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          navigateTo('/profile')
+        }, 100)
       } else {
         // User needs to create a party
-        tempAuthData = {
-          type: 'magic',
-          email: metadata.email || userEmail,
-          issuer: metadata.issuer,
-          didToken: didToken
-        }
+        console.log('LoginModal: No party found, showing creation form')
         needsPartyCreation = true
       }
       
@@ -192,6 +239,8 @@
     try {
       const authIdentifier = tempAuthData.address || tempAuthData.issuer
       
+      console.log('LoginModal: Creating party with slug:', slug)
+      
       // Create the party entity
       const party = await api.createUser({
         type: 'party',
@@ -213,18 +262,27 @@
         const verifyParty = await api.getEntityBySlug(slug)
         console.log('Party verified:', verifyParty)
         
-        // Complete signup in auth store
+        // First set the auth data with party info
+        await authStore.login(tempAuthData)
         authStore.completeSignup(verifyParty.id, verifyParty.slug || slug)
         
-        // Close modal and navigate to profile
+        console.log('LoginModal: Signup complete, navigating to profile')
         handleClose()
-        navigateTo('/profile')
+        
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          navigateTo('/profile')
+        }, 100)
       } catch (verifyError) {
         console.error('Failed to verify party creation:', verifyError)
         // Still try to complete with the original party data
+        await authStore.login(tempAuthData)
         authStore.completeSignup(party.id, party.slug || slug)
+        
         handleClose()
-        navigateTo('/profile')
+        setTimeout(() => {
+          navigateTo('/profile')
+        }, 100)
       }
       
     } catch (e: any) {
