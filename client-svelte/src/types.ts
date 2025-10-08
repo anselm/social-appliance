@@ -8,19 +8,19 @@ export interface Entity {
   id: string
   slug?: string
   type: string
+  auth?: string
+  permissions?: string[]
+  address?: string
+  contract?: string | null
+  sponsorId?: string
+  parentId?: string
   title?: string
   content?: string
   depiction?: string
+  tags?: string[]
   view?: string
-  auth?: string
-  sponsorId?: string
-  parentId?: string
   latitude?: number | null
   longitude?: number | null
-  address?: string
-  contract?: string | null
-  permissions?: string[]
-  tags?: string[]
   radius?: number | null
   begins?: string | null
   ends?: string | null
