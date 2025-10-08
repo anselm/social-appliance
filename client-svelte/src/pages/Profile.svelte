@@ -2,7 +2,6 @@
   import { authStore } from '../stores/auth'
   import { navigateTo } from '../utils/navigation'
   import RouterLink from '../components/RouterLink.svelte'
-  import UserPartiesSection from '../components/profile/UserPartiesSection.svelte'
   import RecentPostsSection from '../components/profile/RecentPostsSection.svelte'
   import AnalyticsSection from '../components/profile/AnalyticsSection.svelte'
   import SettingsSection from '../components/profile/SettingsSection.svelte'
@@ -10,8 +9,8 @@
   
   // Redirect to login if not authenticated
   $effect(() => {
-    if (!$authStore) {
-      navigateTo('/login')
+    if (!authStore.isFullyAuthenticated($authStore)) {
+      navigateTo('/')
     }
   })
   
@@ -32,7 +31,7 @@
   }
 </script>
 
-{#if $authStore}
+{#if authStore.isFullyAuthenticated($authStore)}
   <div class="max-w-5xl mx-auto">
     <!-- Header -->
     <div class="mb-8">
@@ -40,13 +39,23 @@
       <p class="text-sm text-white/60">
         Signed in as <span class="font-medium text-white/80">{getDisplayName($authStore)}</span>
       </p>
+      {#if $authStore?.partySlug}
+        <p class="text-xs text-white/40 mt-1">
+          Your profile: <RouterLink to={$authStore.partySlug} className="text-blue-400 hover:text-blue-300 underline">
+            {#snippet children()}
+              {$authStore.partySlug}
+            {/snippet}
+          </RouterLink>
+        </p>
+      {:else}
+        <p class="text-xs text-red-400 mt-1">
+          ⚠️ No profile entity found. Please contact support.
+        </p>
+      {/if}
     </div>
     
     <!-- Main Content Grid -->
     <div class="space-y-6">
-      <!-- Identity Section -->
-      <UserPartiesSection />
-      
       <!-- Analytics -->
       <AnalyticsSection />
       
@@ -73,11 +82,11 @@
   <div class="text-center py-12">
     <p class="text-white/60 mb-4">Please sign in to view your profile</p>
     <RouterLink 
-      to="/login" 
+      to="/" 
       className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-medium inline-block"
     >
       {#snippet children()}
-        Sign In
+        Go Home
       {/snippet}
     </RouterLink>
   </div>

@@ -2,15 +2,19 @@
   import { config } from '../stores/appConfig'
   import { authStore } from '../stores/auth'
   import RouterLink from './RouterLink.svelte'
+  import LoginModal from './modals/LoginModal.svelte'
+  import SignupModal from './modals/SignupModal.svelte'
   
   let { currentPath = '/', currentEntity = null }: { currentPath?: string, currentEntity?: any } = $props()
   
   let menuOpen = $state(false)
+  let showLoginModal = $state(false)
+  let showSignupModal = $state(false)
   let searchQuery = $state('')
   
   let showHeader = $derived($config.header?.show !== false)
   let title = $derived($config.header?.title || 'Social Appliance')
-  let showLogin = $derived($config.header?.showLogin !== false)
+  let isLoggedIn = $derived(authStore.isFullyAuthenticated($authStore))
   
   function getDisplayName(auth: any): string {
     if (!auth) return ''
@@ -54,11 +58,8 @@
     e.preventDefault()
     if (!searchQuery.trim()) return
     
-    // Get current URL and add/update the q parameter
     const url = new URL(window.location.href)
     url.searchParams.set('q', searchQuery.trim())
-    
-    // Force reload with the new search parameter
     window.location.href = url.toString()
   }
   
@@ -70,6 +71,20 @@
   function handleNotifications() {
     console.log('Notifications clicked')
     // TODO: Implement notifications functionality
+  }
+  
+  function handleLoginClick() {
+    showLoginModal = true
+  }
+  
+  function handleSwitchToSignup() {
+    showLoginModal = false
+    showSignupModal = true
+  }
+  
+  function handleSwitchToLogin() {
+    showSignupModal = false
+    showLoginModal = true
   }
 </script>
 
@@ -132,27 +147,37 @@
             <span class="absolute top-1 right-1 w-1.5 h-1.5 bg-white rounded-full"></span>
           </button>
           
-          <!-- Hamburger Menu Button -->
-          <button
-            onclick={toggleMenu}
-            class="p-2 hover:bg-white/5 transition-colors"
-            aria-label="Menu"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {#if menuOpen}
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              {:else}
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-              {/if}
-            </svg>
-          </button>
+          {#if isLoggedIn}
+            <!-- Hamburger Menu Button (when logged in) -->
+            <button
+              onclick={toggleMenu}
+              class="p-2 hover:bg-white/5 transition-colors"
+              aria-label="Menu"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {#if menuOpen}
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                {:else}
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                {/if}
+              </svg>
+            </button>
+          {:else}
+            <!-- Login Button (when logged out) -->
+            <button
+              onclick={handleLoginClick}
+              class="px-3 py-1.5 border border-white/20 hover:bg-white hover:text-black transition-colors text-xs uppercase tracking-wider"
+            >
+              Login
+            </button>
+          {/if}
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Dropdown Menu -->
-  {#if menuOpen}
+  <!-- Dropdown Menu (only when logged in) -->
+  {#if menuOpen && isLoggedIn}
     <!-- Backdrop -->
     <button
       class="fixed inset-0 z-40 bg-black/80"
@@ -177,76 +202,40 @@
         <!-- Navigation Links -->
         <div class="space-y-1" onclick={closeMenu}>
           <RouterLink 
-            to="/" 
+            to="/profile" 
             className="block px-2 py-1.5 text-xs hover:bg-white/5 transition-colors"
           >
             {#snippet children()}
-              Home
+              Profile
             {/snippet}
           </RouterLink>
-          
-          {#if $authStore}
-            <RouterLink 
-              to="/profile" 
-              className="block px-2 py-1.5 text-xs hover:bg-white/5 transition-colors"
-            >
-              {#snippet children()}
-                Profile
-              {/snippet}
-            </RouterLink>
-          {/if}
-          
-          <RouterLink 
-            to="/admin" 
-            className="block px-2 py-1.5 text-xs hover:bg-white/5 transition-colors"
-          >
-            {#snippet children()}
-              Admin
-            {/snippet}
-          </RouterLink>
-          
-          <RouterLink 
-            to="/testmap" 
-            className="block px-2 py-1.5 text-xs hover:bg-white/5 transition-colors"
-          >
-            {#snippet children()}
-              Test Map
-            {/snippet}
-          </RouterLink>
-          
-          <button 
-            class="block w-full text-left px-2 py-1.5 text-xs text-white/40 hover:bg-white/5 transition-colors cursor-not-allowed"
-            disabled
-          >
-            Settings
-          </button>
         </div>
         
         <!-- Auth Actions -->
         <div class="border-t border-white/10 pt-3">
-          {#if $authStore}
-            <button 
-              onclick={handleLogout}
-              class="w-full px-3 py-1.5 border border-white/10 hover:bg-white/5 transition-colors text-xs"
-            >
-              Logout
-            </button>
-          {:else}
-            {#if showLogin}
-              <div onclick={closeMenu}>
-                <RouterLink 
-                  to="/login" 
-                  className="block w-full px-3 py-1.5 border border-white/10 hover:bg-white/5 transition-colors text-xs text-center"
-                >
-                  {#snippet children()}
-                    Login
-                  {/snippet}
-                </RouterLink>
-              </div>
-            {/if}
-          {/if}
+          <button 
+            onclick={handleLogout}
+            class="w-full px-3 py-1.5 border border-white/10 hover:bg-white/5 transition-colors text-xs"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </nav>
   {/if}
+{/if}
+
+<!-- Modals -->
+{#if showLoginModal}
+  <LoginModal
+    on:close={() => showLoginModal = false}
+    on:switchToSignup={handleSwitchToSignup}
+  />
+{/if}
+
+{#if showSignupModal}
+  <SignupModal
+    on:close={() => showSignupModal = false}
+    on:switchToLogin={handleSwitchToLogin}
+  />
 {/if}
