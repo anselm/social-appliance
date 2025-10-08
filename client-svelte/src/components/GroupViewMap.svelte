@@ -1,17 +1,19 @@
 <script lang="ts">
   import type { Entity } from '../types'
   import EntityHeader from './EntityHeader.svelte'
-  import EntityManagementControls from './EntityManagementControls.svelte'
   import { navigateTo } from '../utils/navigation'
   import { config } from '../stores/appConfig'
+  import { api } from '../services/api'
 
-  let { entity, children = [] }: { entity: Entity, children: Entity[] } = $props()
+  let { entity }: { entity: Entity } = $props()
 
   let mapContainer = $state<HTMLDivElement | undefined>()
   let map: any = null
   let mapReady = $state(false)
   let initError = $state<string | null>(null)
   let hasInitialized = $state(false)
+  let children = $state<Entity[]>([])
+  let loading = $state(true)
 
   // Filter state
   let activeFilters = $state<Set<string>>(new Set(['post', 'party', 'group', 'place', 'event']))
@@ -33,6 +35,32 @@
   // Track markers and circles for updates
   let markers: any[] = []
   let circles: any[] = []
+
+  // Load children when component mounts
+  $effect(() => {
+    loadChildren()
+  })
+
+  async function loadChildren() {
+    loading = true
+    try {
+      const childrenData = await api.queryEntities({ 
+        parentId: entity.id,
+        limit: 100 
+      })
+      
+      children = (childrenData || []).sort((a, b) => {
+        const dateA = new Date(a.updatedAt).getTime()
+        const dateB = new Date(b.updatedAt).getTime()
+        return dateB - dateA
+      })
+    } catch (error) {
+      console.error('Failed to load children:', error)
+      children = []
+    } finally {
+      loading = false
+    }
+  }
 
   $effect(() => {
     if (!mapContainer || hasInitialized) {

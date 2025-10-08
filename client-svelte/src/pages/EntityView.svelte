@@ -4,17 +4,13 @@
   import RouterLink from '../components/RouterLink.svelte'
   import PostView from '../components/PostView.svelte'
   import PartyView from '../components/PartyView.svelte'
-  import GroupViewGrid from '../components/GroupViewGrid.svelte'
-  import GroupViewList from '../components/GroupViewList.svelte'
-  import GroupViewCards from '../components/GroupViewCards.svelte'
-  import GroupViewDefault from '../components/GroupViewDefault.svelte'
+  import GroupViewGeneral from '../components/GroupViewGeneral.svelte'
   import GroupViewMap from '../components/GroupViewMap.svelte'
   import type { Entity } from '../types'
 
   let { path = '/' }: { path?: string } = $props()
 
   let entity = $state<Entity | null>(null)
-  let children = $state<Entity[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
 
@@ -33,7 +29,6 @@
     loading = true
     error = null
     entity = null
-    children = []
     
     try {
       const querySlug = targetSlug.startsWith('/') ? targetSlug : `/${targetSlug}`
@@ -51,25 +46,6 @@
       console.log('EntityView: Entity type:', entity.type)
       console.log('EntityView: Entity view:', entity.view)
       
-      if (entity.type === 'group' || entity.type === 'party') {
-        try {
-          const childrenData = await api.queryEntities({ 
-            parentId: entity.id,
-            limit: 100 
-          })
-          
-          children = (childrenData || []).sort((a, b) => {
-            const dateA = new Date(a.updatedAt).getTime()
-            const dateB = new Date(b.updatedAt).getTime()
-            return dateB - dateA
-          })
-          
-          console.log('EntityView: Loaded children:', children.length)
-        } catch (childErr) {
-          console.error('EntityView: Failed to load children:', childErr)
-          children = []
-        }
-      }
     } catch (err: any) {
       console.error('EntityView: Failed to load entity:', err)
       
@@ -83,7 +59,6 @@
         error = err.message || 'Failed to load page'
       }
       entity = null
-      children = []
     } finally {
       loading = false
       console.log('EntityView: loadEntity COMPLETE')
@@ -120,15 +95,9 @@
       <PartyView {entity} />
     {:else if entity.type === 'group'}
       {#if entity.view === 'map'}
-        <GroupViewMap {entity} {children} />
-      {:else if entity.view === 'grid'}
-        <GroupViewGrid {entity} {children} />
-      {:else if entity.view === 'cards'}
-        <GroupViewCards {entity} {children} />
-      {:else if entity.view === 'list'}
-        <GroupViewList {entity} {children} />
+        <GroupViewMap {entity} />
       {:else}
-        <GroupViewDefault {entity} {children} />
+        <GroupViewGeneral {entity} />
       {/if}
     {:else}
       <div class="text-xs text-red-400">Unknown entity type: {entity.type}</div>
