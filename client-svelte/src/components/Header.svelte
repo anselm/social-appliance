@@ -169,7 +169,7 @@
         {/if}
         
         <!-- Navigation Links -->
-        <div class="space-y-1">
+        <div class="space-y-1" onclick={closeMenu}>
           <RouterLink 
             to="/" 
             className="block px-2 py-1.5 text-xs hover:bg-white/5 transition-colors"
@@ -227,14 +227,16 @@
             </button>
           {:else}
             {#if showLogin}
-              <RouterLink 
-                to="/login" 
-                className="block w-full px-3 py-1.5 border border-white/10 hover:bg-white/5 transition-colors text-xs text-center"
-              >
-                {#snippet children()}
-                  Login
-                {/snippet}
-              </RouterLink>
+              <div onclick={closeMenu}>
+                <RouterLink 
+                  to="/login" 
+                  className="block w-full px-3 py-1.5 border border-white/10 hover:bg-white/5 transition-colors text-xs text-center"
+                >
+                  {#snippet children()}
+                    Login
+                  {/snippet}
+                </RouterLink>
+              </div>
             {/if}
           {/if}
         </div>
