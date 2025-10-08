@@ -5,7 +5,7 @@ window.APP_CONFIG = {
   header: {
 
     // title if any
-    title: 'Locative', 
+    title: 'locavore.ai', 
 
     // Whether to show the header
     enabled: true,

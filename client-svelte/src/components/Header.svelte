@@ -55,7 +55,7 @@
 
 {#if showHeader}
   <!-- Main Header Bar -->
-  <header class="sticky top-0 z-50 bg-black border-b border-white/10">
+  <header class="sticky top-0 z-50 bg-black border-b border-white/10 z-[9999]">
     <div class="max-w-7xl mx-auto px-4">
       <div class="flex items-center justify-between h-14 gap-4">
         <!-- Logo -->
