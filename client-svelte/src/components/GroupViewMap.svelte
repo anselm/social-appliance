@@ -74,6 +74,17 @@
     activeFilters = new Set(activeFilters) // Trigger reactivity
   }
 
+  function getFilterButtonClass(filterType: string): string {
+    const isActive = activeFilters.has(filterType)
+    const baseClasses = "px-2 py-1 text-xs rounded transition-colors"
+    
+    if (isActive) {
+      return `${baseClasses} bg-white/20 text-white`
+    } else {
+      return `${baseClasses} bg-white/5 text-white/40`
+    }
+  }
+
   function updateMarkers() {
     // Remove existing markers and circles
     if (mapProvider === 'mapbox') {
@@ -595,11 +606,7 @@
                     {#if count > 0}
                       <button
                         onclick={() => toggleFilter(filterType)}
-                        class="px-2 py-1 text-xs rounded transition-colors"
-                        class:bg-white/20={activeFilters.has(filterType)}
-                        class:text-white={activeFilters.has(filterType)}
-                        class:bg-white/5={!activeFilters.has(filterType)}
-                        class:text-white/40={!activeFilters.has(filterType)}
+                        class={getFilterButtonClass(filterType)}
                       >
                         {filterType}
                       </button>
