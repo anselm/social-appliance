@@ -16,6 +16,11 @@
   // Filter state
   let activeFilters = $state<Set<string>>(new Set(['post', 'party', 'group', 'place', 'event']))
   
+  // Pull-up drawer state
+  type DrawerMode = 'minimized' | 'places' | 'preview'
+  let drawerMode = $state<DrawerMode>('minimized')
+  let selectedMarker = $state<Entity | null>(null)
+  
   // Filter children that have location data
   let locatedChildren = $derived(children.filter(child => 
     child.latitude != null && child.longitude != null && activeFilters.has(child.type)
@@ -69,17 +74,6 @@
     activeFilters = new Set(activeFilters) // Trigger reactivity
   }
 
-  function getFilterButtonClass(filterType: string): string {
-    const isActive = activeFilters.has(filterType)
-    const baseClasses = "px-3 py-2 text-xs font-medium rounded-lg shadow-lg transition-all backdrop-blur-sm"
-    
-    if (isActive) {
-      return `${baseClasses} bg-white/90 text-black hover:bg-white`
-    } else {
-      return `${baseClasses} bg-black/60 text-white/40 hover:bg-black/80`
-    }
-  }
-
   function updateMarkers() {
     // Remove existing markers and circles
     if (mapProvider === 'mapbox') {
@@ -109,6 +103,26 @@
     } else {
       addLeafletMarkers()
     }
+  }
+
+  function handleMarkerSelect(child: Entity) {
+    selectedMarker = child
+    drawerMode = 'preview'
+  }
+
+  function handleDrawerBarClick() {
+    if (drawerMode === 'minimized') {
+      drawerMode = 'places'
+    } else if (drawerMode === 'places') {
+      drawerMode = 'minimized'
+    } else if (drawerMode === 'preview') {
+      drawerMode = 'places'
+    }
+  }
+
+  function handlePlaceCardClick(child: Entity) {
+    selectedMarker = child
+    drawerMode = 'preview'
   }
 
   function addMapboxMarkers() {
@@ -224,58 +238,13 @@
         }
       })
 
-      // Create popup content with dark theme
-      const popupContent = `
-        <div style="min-width: 220px; background: #1a1a1a; color: #fff;">
-          ${child.depiction ? `
-            <img 
-              src="${child.depiction}" 
-              style="width: 100%; height: 140px; object-fit: cover; margin-bottom: 12px; border-radius: 6px;"
-              alt="${child.title || 'Image'}"
-            />
-          ` : ''}
-          <div style="font-weight: bold; margin-bottom: 6px; font-size: 15px; color: #fff;">
-            ${child.title || 'Untitled'}
-          </div>
-          <div style="font-size: 11px; color: #888; margin-bottom: 8px; text-transform: uppercase;">
-            ${child.type}${child.type === 'group' && child.radius ? ` • ${child.radius}m radius` : ''}
-          </div>
-          ${child.content ? `
-            <div style="font-size: 13px; color: #aaa; margin-bottom: 12px; line-height: 1.5;">
-              ${child.content.substring(0, 120)}${child.content.length > 120 ? '...' : ''}
-            </div>
-          ` : ''}
-          <button 
-            onclick="window.handleMarkerClick('${child.slug || `/${child.id}`}')"
-            style="
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: #fff;
-              border: none;
-              padding: 8px 16px;
-              font-size: 13px;
-              cursor: pointer;
-              border-radius: 6px;
-              width: 100%;
-              font-weight: 600;
-              transition: opacity 0.2s;
-            "
-            onmouseover="this.style.opacity='0.9'"
-            onmouseout="this.style.opacity='1'"
-          >
-            View Details →
-          </button>
-        </div>
-      `
-
-      const popup = new mapboxgl.Popup({ 
-        offset: 30,
-        className: 'dark-popup',
-        maxWidth: '280px'
-      }).setHTML(popupContent)
+      // Add click handler
+      el.addEventListener('click', () => {
+        handleMarkerSelect(child)
+      })
 
       const marker = new mapboxgl.Marker(el)
         .setLngLat([child.longitude, child.latitude])
-        .setPopup(popup)
         .addTo(map)
 
       markers.push(marker)
@@ -347,50 +316,12 @@
       }
 
       const marker = L.marker([child.latitude, child.longitude], { icon }).addTo(map)
-      markers.push(marker)
-
-      const popupContent = `
-        <div style="min-width: 200px;">
-          ${child.depiction ? `
-            <img 
-              src="${child.depiction}" 
-              style="width: 100%; height: 120px; object-fit: cover; margin-bottom: 8px; border-radius: 4px;"
-              alt="${child.title || 'Image'}"
-            />
-          ` : ''}
-          <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px;">
-            ${child.title || 'Untitled'}
-          </div>
-          <div style="font-size: 11px; color: #888; margin-bottom: 8px; text-transform: uppercase;">
-            ${child.type}${child.type === 'group' && child.radius ? ` • ${child.radius}m radius` : ''}
-          </div>
-          ${child.content ? `
-            <div style="font-size: 12px; color: #666; margin-bottom: 8px; line-height: 1.4;">
-              ${child.content.substring(0, 100)}${child.content.length > 100 ? '...' : ''}
-            </div>
-          ` : ''}
-          <button 
-            onclick="window.handleMarkerClick('${child.slug || `/${child.id}`}')"
-            style="
-              background: #000;
-              color: #fff;
-              border: 1px solid #333;
-              padding: 6px 12px;
-              font-size: 12px;
-              cursor: pointer;
-              border-radius: 4px;
-              width: 100%;
-            "
-          >
-            View Details →
-          </button>
-        </div>
-      `
-
-      marker.bindPopup(popupContent, {
-        maxWidth: 250,
-        className: 'custom-popup'
+      
+      marker.on('click', () => {
+        handleMarkerSelect(child)
       })
+      
+      markers.push(marker)
     })
 
     // Fit bounds if we have markers
@@ -518,11 +449,6 @@
       map.on('error', (e: any) => {
         console.error('Mapbox error:', e)
       })
-
-      // Global click handler
-      ;(window as any).handleMarkerClick = (slug: string) => {
-        navigateTo(slug)
-      }
       
     } catch (error) {
       console.error('GroupViewMap Mapbox error:', error)
@@ -612,11 +538,6 @@
         }
       }, 100)
 
-      // Global click handler
-      ;(window as any).handleMarkerClick = (slug: string) => {
-        navigateTo(slug)
-      }
-
       mapReady = true
       addMarkers()
       
@@ -638,10 +559,6 @@
     <div class="mb-4 text-xs text-white/60">
       {#if initError}
         <span class="text-red-400">Map initialization error: {initError}</span>
-      {:else if mapReady}
-        Showing {locatedChildren.length} location{locatedChildren.length !== 1 ? 's' : ''} on map (using {mapProvider})
-      {:else}
-        Loading {mapProvider} map...
       {/if}
     </div>
 
@@ -652,22 +569,121 @@
         style="height: 600px; background: #0a0a0a; min-height: 600px; position: relative;"
       ></div>
 
-      <!-- Floating Filter Buttons -->
-      {#if mapReady}
-        <div class="absolute top-4 left-4 flex flex-col gap-2 z-10">
-          {#each ['post', 'party', 'group', 'place', 'event'] as filterType}
-            {@const count = children.filter(c => c.type === filterType && c.latitude != null && c.longitude != null).length}
-            {#if count > 0}
-              <button
-                onclick={() => toggleFilter(filterType)}
-                class={getFilterButtonClass(filterType)}
-              >
-                {filterType} ({count})
-              </button>
-            {/if}
-          {/each}
+      <!-- Pull-up Drawer -->
+      <div 
+        class="absolute bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t border-white/20 transition-all duration-300 ease-out"
+        style={drawerMode === 'minimized' ? 'height: 48px;' : drawerMode === 'places' ? 'height: 200px;' : 'height: 400px;'}
+      >
+        <!-- Drawer Bar -->
+        <button
+          onclick={handleDrawerBarClick}
+          class="w-full h-12 flex items-center justify-center border-b border-white/10 hover:bg-white/5 transition-colors"
+        >
+          <div class="w-12 h-1 bg-white/40 rounded-full"></div>
+        </button>
+
+        <!-- Drawer Content -->
+        <div class="overflow-hidden" style="height: calc(100% - 48px);">
+          {#if drawerMode === 'places'}
+            <!-- Horizontal scrollable places -->
+            <div class="p-4">
+              <div class="flex items-center gap-2 mb-3">
+                <h3 class="text-sm font-semibold">Places ({locatedChildren.length})</h3>
+                <div class="flex gap-1 ml-auto">
+                  {#each ['post', 'party', 'group', 'place', 'event'] as filterType}
+                    {@const count = children.filter(c => c.type === filterType && c.latitude != null && c.longitude != null).length}
+                    {#if count > 0}
+                      <button
+                        onclick={() => toggleFilter(filterType)}
+                        class="px-2 py-1 text-xs rounded transition-colors"
+                        class:bg-white/20={activeFilters.has(filterType)}
+                        class:text-white={activeFilters.has(filterType)}
+                        class:bg-white/5={!activeFilters.has(filterType)}
+                        class:text-white/40={!activeFilters.has(filterType)}
+                      >
+                        {filterType}
+                      </button>
+                    {/if}
+                  {/each}
+                </div>
+              </div>
+              <div class="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+                {#each locatedChildren as child}
+                  <button
+                    onclick={() => handlePlaceCardClick(child)}
+                    class="flex-shrink-0 w-40 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg overflow-hidden transition-colors"
+                  >
+                    {#if child.depiction}
+                      <img 
+                        src={child.depiction} 
+                        alt={child.title || 'Place'} 
+                        class="w-full h-24 object-cover"
+                      />
+                    {:else}
+                      <div class="w-full h-24 bg-white/5 flex items-center justify-center">
+                        <span class="text-2xl">📍</span>
+                      </div>
+                    {/if}
+                    <div class="p-2">
+                      <div class="text-xs font-medium truncate">{child.title || 'Untitled'}</div>
+                      <div class="text-xs text-white/40 uppercase">{child.type}</div>
+                    </div>
+                  </button>
+                {/each}
+              </div>
+            </div>
+          {:else if drawerMode === 'preview' && selectedMarker}
+            <!-- Preview of selected marker -->
+            <div class="p-4 overflow-y-auto h-full">
+              <div class="max-w-2xl mx-auto">
+                {#if selectedMarker.depiction}
+                  <img 
+                    src={selectedMarker.depiction} 
+                    alt={selectedMarker.title || 'Image'} 
+                    class="w-full h-48 object-cover rounded-lg mb-4"
+                  />
+                {/if}
+                <div class="flex items-start justify-between mb-3">
+                  <div>
+                    <h3 class="text-lg font-semibold mb-1">{selectedMarker.title || 'Untitled'}</h3>
+                    <div class="text-xs text-white/40 uppercase">
+                      {selectedMarker.type}
+                      {#if selectedMarker.type === 'group' && selectedMarker.radius}
+                        • {selectedMarker.radius}m radius
+                      {/if}
+                    </div>
+                  </div>
+                  <button
+                    onclick={() => drawerMode = 'places'}
+                    class="text-white/60 hover:text-white"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                {#if selectedMarker.content}
+                  <p class="text-sm text-white/70 mb-4 line-clamp-4">{selectedMarker.content}</p>
+                {/if}
+                <div class="flex gap-2">
+                  <button
+                    onclick={() => navigateTo(selectedMarker!.slug || `/${selectedMarker!.id}`)}
+                    class="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-medium rounded"
+                  >
+                    View Full Details →
+                  </button>
+                  <button
+                    onclick={() => drawerMode = 'places'}
+                    class="px-4 py-2 border border-white/20 hover:bg-white/10 transition-colors text-sm rounded"
+                  >
+                    Back to Places
+                  </button>
+                </div>
+              </div>
+            </div>
+          {/if}
         </div>
-      {/if}
+      </div>
     </div>
 
     {#if locatedChildren.length === 0 && mapReady}
@@ -702,33 +718,6 @@
     font-family: inherit;
     height: 100%;
     width: 100%;
-  }
-
-  :global(.mapboxgl-popup-content) {
-    padding: 0;
-    border-radius: 8px;
-    background: #1a1a1a;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-  }
-
-  :global(.mapboxgl-popup-close-button) {
-    font-size: 24px;
-    padding: 8px 12px;
-    color: #fff;
-    opacity: 0.7;
-  }
-
-  :global(.mapboxgl-popup-close-button:hover) {
-    opacity: 1;
-    background: transparent;
-  }
-
-  :global(.mapboxgl-popup-tip) {
-    border-top-color: #1a1a1a !important;
-  }
-
-  :global(.dark-popup .mapboxgl-popup-content) {
-    background: #1a1a1a;
   }
 
   :global(.mapboxgl-ctrl-group) {
