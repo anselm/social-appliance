@@ -3,6 +3,7 @@
   import { config } from '../stores/appConfig'
   import RouterLink from '../components/RouterLink.svelte'
   import PostView from '../components/PostView.svelte'
+  import PartyView from '../components/PartyView.svelte'
   import GroupViewGrid from '../components/GroupViewGrid.svelte'
   import GroupViewList from '../components/GroupViewList.svelte'
   import GroupViewCards from '../components/GroupViewCards.svelte'
@@ -116,18 +117,7 @@
     {#if entity.type === 'post'}
       <PostView {entity} />
     {:else if entity.type === 'party'}
-      <!-- Party entities are displayed like groups with their view preference -->
-      {#if entity.view === 'map'}
-        <GroupViewMap {entity} {children} />
-      {:else if entity.view === 'grid'}
-        <GroupViewGrid {entity} {children} />
-      {:else if entity.view === 'cards'}
-        <GroupViewCards {entity} {children} />
-      {:else if entity.view === 'list'}
-        <GroupViewList {entity} {children} />
-      {:else}
-        <GroupViewDefault {entity} {children} />
-      {/if}
+      <PartyView {entity} />
     {:else if entity.type === 'group'}
       {#if entity.view === 'map'}
         <GroupViewMap {entity} {children} />
