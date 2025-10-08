@@ -1,6 +1,8 @@
 import { api } from './api'
 import type { Entity } from '../types'
-import { log } from './logger'
+import loggers from './logger'
+
+const log = loggers.api
 
 /**
  * Client-side API for user-related operations
