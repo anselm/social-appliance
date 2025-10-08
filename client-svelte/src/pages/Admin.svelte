@@ -1,8 +1,8 @@
 <script lang="ts">
   import TabButton from '../components/TabButton.svelte'
-  import EntitiesTab from '../components/admin/EntitiesTab.svelte'
-  import CreateTab from '../components/admin/CreateTab.svelte'
-  import StatsTab from '../components/admin/StatsTab.svelte'
+  import EntitiesTab from '../admin/EntitiesTab.svelte'
+  import CreateTab from '../admin/CreateTab.svelte'
+  import StatsTab from '../admin/StatsTab.svelte'
   
   let activeTab = $state<'entities' | 'create' | 'stats'>('entities')
   let entitiesTab = $state<EntitiesTab>()
