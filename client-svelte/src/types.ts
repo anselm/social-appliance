@@ -12,10 +12,14 @@ export interface Entity {
   content?: string
   depiction?: string
   view?: string
-  createdAt: string
-  updatedAt: string
+  auth?: string
   sponsorId?: string
   parentId?: string
+  latitude?: number | null
+  longitude?: number | null
+  createdAt: string
+  updatedAt: string
+  metadata?: any
 }
 
 export interface Stats {
