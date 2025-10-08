@@ -586,6 +586,7 @@
       <button
         onclick={handleDrawerBarClick}
         class="w-full h-12 flex items-center justify-center border-b border-white/10 hover:bg-white/5 transition-colors"
+        aria-label="Toggle drawer"
       >
         <div class="w-12 h-1 bg-white/40 rounded-full"></div>
       </button>
@@ -604,6 +605,7 @@
                     <button
                       onclick={() => toggleFilter(filterType)}
                       class={getFilterButtonClass(filterType)}
+                      aria-label="Filter by {filterType}"
                     >
                       {filterType}
                     </button>
@@ -616,6 +618,7 @@
                 <button
                   onclick={() => handlePlaceCardClick(child)}
                   class="flex-shrink-0 w-40 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg overflow-hidden transition-colors"
+                  aria-label="View {child.title || 'Untitled'}"
                 >
                   {#if child.depiction}
                     <img 
@@ -660,6 +663,7 @@
                 <button
                   onclick={() => drawerMode = 'places'}
                   class="text-white/60 hover:text-white"
+                  aria-label="Close preview"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
