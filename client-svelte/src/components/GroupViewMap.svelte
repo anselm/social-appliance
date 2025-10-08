@@ -138,17 +138,67 @@
       
       log('Map center: ' + centerLat + ', ' + centerLng)
 
-      // Create map
+      // Create map with dark style and angled camera
       log('Creating Mapbox map instance...')
       map = new mapboxgl.Map({
         container: mapContainer!,
-        style: 'mapbox://styles/mapbox/satellite-streets-v12',
+        style: 'mapbox://styles/mapbox/dark-v11', // Dark/night mode style
         center: [centerLng, centerLat],
-        zoom: 13
+        zoom: 14,
+        pitch: 60, // Angled camera view (0-85 degrees)
+        bearing: -17.6, // Slight rotation for dynamic look
+        antialias: true // Smooth 3D rendering
       })
+
+      // Add navigation controls
+      map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
       map.on('load', () => {
         log('Mapbox map loaded!')
+        
+        // Enable 3D buildings for dramatic effect
+        const layers = map.getStyle().layers
+        const labelLayerId = layers.find(
+          (layer: any) => layer.type === 'symbol' && layer.layout['text-field']
+        )?.id
+
+        // Add 3D building layer
+        if (!map.getLayer('3d-buildings')) {
+          map.addLayer(
+            {
+              id: '3d-buildings',
+              source: 'composite',
+              'source-layer': 'building',
+              filter: ['==', 'extrude', 'true'],
+              type: 'fill-extrusion',
+              minzoom: 15,
+              paint: {
+                'fill-extrusion-color': '#1a1a1a',
+                'fill-extrusion-height': [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  15,
+                  0,
+                  15.05,
+                  ['get', 'height']
+                ],
+                'fill-extrusion-base': [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  15,
+                  0,
+                  15.05,
+                  ['get', 'min_height']
+                ],
+                'fill-extrusion-opacity': 0.6
+              }
+            },
+            labelLayerId
+          )
+        }
+
         mapReady = true
 
         // Add markers
@@ -161,21 +211,22 @@
 
           log('Creating marker ' + (index + 1) + ': ' + child.title)
 
-          // Create custom marker element
+          // Create custom marker element with glow effect
           const el = document.createElement('div')
           el.style.cursor = 'pointer'
           
           if (child.depiction) {
             el.innerHTML = `
               <div style="
-                width: 40px;
-                height: 40px;
+                width: 50px;
+                height: 50px;
                 border-radius: 50%;
                 overflow: hidden;
-                border: 3px solid white;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                border: 3px solid #fff;
+                box-shadow: 0 0 20px rgba(255,255,255,0.6), 0 4px 12px rgba(0,0,0,0.5);
                 background: white;
-              ">
+                transition: transform 0.2s ease;
+              " class="marker-hover">
                 <img 
                   src="${child.depiction}" 
                   style="width: 100%; height: 100%; object-fit: cover;"
@@ -186,54 +237,76 @@
           } else {
             el.innerHTML = `
               <div style="
-                width: 30px;
-                height: 30px;
-                background: #3b82f6;
+                width: 36px;
+                height: 36px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 border: 3px solid white;
                 border-radius: 50%;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-              "></div>
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.8), 0 4px 12px rgba(0,0,0,0.5);
+                transition: transform 0.2s ease;
+              " class="marker-hover"></div>
             `
           }
 
-          // Create popup content
+          // Add hover effect
+          el.addEventListener('mouseenter', () => {
+            const markerEl = el.querySelector('.marker-hover') as HTMLElement
+            if (markerEl) {
+              markerEl.style.transform = 'scale(1.15)'
+            }
+          })
+          el.addEventListener('mouseleave', () => {
+            const markerEl = el.querySelector('.marker-hover') as HTMLElement
+            if (markerEl) {
+              markerEl.style.transform = 'scale(1)'
+            }
+          })
+
+          // Create popup content with dark theme
           const popupContent = `
-            <div style="min-width: 200px;">
+            <div style="min-width: 220px; background: #1a1a1a; color: #fff;">
               ${child.depiction ? `
                 <img 
                   src="${child.depiction}" 
-                  style="width: 100%; height: 120px; object-fit: cover; margin-bottom: 8px; border-radius: 4px;"
+                  style="width: 100%; height: 140px; object-fit: cover; margin-bottom: 12px; border-radius: 6px;"
                   alt="${child.title || 'Image'}"
                 />
               ` : ''}
-              <div style="font-weight: bold; margin-bottom: 4px; font-size: 14px;">
+              <div style="font-weight: bold; margin-bottom: 6px; font-size: 15px; color: #fff;">
                 ${child.title || 'Untitled'}
               </div>
               ${child.content ? `
-                <div style="font-size: 12px; color: #666; margin-bottom: 8px; line-height: 1.4;">
-                  ${child.content.substring(0, 100)}${child.content.length > 100 ? '...' : ''}
+                <div style="font-size: 13px; color: #aaa; margin-bottom: 12px; line-height: 1.5;">
+                  ${child.content.substring(0, 120)}${child.content.length > 120 ? '...' : ''}
                 </div>
               ` : ''}
               <button 
                 onclick="window.handleMarkerClick('${child.slug || `/${child.id}`}')"
                 style="
-                  background: #000;
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                   color: #fff;
-                  border: 1px solid #333;
-                  padding: 6px 12px;
-                  font-size: 12px;
+                  border: none;
+                  padding: 8px 16px;
+                  font-size: 13px;
                   cursor: pointer;
-                  border-radius: 4px;
+                  border-radius: 6px;
                   width: 100%;
+                  font-weight: 600;
+                  transition: opacity 0.2s;
                 "
+                onmouseover="this.style.opacity='0.9'"
+                onmouseout="this.style.opacity='1'"
               >
                 View Details →
               </button>
             </div>
           `
 
-          const popup = new mapboxgl.Popup({ offset: 25 })
-            .setHTML(popupContent)
+          const popup = new mapboxgl.Popup({ 
+            offset: 30,
+            className: 'dark-popup',
+            maxWidth: '280px'
+          }).setHTML(popupContent)
 
           new mapboxgl.Marker(el)
             .setLngLat([child.longitude, child.latitude])
@@ -243,14 +316,19 @@
           log('Marker ' + (index + 1) + ' added')
         })
 
-        // Fit bounds if we have markers
+        // Fit bounds if we have markers with padding and animation
         if (locatedChildren.length > 0) {
           log('Fitting bounds to markers...')
           const bounds = new mapboxgl.LngLatBounds()
           locatedChildren.forEach(child => {
             bounds.extend([child.longitude!, child.latitude!])
           })
-          map.fitBounds(bounds, { padding: 50 })
+          map.fitBounds(bounds, { 
+            padding: 80,
+            pitch: 60,
+            bearing: -17.6,
+            duration: 2000 // Smooth 2-second animation
+          })
           log('Bounds fitted')
         }
       })
@@ -537,8 +615,8 @@
 
     <div 
       bind:this={mapContainer} 
-      class="w-full rounded border border-white/20"
-      style="height: 600px; background: #1a1a1a; min-height: 600px; position: relative;"
+      class="w-full rounded-lg border border-white/20 overflow-hidden"
+      style="height: 600px; background: #0a0a0a; min-height: 600px; position: relative;"
     ></div>
 
     {#if locatedChildren.length === 0 && mapReady}
@@ -587,12 +665,48 @@
   }
 
   :global(.mapboxgl-popup-content) {
-    padding: 12px;
+    padding: 0;
     border-radius: 8px;
+    background: #1a1a1a;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
   }
 
   :global(.mapboxgl-popup-close-button) {
-    font-size: 20px;
-    padding: 0 8px;
+    font-size: 24px;
+    padding: 8px 12px;
+    color: #fff;
+    opacity: 0.7;
+  }
+
+  :global(.mapboxgl-popup-close-button:hover) {
+    opacity: 1;
+    background: transparent;
+  }
+
+  :global(.mapboxgl-popup-tip) {
+    border-top-color: #1a1a1a !important;
+  }
+
+  :global(.dark-popup .mapboxgl-popup-content) {
+    background: #1a1a1a;
+  }
+
+  :global(.mapboxgl-ctrl-group) {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+  }
+
+  :global(.mapboxgl-ctrl-group button) {
+    background: transparent !important;
+    border-color: rgba(255,255,255,0.2) !important;
+  }
+
+  :global(.mapboxgl-ctrl-group button:hover) {
+    background: rgba(255,255,255,0.1) !important;
+  }
+
+  :global(.mapboxgl-ctrl-icon) {
+    filter: invert(1);
   }
 </style>
