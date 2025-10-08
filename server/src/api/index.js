@@ -36,7 +36,13 @@ export class API {
       Logger.success(`Created entity: ${entity.type} ${entity.slug || entity.id}`);
       return entity;
     } catch (error) {
-      Logger.error('Failed to create entity:', error);
+      // Log validation errors with details
+      if (error.validationErrors) {
+        Logger.error('Validation failed:', error);
+        console.error('Validation errors:', error.validationErrors);
+      } else {
+        Logger.error('Failed to create entity:', error);
+      }
       throw error;
     }
   }
@@ -101,7 +107,13 @@ export class API {
       Logger.success(`Updated entity: ${id}`);
       return entity;
     } catch (error) {
-      Logger.error(`Failed to update entity ${id}:`, error);
+      // Log validation errors with details
+      if (error.validationErrors) {
+        Logger.error('Validation failed:', error);
+        console.error('Validation errors:', error.validationErrors);
+      } else {
+        Logger.error(`Failed to update entity ${id}:`, error);
+      }
       throw error;
     }
   }

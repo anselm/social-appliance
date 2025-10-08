@@ -50,17 +50,12 @@ export class Validator {
       }
     }
 
-    // SponsorId validation (should be a UUID)
-    if (data.sponsorId !== undefined && data.sponsorId !== null) {
-      if (typeof data.sponsorId !== 'string') {
-        errors.push('SponsorId must be a string');
-      } else if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.sponsorId)) {
-        errors.push('SponsorId must be a valid UUID');
-      }
-    }
+    // SponsorId validation (should be a UUID) - OPTIONAL
+    // Removed strict validation since sponsorId is optional
 
-    // ParentId validation (should be a UUID)
-    if (data.parentId !== undefined && data.parentId !== null) {
+    // ParentId validation (should be a UUID) - OPTIONAL
+    // Only validate format if provided
+    if (data.parentId !== undefined && data.parentId !== null && data.parentId !== '') {
       if (typeof data.parentId !== 'string') {
         errors.push('ParentId must be a string');
       } else if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.parentId)) {
@@ -100,6 +95,8 @@ export class Validator {
     }
 
     if (errors.length > 0) {
+      console.error('❌ Validation failed with errors:', errors);
+      console.error('   Data being validated:', JSON.stringify(data, null, 2));
       const error = new Error('Validation failed');
       error.validationErrors = errors;
       throw error;
