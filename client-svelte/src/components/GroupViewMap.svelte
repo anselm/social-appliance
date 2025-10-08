@@ -69,6 +69,17 @@
     activeFilters = new Set(activeFilters) // Trigger reactivity
   }
 
+  function getFilterButtonClass(filterType: string): string {
+    const isActive = activeFilters.has(filterType)
+    const baseClasses = "px-3 py-2 text-xs font-medium rounded-lg shadow-lg transition-all backdrop-blur-sm"
+    
+    if (isActive) {
+      return `${baseClasses} bg-white/90 text-black hover:bg-white`
+    } else {
+      return `${baseClasses} bg-black/60 text-white/40 hover:bg-black/80`
+    }
+  }
+
   function updateMarkers() {
     // Remove existing markers and circles
     if (mapProvider === 'mapbox') {
@@ -649,13 +660,7 @@
             {#if count > 0}
               <button
                 onclick={() => toggleFilter(filterType)}
-                class="px-3 py-2 text-xs font-medium rounded-lg shadow-lg transition-all backdrop-blur-sm"
-                class:bg-white/90={activeFilters.has(filterType)}
-                class:text-black={activeFilters.has(filterType)}
-                class:bg-black/60={!activeFilters.has(filterType)}
-                class:text-white/40={!activeFilters.has(filterType)}
-                class:hover:bg-white={activeFilters.has(filterType)}
-                class:hover:bg-black/80={!activeFilters.has(filterType)}
+                class={getFilterButtonClass(filterType)}
               >
                 {filterType} ({count})
               </button>
