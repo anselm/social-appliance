@@ -4,20 +4,27 @@
   import { verifyMessage } from '../../lib/siweVerify'
   import { lookupENSName } from '../../lib/ens'
   import { authStore } from '../../stores/auth'
+  import { api } from '../../services/api'
   import { navigateTo } from '../../utils/navigation'
+  import PartySlugForm from '../PartySlugForm.svelte'
   
   const dispatch = createEventDispatcher()
   
   let error = $state('')
   let loading = $state(false)
   let lookingUpENS = $state(false)
+  let needsPartyCreation = $state(false)
+  let tempAuthData = $state<any>(null)
+  let creatingParty = $state(false)
   
   function handleClose() {
+    // If authenticated but not completed party creation, logout
+    if (needsPartyCreation && tempAuthData) {
+      if (tempAuthData.type === 'magic') {
+        getMagic().user.logout().catch(console.error)
+      }
+    }
     dispatch('close')
-  }
-  
-  function handleSwitchToSignup() {
-    dispatch('switchToSignup')
   }
   
   async function connectMetamask() {
@@ -77,20 +84,28 @@
         lookingUpENS = false
       }
 
-      const result = await authStore.login({
-        type: 'siwe',
-        address: account,
-        ensName: ensName || undefined
+      // Check if user already has a party
+      const authIdentifier = account
+      const existingParties = await api.queryEntities({
+        type: 'party',
+        auth: authIdentifier,
+        limit: 1
       })
       
-      if (result.hasParty) {
-        // User has a party, login successful
+      if (existingParties && existingParties.length > 0) {
+        // User has a party, complete login
+        const party = existingParties[0]
+        authStore.completeSignup(party.id, party.slug || '')
         handleClose()
         navigateTo('/profile')
       } else {
-        // User authenticated but no party entity
-        error = 'No account found. Please sign up first.'
-        authStore.logout()
+        // User needs to create a party
+        tempAuthData = {
+          type: 'siwe',
+          address: account,
+          ensName: ensName || undefined
+        }
+        needsPartyCreation = true
       }
       
     } catch (e: any) {
@@ -130,24 +145,29 @@
       const didToken = await magic.user.getIdToken()
       const metadata = await magic.user.getInfo()
 
-      const result = await authStore.login({
-        type: 'magic',
-        email: metadata.email || userEmail,
-        issuer: metadata.issuer,
-        didToken: didToken
+      // Check if user already has a party
+      const authIdentifier = metadata.issuer
+      const existingParties = await api.queryEntities({
+        type: 'party',
+        auth: authIdentifier,
+        limit: 1
       })
       
-      if (result.hasParty) {
-        // User has a party, login successful
+      if (existingParties && existingParties.length > 0) {
+        // User has a party, complete login
+        const party = existingParties[0]
+        authStore.completeSignup(party.id, party.slug || '')
         handleClose()
         navigateTo('/profile')
       } else {
-        // User authenticated but no party entity
-        error = 'No account found. Please sign up first.'
-        authStore.logout()
-        if (magic) {
-          await magic.user.logout()
+        // User needs to create a party
+        tempAuthData = {
+          type: 'magic',
+          email: metadata.email || userEmail,
+          issuer: metadata.issuer,
+          didToken: didToken
         }
+        needsPartyCreation = true
       }
       
     } catch (e: any) {
@@ -155,6 +175,68 @@
       error = e?.message || String(e)
     } finally {
       loading = false
+    }
+  }
+  
+  async function handleSlugSubmit(event: CustomEvent) {
+    const { slug } = event.detail
+    
+    if (!tempAuthData) {
+      error = 'Authentication data missing'
+      return
+    }
+    
+    creatingParty = true
+    error = ''
+    
+    try {
+      const authIdentifier = tempAuthData.address || tempAuthData.issuer
+      
+      // Create the party entity
+      const party = await api.createUser({
+        type: 'party',
+        title: slug.replace(/^\//, '').replace(/\//g, ' '),
+        slug: slug,
+        auth: authIdentifier,
+        sponsorId: authIdentifier,
+        address: authIdentifier,
+        contract: null
+      })
+      
+      console.log('Party created:', party)
+      
+      // Wait a moment for the database to be consistent
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Verify the party was created by fetching it
+      try {
+        const verifyParty = await api.getEntityBySlug(slug)
+        console.log('Party verified:', verifyParty)
+        
+        // Complete signup in auth store
+        authStore.completeSignup(verifyParty.id, verifyParty.slug || slug)
+        
+        // Close modal and navigate to profile
+        handleClose()
+        navigateTo('/profile')
+      } catch (verifyError) {
+        console.error('Failed to verify party creation:', verifyError)
+        // Still try to complete with the original party data
+        authStore.completeSignup(party.id, party.slug || slug)
+        handleClose()
+        navigateTo('/profile')
+      }
+      
+    } catch (e: any) {
+      console.error('Failed to create party:', e)
+      
+      if (e.validationErrors && Array.isArray(e.validationErrors)) {
+        error = e.validationErrors.join(', ')
+      } else {
+        error = e?.message || 'Failed to create account'
+      }
+    } finally {
+      creatingParty = false
     }
   }
 </script>
@@ -179,59 +261,67 @@
       </svg>
     </button>
     
-    <h2 class="text-2xl font-bold mb-2">Login</h2>
-    <p class="text-sm text-white/60 mb-6">Sign in to your account</p>
+    <h2 class="text-2xl font-bold mb-2">
+      {needsPartyCreation ? 'Create Your Profile' : 'Login'}
+    </h2>
+    <p class="text-sm text-white/60 mb-6">
+      {needsPartyCreation ? 'Choose a username to complete your account' : 'Sign in to your account'}
+    </p>
     
-    <div class="space-y-3">
-      <button 
-        onclick={connectMetamask}
-        disabled={loading}
-        class="w-full px-4 py-3 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 text-sm"
-      >
-        {#if loading || lookingUpENS}
-          <span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-          {lookingUpENS ? 'Looking up ENS...' : 'Connecting...'}
-        {:else}
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M22.05 11.52l-3.88-6.7c-.34-.59-.98-.95-1.67-.95H7.5c-.69 0-1.33.36-1.67.95l-3.88 6.7c-.34.59-.34 1.31 0 1.9l3.88 6.7c.34.59.98.95 1.67.95h9c.69 0 1.33-.36 1.67-.95l3.88-6.7c.34-.59.34-1.31 0-1.9zM12 16.5c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5z"/>
-          </svg>
-          Login with MetaMask
-        {/if}
-      </button>
-      
-      <button 
-        onclick={loginWithMagic}
-        disabled={loading}
-        class="w-full px-4 py-3 bg-purple-500 text-white rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 text-sm"
-      >
-        {#if loading}
-          <span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-          Connecting...
-        {:else}
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-          </svg>
-          Login with Email
-        {/if}
-      </button>
-
-      {#if error}
-        <div class="p-3 bg-red-500/10 border border-red-500/20 rounded">
-          <p class="text-red-400 text-xs">{error}</p>
-        </div>
-      {/if}
-    </div>
-    
-    <div class="mt-6 pt-4 border-t border-white/10 text-center">
-      <p class="text-xs text-white/60">
-        Don't have an account?{' '}
-        <button
-          onclick={handleSwitchToSignup}
-          class="text-blue-400 hover:text-blue-300 underline"
+    {#if !needsPartyCreation}
+      <div class="space-y-3">
+        <button 
+          onclick={connectMetamask}
+          disabled={loading}
+          class="w-full px-4 py-3 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 text-sm"
         >
-          Sign up
+          {#if loading || lookingUpENS}
+            <span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            {lookingUpENS ? 'Looking up ENS...' : 'Connecting...'}
+          {:else}
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M22.05 11.52l-3.88-6.7c-.34-.59-.98-.95-1.67-.95H7.5c-.69 0-1.33.36-1.67.95l-3.88 6.7c-.34.59-.34 1.31 0 1.9l3.88 6.7c.34.59.98.95 1.67.95h9c.69 0 1.33-.36 1.67-.95l3.88-6.7c.34-.59.34-1.31 0-1.9zM12 16.5c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5z"/>
+            </svg>
+            Login with MetaMask
+          {/if}
         </button>
-      </p>
-    </div>
+        
+        <button 
+          onclick={loginWithMagic}
+          disabled={loading}
+          class="w-full px-4 py-3 bg-purple-500 text-white rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 text-sm"
+        >
+          {#if loading}
+            <span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            Connecting...
+          {:else}
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+            </svg>
+            Login with Email
+          {/if}
+        </button>
+
+        {#if error}
+          <div class="p-3 bg-red-500/10 border border-red-500/20 rounded">
+            <p class="text-red-400 text-xs">{error}</p>
+          </div>
+        {/if}
+      </div>
+    {:else}
+      <!-- Slug selection form -->
+      <div class="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded">
+        <p class="text-xs text-blue-400">
+          ✓ Authentication successful! Now create your profile to complete the process.
+        </p>
+      </div>
+      
+      <PartySlugForm
+        {creatingParty}
+        {error}
+        on:submit={handleSlugSubmit}
+        on:cancel={handleClose}
+      />
+    {/if}
   </div>
 </div>

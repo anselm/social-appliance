@@ -3,13 +3,11 @@
   import { authStore } from '../stores/auth'
   import RouterLink from './RouterLink.svelte'
   import LoginModal from './modals/LoginModal.svelte'
-  import SignupModal from './modals/SignupModal.svelte'
   
   let { currentPath = '/', currentEntity = null }: { currentPath?: string, currentEntity?: any } = $props()
   
   let menuOpen = $state(false)
   let showLoginModal = $state(false)
-  let showSignupModal = $state(false)
   let searchQuery = $state('')
   
   let showHeader = $derived($config.header?.show !== false)
@@ -74,16 +72,6 @@
   }
   
   function handleLoginClick() {
-    showLoginModal = true
-  }
-  
-  function handleSwitchToSignup() {
-    showLoginModal = false
-    showSignupModal = true
-  }
-  
-  function handleSwitchToLogin() {
-    showSignupModal = false
     showLoginModal = true
   }
 </script>
@@ -229,13 +217,5 @@
 {#if showLoginModal}
   <LoginModal
     on:close={() => showLoginModal = false}
-    on:switchToSignup={handleSwitchToSignup}
-  />
-{/if}
-
-{#if showSignupModal}
-  <SignupModal
-    on:close={() => showSignupModal = false}
-    on:switchToLogin={handleSwitchToLogin}
   />
 {/if}
