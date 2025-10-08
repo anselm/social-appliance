@@ -1,5 +1,5 @@
 <script lang="ts">
-  import TabButton from '../components/TabButton.svelte'
+  import TabButton from '../admin/TabButton.svelte'
   import EntitiesTab from '../admin/EntitiesTab.svelte'
   import CreateTab from '../admin/CreateTab.svelte'
   import StatsTab from '../admin/StatsTab.svelte'
