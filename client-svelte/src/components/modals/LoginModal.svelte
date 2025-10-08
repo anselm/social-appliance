@@ -39,9 +39,29 @@
         throw new Error('MetaMask is not installed. Please install MetaMask to continue.')
       }
 
+      // Check if MetaMask is locked
       // @ts-ignore
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-      const account = accounts?.[0]
+      const accounts = await window.ethereum.request({ 
+        method: 'eth_accounts' 
+      }).catch(() => [])
+      
+      if (accounts.length === 0) {
+        console.log('LoginModal: MetaMask is locked or no accounts connected')
+        // MetaMask is locked or no accounts are connected
+        // This will prompt the user to unlock MetaMask
+      }
+
+      // Request account access (will prompt if locked)
+      console.log('LoginModal: Requesting account access')
+      // @ts-ignore
+      const requestedAccounts = await Promise.race([
+        window.ethereum.request({ method: 'eth_requestAccounts' }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('MetaMask request timed out. Please unlock MetaMask and try again.')), 30000)
+        )
+      ])
+      
+      const account = requestedAccounts?.[0]
       if (!account) throw new Error('No account found')
 
       console.log('LoginModal: Got account:', account)
@@ -136,7 +156,18 @@
       
     } catch (e: any) {
       console.error('MetaMask error:', e)
-      error = e?.message || String(e)
+      
+      // Provide more helpful error messages
+      if (e.message?.includes('User rejected')) {
+        error = 'You rejected the connection request. Please try again and approve the connection.'
+      } else if (e.message?.includes('timed out')) {
+        error = e.message
+      } else if (e.code === -32002) {
+        error = 'A MetaMask request is already pending. Please check your MetaMask extension.'
+      } else {
+        error = e?.message || String(e)
+      }
+      
       lookingUpENS = false
     } finally {
       loading = false
