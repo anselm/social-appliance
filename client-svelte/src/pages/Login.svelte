@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { auth } from '../stores/auth'
+  import { authStore } from '../stores/auth'
   import { navigateTo } from '../utils/navigation'
   
   let username = ''
@@ -7,7 +7,7 @@
   async function handleSubmit(e: Event) {
     e.preventDefault()
     if (username.trim()) {
-      await auth.login(username.trim())
+      await authStore.login(username.trim())
       navigateTo('/')
     }
   }
