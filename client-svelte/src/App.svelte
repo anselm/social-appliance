@@ -11,9 +11,6 @@
   
   let { url = "" }: { url?: string } = $props()
   
-  // Initialize auth store
-  authStore.init()
-  
   // Get routing config
   let routingMode = $derived($config.routing?.mode || 'query')
   let basePath = $derived($config.routing?.basePath || '')

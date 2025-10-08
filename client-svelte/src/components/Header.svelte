@@ -200,7 +200,7 @@
         {/if}
         
         <!-- Navigation Links -->
-        <div class="space-y-1" onclick={closeMenu}>
+        <button class="w-full text-left" onclick={closeMenu}>
           <RouterLink 
             to="/profile" 
             className="block px-2 py-1.5 text-xs hover:bg-white/5 transition-colors"
@@ -209,7 +209,7 @@
               Profile
             {/snippet}
           </RouterLink>
-        </div>
+        </button>
         
         <!-- Auth Actions -->
         <div class="border-t border-white/10 pt-3">
