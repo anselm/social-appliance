@@ -19,6 +19,11 @@ export interface Entity {
   longitude?: number | null
   address?: string
   contract?: string | null
+  permissions?: string[]
+  tags?: string[]
+  radius?: number | null
+  begins?: string | null
+  ends?: string | null
   createdAt: string
   updatedAt: string
   metadata?: any
