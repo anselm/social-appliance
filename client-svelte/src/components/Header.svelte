@@ -52,8 +52,14 @@
   
   function handleSearch(e: Event) {
     e.preventDefault()
-    console.log('Search query:', searchQuery)
-    // TODO: Implement search functionality
+    if (!searchQuery.trim()) return
+    
+    // Get current URL and add/update the q parameter
+    const url = new URL(window.location.href)
+    url.searchParams.set('q', searchQuery.trim())
+    
+    // Force reload with the new search parameter
+    window.location.href = url.toString()
   }
   
   function handleCreate() {
