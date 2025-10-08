@@ -93,4 +93,32 @@ export const api = {
       method: 'DELETE',
     })
   },
+
+  // Relationship methods
+  async createRelationship(data: { fromId: string, toId: string, type: string, metadata?: any }) {
+    log.info(`Creating relationship: ${data.type} from ${data.fromId} to ${data.toId}`)
+    return this.request('/relationships', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  async getRelationships(filters: { fromId?: string, toId?: string, type?: string }) {
+    log.debug('Getting relationships with filters:', filters)
+    const params = new URLSearchParams()
+    if (filters.fromId) params.append('fromId', filters.fromId)
+    if (filters.toId) params.append('toId', filters.toId)
+    if (filters.type) params.append('type', filters.type)
+    
+    const result = await this.request(`/relationships?${params}`)
+    log.debug(`Got ${Array.isArray(result) ? result.length : 0} relationships`)
+    return result
+  },
+
+  async deleteRelationship(id: string) {
+    log.info(`Deleting relationship: ${id}`)
+    return this.request(`/relationships/${id}`, {
+      method: 'DELETE',
+    })
+  },
 }

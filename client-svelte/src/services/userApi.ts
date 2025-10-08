@@ -1,4 +1,5 @@
 import { api } from './api'
+import { favoritesService } from './favoritesService'
 import type { Entity } from '../types'
 import loggers from './logger'
 
@@ -129,12 +130,16 @@ export const userApi = {
   },
 
   /**
-   * Get user's favorite entities (stubbed for now)
+   * Get user's favorite entities
    */
-  async getUserFavorites(authIdentifier: string): Promise<Entity[]> {
-    log.info(`Fetching favorites for auth: ${authIdentifier} (stubbed)`)
-    // TODO: Implement when relations table is available
-    return []
+  async getUserFavorites(userId: string): Promise<Entity[]> {
+    log.info(`Fetching favorites for user: ${userId}`)
+    try {
+      return await favoritesService.getUserFavorites(userId)
+    } catch (error) {
+      log.error('Failed to fetch user favorites:', error)
+      return []
+    }
   },
 
   /**

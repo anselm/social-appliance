@@ -1,5 +1,7 @@
 <script lang="ts">
   import { renderMarkdown } from '../utils/markdown'
+  import { authStore } from '../stores/auth'
+  import { favoritesService } from '../services/favoritesService'
   import type { Entity } from '../types'
 
   let { 
@@ -14,6 +16,11 @@
     showDepiction?: boolean
   } = $props()
   
+  // Favorite state
+  let isFavorited = $state(false)
+  let checkingFavorite = $state(false)
+  let togglingFavorite = $state(false)
+  
   // Mock stats for now - these would come from the API in the future
   let stats = $derived({
     memberCount: Math.floor(Math.random() * 100) + 10, // Mock: 10-110 members
@@ -22,6 +29,52 @@
     createdAt: entity.createdAt,
     createdBy: entity.auth ? `${entity.auth.substring(0, 6)}...${entity.auth.substring(entity.auth.length - 4)}` : 'Unknown'
   })
+  
+  // Check if entity is favorited when component mounts or auth changes
+  $effect(() => {
+    checkFavoriteStatus()
+  })
+  
+  async function checkFavoriteStatus() {
+    if (!$authStore || !$authStore.partyId) {
+      isFavorited = false
+      return
+    }
+    
+    checkingFavorite = true
+    try {
+      isFavorited = await favoritesService.isFavorited($authStore.partyId, entity.id)
+    } catch (error) {
+      console.error('Failed to check favorite status:', error)
+    } finally {
+      checkingFavorite = false
+    }
+  }
+  
+  async function toggleFavorite() {
+    if (!$authStore || !$authStore.partyId) {
+      alert('Please log in to add favorites')
+      return
+    }
+    
+    if (togglingFavorite) return
+    
+    togglingFavorite = true
+    try {
+      if (isFavorited) {
+        await favoritesService.removeFavorite($authStore.partyId, entity.id)
+        isFavorited = false
+      } else {
+        await favoritesService.addFavorite($authStore.partyId, entity.id)
+        isFavorited = true
+      }
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error)
+      alert('Failed to update favorite. Please try again.')
+    } finally {
+      togglingFavorite = false
+    }
+  }
 </script>
 
 <div class="mb-8">
@@ -35,7 +88,32 @@
     </div>
   {/if}
   
-  <h1 class="text-lg mb-2">{entity.title || entity.slug || 'Untitled'}</h1>
+  <div class="flex items-start justify-between gap-4">
+    <h1 class="text-lg mb-2 flex-1">{entity.title || entity.slug || 'Untitled'}</h1>
+    
+    {#if $authStore && $authStore.partyId}
+      <button
+        onclick={toggleFavorite}
+        disabled={togglingFavorite || checkingFavorite}
+        class="flex-shrink-0 p-2 hover:bg-white/10 rounded transition-colors disabled:opacity-50"
+        title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+      >
+        {#if togglingFavorite || checkingFavorite}
+          <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        {:else if isFavorited}
+          <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+        {:else}
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          </svg>
+        {/if}
+      </button>
+    {/if}
+  </div>
   
   {#if showStats && entity.type === 'group'}
     <div class="flex flex-wrap gap-3 mb-4 text-xs text-white/60">
