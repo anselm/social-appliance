@@ -21,6 +21,49 @@ export class Validator {
       }
     }
 
+    // Address validation (Ethereum address format)
+    if (data.address !== undefined && data.address !== null) {
+      if (typeof data.address !== 'string') {
+        errors.push('Address must be a string');
+      } else if (!/^0x[a-fA-F0-9]{40}$/.test(data.address)) {
+        errors.push('Address must be a valid Ethereum address (0x followed by 40 hex characters)');
+      }
+    }
+
+    // Contract validation (Ethereum address format)
+    if (data.contract !== undefined && data.contract !== null) {
+      if (typeof data.contract !== 'string') {
+        errors.push('Contract must be a string');
+      } else if (!/^0x[a-fA-F0-9]{40}$/.test(data.contract)) {
+        errors.push('Contract must be a valid Ethereum address (0x followed by 40 hex characters)');
+      }
+    }
+
+    // Metadata validation
+    if (data.metadata !== undefined && data.metadata !== null) {
+      if (typeof data.metadata !== 'object' || Array.isArray(data.metadata)) {
+        errors.push('Metadata must be an object');
+      }
+    }
+
+    // SponsorId validation (should be a UUID)
+    if (data.sponsorId !== undefined && data.sponsorId !== null) {
+      if (typeof data.sponsorId !== 'string') {
+        errors.push('SponsorId must be a string');
+      } else if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.sponsorId)) {
+        errors.push('SponsorId must be a valid UUID');
+      }
+    }
+
+    // ParentId validation (should be a UUID)
+    if (data.parentId !== undefined && data.parentId !== null) {
+      if (typeof data.parentId !== 'string') {
+        errors.push('ParentId must be a string');
+      } else if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.parentId)) {
+        errors.push('ParentId must be a valid UUID');
+      }
+    }
+
     // Location validation
     if (data.latitude !== undefined) {
       const lat = parseFloat(data.latitude);
@@ -72,6 +115,7 @@ export class Validator {
     // Only allow known filter fields
     const allowedFields = [
       'type', 'parentId', 'sponsorId', 'slug', 'slugPrefix',
+      'address', 'contract', 'auth',
       'latitude', 'longitude', 'radius',
       'begins', 'ends',
       'limit', 'offset'

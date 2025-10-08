@@ -12,7 +12,7 @@ export class EntityService {
     const db = await getDB();
     const entity = new Entity(entityData);
     
-    Logger.db('CREATE', 'entities', { id: entity.id, slug: entity.slug, type: entity.type });
+    Logger.db('CREATE', 'entities', { id: entity.id, slug: entity.slug, type: entity.type, address: entity.address });
     
     // Check if slug is already taken
     if (entity.slug) {
@@ -99,6 +99,21 @@ export class EntityService {
     if (filters.slug) query.slug = filters.slug;
     if (filters.slugPrefix) {
       query.slug = { $regex: `^${filters.slugPrefix}`, $options: 'i' };
+    }
+    
+    // Address filter (user's public key)
+    if (filters.address) {
+      query.address = filters.address;
+    }
+    
+    // Contract filter
+    if (filters.contract) {
+      query.contract = filters.contract;
+    }
+    
+    // Auth filter (for authentication identifier)
+    if (filters.auth) {
+      query.auth = filters.auth;
     }
     
     // Location-based query
