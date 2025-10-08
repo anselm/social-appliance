@@ -179,6 +179,17 @@
             {/snippet}
           </RouterLink>
           
+          {#if $authStore}
+            <RouterLink 
+              to="/profile" 
+              className="block px-2 py-1.5 text-xs hover:bg-white/5 transition-colors"
+            >
+              {#snippet children()}
+                Profile
+              {/snippet}
+            </RouterLink>
+          {/if}
+          
           <RouterLink 
             to="/admin" 
             className="block px-2 py-1.5 text-xs hover:bg-white/5 transition-colors"

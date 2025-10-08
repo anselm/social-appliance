@@ -1,11 +1,13 @@
 <script lang="ts">
-  import Layout from './components/Layout.svelte'
-  import EntityView from './pages/EntityView.svelte'
-  import Login from './pages/siwe-magic-login.svelte'
-  import Admin from './pages/Admin.svelte'
+  import { router } from './lib/router'
   import { config } from './stores/appConfig'
   import { authStore } from './stores/auth'
-  import { router } from './lib/router'
+  import Layout from './components/Layout.svelte'
+  import EntityView from './pages/EntityView.svelte'
+  import Admin from './pages/Admin.svelte'
+  import Login from './pages/Login.svelte'
+  import SiweMagicLogin from './pages/siwe-magic-login.svelte'
+  import Profile from './pages/Profile.svelte'
   
   let { url = "" }: { url?: string } = $props()
   
@@ -17,11 +19,16 @@
   let basePath = $derived($config.routing?.basePath || '')
   
   // Initialize router
+  let routerInitialized = $state(false)
+  
   $effect(() => {
-    router.init({
-      mode: routingMode,
-      basePath: basePath
-    })
+    if (!routerInitialized) {
+      router.init({
+        mode: routingMode,
+        basePath: basePath
+      })
+      routerInitialized = true
+    }
   })
   
   // Subscribe to current path
@@ -36,19 +43,34 @@
     return unsubscribe
   })
   
-  // Determine component props
-  let componentProps = $derived({ path: currentPath })
+  // Determine which page to show based on path
+  let currentPage = $derived.by(() => {
+    const path = currentPath
+    
+    console.log('App: Determining page for path:', path)
+    
+    if (path === '/admin') return 'admin'
+    if (path === '/login') return 'login'
+    if (path === '/profile') return 'profile'
+    if (path === '/testmap') return 'entity'
+    
+    return 'entity'
+  })
+  
+  let currentEntity = $state(null)
 </script>
 
-<Layout>
+<Layout {currentPath} {currentEntity}>
   {#snippet children()}
     {#key currentPath}
-      {#if currentPath === '/login'}
-        <Login />
-      {:else if currentPath === '/admin'}
+      {#if currentPage === 'admin'}
         <Admin />
+      {:else if currentPage === 'login'}
+        <SiweMagicLogin />
+      {:else if currentPage === 'profile'}
+        <Profile />
       {:else}
-        <EntityView {...componentProps} />
+        <EntityView path={currentPath} />
       {/if}
     {/key}
   {/snippet}

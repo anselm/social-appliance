@@ -1,4 +1,4 @@
-import { writable, derived } from 'svelte/store'
+import { writable, derived, get } from 'svelte/store'
 
 export interface Route {
   path: string
@@ -14,11 +14,15 @@ export interface RouterConfig {
 class CustomRouter {
   private currentPath = writable<string>('/')
   private config: RouterConfig = { mode: 'query', basePath: '' }
+  private initialized = false
   
   public path = derived(this.currentPath, $path => $path)
   
   init(config: RouterConfig) {
+    if (this.initialized) return
+    
     this.config = config
+    this.initialized = true
     
     // Set initial path
     this.updateFromLocation()
@@ -79,6 +83,10 @@ class CustomRouter {
     } else {
       return (this.config.basePath || '') + path
     }
+  }
+  
+  getCurrentPath(): string {
+    return get(this.currentPath)
   }
 }
 
