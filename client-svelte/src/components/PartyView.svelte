@@ -2,6 +2,7 @@
   import type { Entity } from '../types'
   import { renderMarkdown } from '../utils/markdown'
   import RouterLink from './RouterLink.svelte'
+  import EntityEditControl from './EntityEditControl.svelte'
   import { userApi } from '../services/userApi'
 
   let { entity }: { entity: Entity } = $props()
@@ -59,6 +60,8 @@
         {/if}
       </div>
     </div>
+    
+    <EntityEditControl {entity} />
   </div>
 
   <!-- Recent Posts -->
