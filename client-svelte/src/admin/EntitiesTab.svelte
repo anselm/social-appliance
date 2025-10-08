@@ -1,7 +1,7 @@
 <script lang="ts">
   import { api } from '../services/api'
   import { apiClient } from '../services/apiClient'
-  import { buildTree } from '../utils/tree'
+  import { buildTree } from './tree'
   import EntityFilters from './EntityFilters.svelte'
   import EntityItem from './EntityItem.svelte'
   import EntityTreeItem from './EntityTreeItem.svelte'

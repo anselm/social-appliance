@@ -4,7 +4,7 @@
   import { authStore } from './stores/auth'
   import Layout from './components/Layout.svelte'
   import EntityView from './pages/EntityView.svelte'
-  import Admin from './pages/Admin.svelte'
+  import Admin from './admin/Admin.svelte'
   import Login from './pages/Login.svelte'
   import SiweMagicLogin from './pages/siwe-magic-login.svelte'
   import Profile from './pages/Profile.svelte'

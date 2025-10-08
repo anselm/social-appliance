@@ -32,27 +32,34 @@ const EntityTypes = {
   // there can be many more types
 } as const;
 
-const EntitySchema = {
-  id: uuidv4(),
-  slug: string || null,
-  type: EntityTypes,
-  view: string,
-  auth: string,
-  permissions: string[],
-  title: string || null,
-  content: string || null,
-  depiction: string || null,
-  tags: string[] || null,
-  latitude: number || undefined,
-  longitude: number || undefined,
-  radius: number || undefined,
-  begins: new Date().toISOString() || undefined,
-  ends: new Date().toISOString() || undefined,
-  sponsorId: UUID,  // The party (user) that created/sponsored this entity
-  parentId: UUID || null,  // The hierarchical parent entity
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-};
+export interface Entity {
+  id: string
+  slug?: string
+  type: string
+  auth?: string             // reserved - will flesh out later
+  permissions?: string[]    // reserved - will flesh out later
+  address?: string          // public key of sponsor
+  contract?: string | null  // reserved
+  sponsorId?: string        // the entity id of the party of the sponsor
+  parentId?: string         // a parent relationship (this concept overrides relationship table)
+  title?: string
+  content?: string
+  depiction?: string
+  tags?: string[]
+  view?: string
+  latitude?: number | null
+  longitude?: number | null
+  radius?: number | null
+  begins?: string | null
+  ends?: string | null
+  createdAt: string
+  updatedAt: string
+  metadata?: any
+}
+
+Note: Right now the definitions for these are not 100% dry - but they are here:
+  client-svelte/src/types.ts
+  server/src/models/entity.js
 
 2) SLUGS. There is an idea of a 'slug' in an entity. Entities may request (on an api request to create or update an entity) to have a wiki like optional "slug" that is similar to a uuid and represents the entity uniquely. The application overall will use a wiki-like URL structure for content ('/portland-mushroom-foragers-group/funarea', '/john-smith') where slugs are handed out on a first-come first serve basis at the root level. Slugs can have multiple slashes and are paths. A request for an arbitrary slug is granted if it is not taken, and also if parent nodes have open permissions. For example the request for a slug '/john-smith/my-fun-sub-group' may not be granted unless the caller has permission to add sub objects to '/john-smith'. Permissions is discussed later.
 

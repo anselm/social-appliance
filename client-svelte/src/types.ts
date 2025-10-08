@@ -1,8 +1,3 @@
-export interface User {
-  id: string
-  slug: string
-  title?: string
-}
 
 export interface Entity {
   id: string

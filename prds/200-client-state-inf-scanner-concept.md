@@ -2,7 +2,7 @@
 
 ## Design constraints
 
-There are a few design constraints that come up due to different user stakeholder requirements:
+Introducing the need for an idea of dynamic ".info" files:
 
 1) From the "application user" perspective this application is driven by user requests for discrete data objects, similar to a file system or a wiki. A user asks for "/hiking" and sees some information (such as a discussion group) related to hiking - following a principle of least surprise, and well defined urls that make sense. There is of course a curation role in making sure that the namespace formed out of user requests is sober and matches user expectations.
 
