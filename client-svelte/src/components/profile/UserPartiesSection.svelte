@@ -9,7 +9,7 @@
   let parties = $state<Entity[]>([])
   let loading = $state(true)
   let showCreateForm = $state(false)
-  let editingParty =<Entity | null>(null)
+  let editingParty = $state<Entity | null>(null)
   let creating = $state(false)
   
   $effect(() => {
