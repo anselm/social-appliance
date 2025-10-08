@@ -18,7 +18,9 @@
     slug: entity?.slug || buildEntitySlug(parentSlug),
     view: entity?.view || '',
     depiction: entity?.depiction || '',
-    parentId: entity?.parentId || null
+    parentId: entity?.parentId || null,
+    latitude: entity?.latitude || null,
+    longitude: entity?.longitude || null
   })
   
   const entityTypes = ['post', 'group', 'party', 'agent', 'place', 'thing']
@@ -156,6 +158,40 @@
       placeholder="https://example.com/image.jpg"
     />
   </div>
+  
+  {#if formData.type === 'post' || formData.type === 'place'}
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label for="latitude" class="block text-xs text-white/60 mb-1">
+          Latitude
+        </label>
+        <input
+          id="latitude"
+          type="number"
+          step="any"
+          bind:value={formData.latitude}
+          class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
+          placeholder="45.5152"
+        />
+      </div>
+      <div>
+        <label for="longitude" class="block text-xs text-white/60 mb-1">
+          Longitude
+        </label>
+        <input
+          id="longitude"
+          type="number"
+          step="any"
+          bind:value={formData.longitude}
+          class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
+          placeholder="-122.6784"
+        />
+      </div>
+    </div>
+    <p class="text-xs text-white/40">
+      Optional: Add coordinates to show this on maps
+    </p>
+  {/if}
   
   <div class="flex gap-3 pt-4">
     <button

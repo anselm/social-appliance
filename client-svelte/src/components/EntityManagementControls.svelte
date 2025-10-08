@@ -35,7 +35,9 @@
         content: updates.content,
         slug: updates.slug,
         view: updates.view,
-        depiction: updates.depiction
+        depiction: updates.depiction,
+        latitude: updates.latitude,
+        longitude: updates.longitude
       })
       
       editMode = false
@@ -87,18 +89,24 @@
     creatingEntity = true
     
     try {
+      const userAddress = $authStore.address || $authStore.issuer || ''
+      
       const data: any = {
         type: entityData.type,
         title: entityData.title,
         content: entityData.content,
         slug: entityData.slug,
-        auth: $authStore.address || $authStore.issuer,
-        sponsorId: $authStore.address || $authStore.issuer,
+        auth: userAddress,
+        sponsorId: userAddress,
+        address: userAddress,
+        contract: null,
         parentId: entity.id
       }
       
       if (entityData.view) data.view = entityData.view
       if (entityData.depiction) data.depiction = entityData.depiction
+      if (entityData.latitude !== null && entityData.latitude !== undefined) data.latitude = entityData.latitude
+      if (entityData.longitude !== null && entityData.longitude !== undefined) data.longitude = entityData.longitude
       
       let result
       if (entityData.type === 'group') {

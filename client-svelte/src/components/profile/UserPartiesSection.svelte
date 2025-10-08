@@ -9,7 +9,7 @@
   let parties = $state<Entity[]>([])
   let loading = $state(true)
   let showCreateForm = $state(false)
-  let editingParty = $state<Entity | null>(null)
+  let editingParty =<Entity | null>(null)
   let creating = $state(false)
   
   $effect(() => {
@@ -55,13 +55,17 @@
     creating = true
     
     try {
+      const userAddress = $authStore?.address || $authStore?.issuer || ''
+      
       if (editingParty) {
         // Update existing party
         await api.updateEntity(editingParty.id, {
           title: data.title,
           content: data.content,
           slug: data.slug,
-          depiction: data.depiction
+          depiction: data.depiction,
+          latitude: data.latitude,
+          longitude: data.longitude
         })
       } else {
         // Create new party
@@ -71,8 +75,12 @@
           content: data.content,
           slug: data.slug,
           depiction: data.depiction,
-          auth: $authStore?.address || $authStore?.issuer,
-          sponsorId: $authStore?.address || $authStore?.issuer
+          latitude: data.latitude,
+          longitude: data.longitude,
+          auth: userAddress,
+          sponsorId: userAddress,
+          address: userAddress,
+          contract: null
         })
       }
       

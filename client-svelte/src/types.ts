@@ -17,6 +17,8 @@ export interface Entity {
   parentId?: string
   latitude?: number | null
   longitude?: number | null
+  address?: string
+  contract?: string | null
   createdAt: string
   updatedAt: string
   metadata?: any
