@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Entity } from '../../types'
+  import type { Entity } from '../types'
   
   let { entity, onEdit, onDelete, showParent = true }: { 
     entity: Entity, 

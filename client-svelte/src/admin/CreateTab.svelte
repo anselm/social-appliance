@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { api } from '../../services/api'
-  import { authStore } from '../../stores/auth'
-  import EntityForm from '../EntityForm.svelte'
+  import { api } from '../services/api'
+  import { authStore } from '../stores/auth'
+  import EntityForm from '../components/EntityForm.svelte'
   import { createEventDispatcher } from 'svelte'
   
   const dispatch = createEventDispatcher()

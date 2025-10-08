@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { api } from '../../services/api'
-  import { apiClient } from '../../services/apiClient'
-  import { buildTree } from '../../utils/tree'
-  import EntityFilters from './EntityFilters.svelte'
-  import EntityItem from './EntityItem.svelte'
-  import EntityTreeItem from './EntityTreeItem.svelte'
-  import EntityEditModal from './EntityEditModal.svelte'
+  import { api } from '../services/api'
+  import { apiClient } from '../services/apiClient'
+  import { buildTree } from '../utils/tree'
+  import EntityFilters from './components/EntityFilters.svelte'
+  import EntityItem from './components/EntityItem.svelte'
+  import EntityTreeItem from './components/EntityTreeItem.svelte'
+  import EntityEditModal from './components/EntityEditModal.svelte'
   import type { Entity, EntityWithChildren } from '../../types'
   
   let entities = $state<Entity[]>([])

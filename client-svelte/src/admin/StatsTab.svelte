@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { api } from '../../services/api'
-  import type { Entity, Stats } from '../../types'
+  import { api } from '../services/api'
+  import type { Entity, Stats } from '../types'
   
   let loading = $state(false)
   let stats = $state<Stats | null>(null)

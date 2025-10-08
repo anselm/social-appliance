@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { EntityWithChildren } from '../../types'
-  import EntityItem from './EntityItem.svelte'
-  import EntityTreeItem from './EntityTreeItem.svelte'
+  import type { EntityWithChildren } from '../types'
+  import EntityItem from './components/EntityItem.svelte'
+  import EntityTreeItem from './components/EntityTreeItem.svelte'
   
   let { 
     entity, 

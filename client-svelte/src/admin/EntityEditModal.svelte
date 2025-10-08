@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-  import type { Entity } from '../../types'
+  import type { Entity } from '../types'
   
   let { entity }: { entity: Entity } = $props()
   
