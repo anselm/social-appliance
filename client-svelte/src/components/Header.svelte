@@ -70,7 +70,7 @@
       aria-label="Close menu"
     ></button>
     
-    <nav class="fixed top-0 right-0 z-40 w-64 h-full bg-black border-l border-white/20 p-6 overflow-y-auto">
+    <nav class="z-[999] fixed top-0 right-0 z-40 w-64 h-full bg-black border-l border-white/20 p-6 overflow-y-auto">
       <div class="mt-12 space-y-6">
         <!-- Title -->
         <div class="border-b border-white/20 pb-4">

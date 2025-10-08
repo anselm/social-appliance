@@ -3,7 +3,6 @@
   import EntityView from './pages/EntityView.svelte'
   import Login from './pages/siwe-magic-login.svelte'
   import Admin from './pages/Admin.svelte'
-  import TestMap from './pages/TestMap.svelte'
   import { config } from './stores/appConfig'
   import { authStore } from './stores/auth'
   import { router } from './lib/router'
@@ -48,8 +47,6 @@
         <Login />
       {:else if currentPath === '/admin'}
         <Admin />
-      {:else if currentPath === '/testmap'}
-        <TestMap />
       {:else}
         <EntityView {...componentProps} />
       {/if}
