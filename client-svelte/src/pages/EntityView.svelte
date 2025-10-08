@@ -50,7 +50,7 @@
       console.log('EntityView: Entity type:', entity.type)
       console.log('EntityView: Entity view:', entity.view)
       
-      if (entity.type === 'group') {
+      if (entity.type === 'group' || entity.type === 'party') {
         try {
           const childrenData = await api.queryEntities({ 
             parentId: entity.id,
@@ -115,16 +115,31 @@
   {:else}
     {#if entity.type === 'post'}
       <PostView {entity} />
-    {:else if entity.type === 'group' && entity.view === 'map'}
-      <GroupViewMap {entity} {children} />
-    {:else if entity.type === 'group' && entity.view === 'grid'}
-      <GroupViewGrid {entity} {children} />
-    {:else if entity.type === 'group' && entity.view === 'cards'}
-      <GroupViewCards {entity} {children} />
-    {:else if entity.type === 'group' && entity.view === 'list'}
-      <GroupViewList {entity} {children} />
+    {:else if entity.type === 'party'}
+      <!-- Party entities are displayed like groups with their view preference -->
+      {#if entity.view === 'map'}
+        <GroupViewMap {entity} {children} />
+      {:else if entity.view === 'grid'}
+        <GroupViewGrid {entity} {children} />
+      {:else if entity.view === 'cards'}
+        <GroupViewCards {entity} {children} />
+      {:else if entity.view === 'list'}
+        <GroupViewList {entity} {children} />
+      {:else}
+        <GroupViewDefault {entity} {children} />
+      {/if}
     {:else if entity.type === 'group'}
-      <GroupViewDefault {entity} {children} />
+      {#if entity.view === 'map'}
+        <GroupViewMap {entity} {children} />
+      {:else if entity.view === 'grid'}
+        <GroupViewGrid {entity} {children} />
+      {:else if entity.view === 'cards'}
+        <GroupViewCards {entity} {children} />
+      {:else if entity.view === 'list'}
+        <GroupViewList {entity} {children} />
+      {:else}
+        <GroupViewDefault {entity} {children} />
+      {/if}
     {:else}
       <div class="text-xs text-red-400">Unknown entity type: {entity.type}</div>
     {/if}
