@@ -140,6 +140,48 @@ router.post('/relationships', async (req, res) => {
   }
 });
 
+// Query relationships with filters - NEW ROUTE
+router.get('/relationships', async (req, res) => {
+  try {
+    const { fromId, toId, type } = req.query;
+    Logger.api('GET', '/relationships', { fromId, toId, type });
+    
+    // Get relationships based on filters
+    let relationships = [];
+    
+    if (fromId && toId && type) {
+      // Specific relationship lookup
+      const rel = await api.relationshipService.findByEntities(fromId, toId, type);
+      relationships = rel ? [rel] : [];
+    } else if (fromId) {
+      // All relationships from this entity
+      relationships = await api.relationshipService.findByFromEntity(fromId, type || null);
+    } else if (toId) {
+      // All relationships to this entity
+      relationships = await api.relationshipService.findByToEntity(toId, type || null);
+    } else {
+      // No filters - return empty array (could also return all, but that might be too much)
+      relationships = [];
+    }
+    
+    res.json(relationships);
+  } catch (error) {
+    handleError(res, error);
+  }
+});
+
+// Delete relationship - NEW ROUTE
+router.delete('/relationships/:id', async (req, res) => {
+  try {
+    Logger.api('DELETE', `/relationships/${req.params.id}`);
+    const success = await api.relationshipService.delete(req.params.id);
+    res.json({ success });
+  } catch (error) {
+    handleError(res, error);
+  }
+});
+
+// Get relationships for a specific entity (legacy route - kept for compatibility)
 router.get('/entities/:id/relationships', async (req, res) => {
   try {
     const direction = req.query.direction || 'from';
