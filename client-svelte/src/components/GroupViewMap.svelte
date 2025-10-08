@@ -559,147 +559,143 @@
   }
 </script>
 
-<EntityManagementControls {entity} showNewEntityButton={false}>
-  {#snippet content()}
-    <!-- Empty - EntityHeader handles the display -->
-  {/snippet}
-  
-  {#snippet main()}
+<div class="flex flex-col h-screen">
+  <div class="flex-shrink-0 px-4 pt-8">
     <EntityHeader {entity} showContent={false} showStats={true} />
 
-    <div class="mb-4 text-xs text-white/60">
-      {#if initError}
-        <span class="text-red-400">Map initialization error: {initError}</span>
-      {/if}
-    </div>
+    {#if initError}
+      <div class="mb-4 text-xs text-red-400">
+        Map initialization error: {initError}
+      </div>
+    {/if}
+  </div>
 
-    <div class="relative">
-      <div 
-        bind:this={mapContainer} 
-        class="w-full rounded-lg border border-white/20 overflow-hidden"
-        style="height: 600px; background: #0a0a0a; min-height: 600px; position: relative;"
-      ></div>
+  <div class="flex-1 relative min-h-0 px-4 pb-4">
+    <div 
+      bind:this={mapContainer} 
+      class="w-full h-full rounded-lg border border-white/20 overflow-hidden"
+      style="background: #0a0a0a;"
+    ></div>
 
-      <!-- Pull-up Drawer -->
-      <div 
-        class="absolute bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t border-white/20 transition-all duration-300 ease-out"
-        style={drawerMode === 'minimized' ? 'height: 48px;' : drawerMode === 'places' ? 'height: 200px;' : 'height: 400px;'}
+    <!-- Pull-up Drawer -->
+    <div 
+      class="absolute bottom-0 left-4 right-4 bg-black/95 backdrop-blur-sm border-t border-white/20 transition-all duration-300 ease-out rounded-t-lg"
+      style={drawerMode === 'minimized' ? 'height: 48px;' : drawerMode === 'places' ? 'height: 200px;' : 'height: 400px;'}
+    >
+      <!-- Drawer Bar -->
+      <button
+        onclick={handleDrawerBarClick}
+        class="w-full h-12 flex items-center justify-center border-b border-white/10 hover:bg-white/5 transition-colors"
       >
-        <!-- Drawer Bar -->
-        <button
-          onclick={handleDrawerBarClick}
-          class="w-full h-12 flex items-center justify-center border-b border-white/10 hover:bg-white/5 transition-colors"
-        >
-          <div class="w-12 h-1 bg-white/40 rounded-full"></div>
-        </button>
+        <div class="w-12 h-1 bg-white/40 rounded-full"></div>
+      </button>
 
-        <!-- Drawer Content -->
-        <div class="overflow-hidden" style="height: calc(100% - 48px);">
-          {#if drawerMode === 'places'}
-            <!-- Horizontal scrollable places -->
-            <div class="p-4">
-              <div class="flex items-center gap-2 mb-3">
-                <h3 class="text-sm font-semibold">Places ({locatedChildren.length})</h3>
-                <div class="flex gap-1 ml-auto">
-                  {#each ['post', 'party', 'group', 'place', 'event'] as filterType}
-                    {@const count = children.filter(c => c.type === filterType && c.latitude != null && c.longitude != null).length}
-                    {#if count > 0}
-                      <button
-                        onclick={() => toggleFilter(filterType)}
-                        class={getFilterButtonClass(filterType)}
-                      >
-                        {filterType}
-                      </button>
-                    {/if}
-                  {/each}
-                </div>
-              </div>
-              <div class="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-                {#each locatedChildren as child}
-                  <button
-                    onclick={() => handlePlaceCardClick(child)}
-                    class="flex-shrink-0 w-40 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg overflow-hidden transition-colors"
-                  >
-                    {#if child.depiction}
-                      <img 
-                        src={child.depiction} 
-                        alt={child.title || 'Place'} 
-                        class="w-full h-24 object-cover"
-                      />
-                    {:else}
-                      <div class="w-full h-24 bg-white/5 flex items-center justify-center">
-                        <span class="text-2xl">📍</span>
-                      </div>
-                    {/if}
-                    <div class="p-2">
-                      <div class="text-xs font-medium truncate">{child.title || 'Untitled'}</div>
-                      <div class="text-xs text-white/40 uppercase">{child.type}</div>
-                    </div>
-                  </button>
+      <!-- Drawer Content -->
+      <div class="overflow-hidden" style="height: calc(100% - 48px);">
+        {#if drawerMode === 'places'}
+          <!-- Horizontal scrollable places -->
+          <div class="p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <h3 class="text-sm font-semibold">Places ({locatedChildren.length})</h3>
+              <div class="flex gap-1 ml-auto">
+                {#each ['post', 'party', 'group', 'place', 'event'] as filterType}
+                  {@const count = children.filter(c => c.type === filterType && c.latitude != null && c.longitude != null).length}
+                  {#if count > 0}
+                    <button
+                      onclick={() => toggleFilter(filterType)}
+                      class={getFilterButtonClass(filterType)}
+                    >
+                      {filterType}
+                    </button>
+                  {/if}
                 {/each}
               </div>
             </div>
-          {:else if drawerMode === 'preview' && selectedMarker}
-            <!-- Preview of selected marker -->
-            <div class="p-4 overflow-y-auto h-full">
-              <div class="max-w-2xl mx-auto">
-                {#if selectedMarker.depiction}
-                  <img 
-                    src={selectedMarker.depiction} 
-                    alt={selectedMarker.title || 'Image'} 
-                    class="w-full h-48 object-cover rounded-lg mb-4"
-                  />
-                {/if}
-                <div class="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 class="text-lg font-semibold mb-1">{selectedMarker.title || 'Untitled'}</h3>
-                    <div class="text-xs text-white/40 uppercase">
-                      {selectedMarker.type}
-                      {#if selectedMarker.type === 'group' && selectedMarker.radius}
-                        • {selectedMarker.radius}m radius
-                      {/if}
+            <div class="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+              {#each locatedChildren as child}
+                <button
+                  onclick={() => handlePlaceCardClick(child)}
+                  class="flex-shrink-0 w-40 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg overflow-hidden transition-colors"
+                >
+                  {#if child.depiction}
+                    <img 
+                      src={child.depiction} 
+                      alt={child.title || 'Place'} 
+                      class="w-full h-24 object-cover"
+                    />
+                  {:else}
+                    <div class="w-full h-24 bg-white/5 flex items-center justify-center">
+                      <span class="text-2xl">📍</span>
                     </div>
+                  {/if}
+                  <div class="p-2">
+                    <div class="text-xs font-medium truncate">{child.title || 'Untitled'}</div>
+                    <div class="text-xs text-white/40 uppercase">{child.type}</div>
                   </div>
-                  <button
-                    onclick={() => drawerMode = 'places'}
-                    class="text-white/60 hover:text-white"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                </button>
+              {/each}
+            </div>
+          </div>
+        {:else if drawerMode === 'preview' && selectedMarker}
+          <!-- Preview of selected marker -->
+          <div class="p-4 overflow-y-auto h-full">
+            <div class="max-w-2xl mx-auto">
+              {#if selectedMarker.depiction}
+                <img 
+                  src={selectedMarker.depiction} 
+                  alt={selectedMarker.title || 'Image'} 
+                  class="w-full h-48 object-cover rounded-lg mb-4"
+                />
+              {/if}
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <h3 class="text-lg font-semibold mb-1">{selectedMarker.title || 'Untitled'}</h3>
+                  <div class="text-xs text-white/40 uppercase">
+                    {selectedMarker.type}
+                    {#if selectedMarker.type === 'group' && selectedMarker.radius}
+                      • {selectedMarker.radius}m radius
+                    {/if}
+                  </div>
                 </div>
-                {#if selectedMarker.content}
-                  <p class="text-sm text-white/70 mb-4 line-clamp-4">{selectedMarker.content}</p>
-                {/if}
-                <div class="flex gap-2">
-                  <button
-                    onclick={() => navigateTo(selectedMarker!.slug || `/${selectedMarker!.id}`)}
-                    class="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-medium rounded"
-                  >
-                    View Full Details →
-                  </button>
-                  <button
-                    onclick={() => drawerMode = 'places'}
-                    class="px-4 py-2 border border-white/20 hover:bg-white/10 transition-colors text-sm rounded"
-                  >
-                    Back to Places
-                  </button>
-                </div>
+                <button
+                  onclick={() => drawerMode = 'places'}
+                  class="text-white/60 hover:text-white"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              {#if selectedMarker.content}
+                <p class="text-sm text-white/70 mb-4 line-clamp-4">{selectedMarker.content}</p>
+              {/if}
+              <div class="flex gap-2">
+                <button
+                  onclick={() => navigateTo(selectedMarker!.slug || `/${selectedMarker!.id}`)}
+                  class="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-medium rounded"
+                >
+                  View Full Details →
+                </button>
+                <button
+                  onclick={() => drawerMode = 'places'}
+                  class="px-4 py-2 border border-white/20 hover:bg-white/10 transition-colors text-sm rounded"
+                >
+                  Back to Places
+                </button>
               </div>
             </div>
-          {/if}
-        </div>
+          </div>
+        {/if}
       </div>
     </div>
+  </div>
 
-    {#if locatedChildren.length === 0 && mapReady}
-      <div class="mt-4 text-xs text-white/60">
-        No locations to display with current filters. Add posts with latitude and longitude coordinates.
-      </div>
-    {/if}
-  {/snippet}
-</EntityManagementControls>
+  {#if locatedChildren.length === 0 && mapReady}
+    <div class="flex-shrink-0 px-4 pb-4 text-xs text-white/60">
+      No locations to display with current filters. Add posts with latitude and longitude coordinates.
+    </div>
+  {/if}
+</div>
 
 <style>
   :global(.custom-marker-icon) {

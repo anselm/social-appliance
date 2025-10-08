@@ -12,10 +12,10 @@
   })
 </script>
 
-<div class="min-h-screen bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-black dark:text-white">
+<div class="min-h-screen bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-black dark:text-white flex flex-col">
   <Header {currentPath} {currentEntity} />
-  <div class="w-full max-w-container mx-auto px-4 py-8">
-    <main>
+  <div class="flex-1 w-full max-w-container mx-auto flex flex-col">
+    <main class="flex-1 flex flex-col">
       {#if children}
         {@render children()}
       {/if}
