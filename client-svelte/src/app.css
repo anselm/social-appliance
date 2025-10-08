@@ -4,7 +4,7 @@
 
 @layer base {
   html {
-    @apply bg-black text-white;
+    @apply bg-white dark:bg-black text-black dark:text-white;
   }
   
   body {
@@ -12,7 +12,7 @@
   }
   
   ::selection {
-    @apply bg-white text-black;
+    @apply bg-black dark:bg-white text-white dark:text-black;
   }
 }
 
@@ -40,15 +40,15 @@
 }
 
 .prose-content a {
-  @apply underline hover:text-white/80;
+  @apply underline hover:opacity-80;
 }
 
 .prose-content code {
-  @apply bg-white/10 px-1 py-0.5 rounded text-sm;
+  @apply bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded text-sm;
 }
 
 .prose-content pre {
-  @apply bg-white/5 p-4 rounded overflow-x-auto my-4;
+  @apply bg-black/5 dark:bg-white/5 p-4 rounded overflow-x-auto my-4;
 }
 
 .prose-content pre code {
@@ -56,7 +56,7 @@
 }
 
 .prose-content blockquote {
-  @apply border-l-4 border-white/20 pl-4 my-4 italic text-white/70;
+  @apply border-l-4 border-black/20 dark:border-white/20 pl-4 my-4 italic text-black/70 dark:text-white/70;
 }
 
 .prose-content ul,
@@ -77,7 +77,7 @@
 }
 
 .prose-content hr {
-  @apply border-white/20 my-8;
+  @apply border-black/20 dark:border-white/20 my-8;
 }
 
 .prose-content img {
@@ -90,11 +90,11 @@
 
 .prose-content th,
 .prose-content td {
-  @apply border border-white/20 px-3 py-2;
+  @apply border border-black/20 dark:border-white/20 px-3 py-2;
 }
 
 .prose-content th {
-  @apply bg-white/5 font-semibold;
+  @apply bg-black/5 dark:bg-white/5 font-semibold;
 }
 
 /* Line clamp for preview text */
