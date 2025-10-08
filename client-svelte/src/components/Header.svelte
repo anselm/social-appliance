@@ -69,13 +69,13 @@
 
 {#if showHeader}
   <!-- Main Header Bar -->
-  <header class="sticky top-0 z-50 bg-black/90 border-b border-white/20 backdrop-blur-sm">
+  <header class="sticky top-0 z-50 bg-black border-b border-white/10">
     <div class="max-w-7xl mx-auto px-4">
-      <div class="flex items-center justify-between h-16 gap-4">
+      <div class="flex items-center justify-between h-14 gap-4">
         <!-- Logo -->
-        <RouterLink to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0">
+        <RouterLink to="/" className="flex items-center gap-2 hover:text-white/80 transition-opacity flex-shrink-0">
           {#snippet children()}
-            <span class="font-bold text-lg hidden sm:inline">{title}</span>
+            <span class="font-medium text-sm">{title}</span>
           {/snippet}
         </RouterLink>
         
@@ -86,10 +86,10 @@
               type="text"
               bind:value={searchQuery}
               placeholder="Search..."
-              class="w-full bg-white/5 border border-white/20 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:border-white/40 focus:bg-white/10 transition-colors"
+              class="w-full bg-black border border-white/10 px-3 py-1.5 pl-9 text-xs focus:outline-none focus:border-white/20 transition-colors"
             />
             <svg 
-              class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40"
+              class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40"
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -100,14 +100,14 @@
         </form>
         
         <!-- Action Buttons -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1">
           <!-- Create Button -->
           <button
             onclick={handleCreate}
-            class="hidden sm:flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-full text-sm font-medium transition-colors"
+            class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 border border-white/10 hover:border-white/20 text-xs transition-colors"
             title="Create new content"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             <span>Create</span>
@@ -116,23 +116,23 @@
           <!-- Notifications Bell -->
           <button
             onclick={handleNotifications}
-            class="relative p-2 hover:bg-white/10 rounded-full transition-colors"
+            class="relative p-2 hover:bg-white/5 transition-colors"
             title="Notifications"
           >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
-            <!-- Notification Badge (example) -->
-            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            <!-- Notification Badge -->
+            <span class="absolute top-1 right-1 w-1.5 h-1.5 bg-white rounded-full"></span>
           </button>
           
           <!-- Hamburger Menu Button -->
           <button
             onclick={toggleMenu}
-            class="p-2 hover:bg-white/10 rounded-full transition-colors"
+            class="p-2 hover:bg-white/5 transition-colors"
             aria-label="Menu"
           >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {#if menuOpen}
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               {:else}
@@ -149,30 +149,30 @@
   {#if menuOpen}
     <!-- Backdrop -->
     <button
-      class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+      class="fixed inset-0 z-40 bg-black/80"
       onclick={closeMenu}
       aria-label="Close menu"
     ></button>
     
     <!-- Menu Panel -->
-    <nav class="fixed top-16 right-4 z-50 w-64 bg-black border border-white/20 rounded-lg shadow-xl overflow-hidden">
-      <div class="p-4 space-y-4">
+    <nav class="fixed top-14 right-4 z-50 w-56 bg-black border border-white/10">
+      <div class="p-3 space-y-3">
         <!-- User Info -->
         {#if $authStore}
-          <div class="border-b border-white/20 pb-4">
-            <div class="text-xs text-white/60 mb-1">Signed in as</div>
-            <div class="text-sm font-medium">{getDisplayName($authStore)}</div>
-            <div class="text-xs text-white/40 mt-1">
+          <div class="border-b border-white/10 pb-3">
+            <div class="text-xs text-white/40 mb-1">Signed in as</div>
+            <div class="text-xs font-medium">{getDisplayName($authStore)}</div>
+            <div class="text-xs text-white/30 mt-1">
               {$authStore.type === 'siwe' ? 'MetaMask' : 'Magic.link'}
             </div>
           </div>
         {/if}
         
         <!-- Navigation Links -->
-        <div class="space-y-2">
+        <div class="space-y-1">
           <RouterLink 
             to="/" 
-            className="block px-3 py-2 text-sm hover:bg-white/10 rounded transition-colors"
+            className="block px-2 py-1.5 text-xs hover:bg-white/5 transition-colors"
           >
             {#snippet children()}
               Home
@@ -181,7 +181,7 @@
           
           <RouterLink 
             to="/admin" 
-            className="block px-3 py-2 text-sm hover:bg-white/10 rounded transition-colors"
+            className="block px-2 py-1.5 text-xs hover:bg-white/5 transition-colors"
           >
             {#snippet children()}
               Admin
@@ -190,7 +190,7 @@
           
           <RouterLink 
             to="/testmap" 
-            className="block px-3 py-2 text-sm hover:bg-white/10 rounded transition-colors"
+            className="block px-2 py-1.5 text-xs hover:bg-white/5 transition-colors"
           >
             {#snippet children()}
               Test Map
@@ -198,19 +198,19 @@
           </RouterLink>
           
           <button 
-            class="block w-full text-left px-3 py-2 text-sm text-white/60 hover:bg-white/10 rounded transition-colors cursor-not-allowed"
+            class="block w-full text-left px-2 py-1.5 text-xs text-white/40 hover:bg-white/5 transition-colors cursor-not-allowed"
             disabled
           >
-            Settings (coming soon)
+            Settings
           </button>
         </div>
         
         <!-- Auth Actions -->
-        <div class="border-t border-white/20 pt-4">
+        <div class="border-t border-white/10 pt-3">
           {#if $authStore}
             <button 
               onclick={handleLogout}
-              class="w-full px-4 py-2 border border-white/20 hover:bg-white hover:text-black transition-colors text-sm rounded"
+              class="w-full px-3 py-1.5 border border-white/10 hover:bg-white/5 transition-colors text-xs"
             >
               Logout
             </button>
@@ -218,7 +218,7 @@
             {#if showLogin}
               <RouterLink 
                 to="/login" 
-                className="block w-full px-4 py-2 border border-white/20 hover:bg-white hover:text-black transition-colors text-sm text-center rounded"
+                className="block w-full px-3 py-1.5 border border-white/10 hover:bg-white/5 transition-colors text-xs text-center"
               >
                 {#snippet children()}
                   Login
