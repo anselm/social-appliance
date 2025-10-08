@@ -1,21 +1,14 @@
-// Client configuration file
-// This file can be modified after build to customize the application
 
 window.APP_CONFIG = {
-  // Application title and branding
-  appTitle: '🐳',
   
   // Header configuration
   header: {
+
+    // title if any
+    title: 'Locative', 
+
     // Whether to show the header
     enabled: true,
-    
-    // Header links (static only for post-build customization)
-    links: [
-      { label: 'Home', href: '/' },
-      { label: 'Admin', href: '/admin' },
-      { label: 'Login', href: '/login' }
-    ],
     
     // Custom header component (as HTML string)
     customHtml: null,
@@ -73,20 +66,4 @@ window.APP_CONFIG = {
     basePath: ''
   },
   
-  // Custom methods can be added here
-  methods: {
-
-    // Example: Custom initialization
-    onInit: () => {
-      console.log('App initialized with custom config');
-    },
-    
-    // Example: Custom header renderer
-    renderHeader: (config) => {
-      if (config.header.customHtml) {
-        return config.header.customHtml;
-      }
-      return null;
-    }
-  }
 };

@@ -75,9 +75,6 @@
         <!-- Logo -->
         <RouterLink to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0">
           {#snippet children()}
-            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center text-white font-bold">
-              {title.charAt(0)}
-            </div>
             <span class="font-bold text-lg hidden sm:inline">{title}</span>
           {/snippet}
         </RouterLink>
