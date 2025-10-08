@@ -66,4 +66,14 @@ window.APP_CONFIG = {
     basePath: ''
   },
   
+  // Map configuration
+  map: {
+    // Map provider: 'mapbox' or 'leaflet'
+    provider: 'mapbox',
+    
+    // Mapbox access token (required if provider is 'mapbox')
+    // This will be replaced at build time with the environment variable
+    mapboxAccessToken: ''
+  }
+  
 };
