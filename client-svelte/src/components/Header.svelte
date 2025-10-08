@@ -6,7 +6,6 @@
   
   let { currentPath = '/', currentEntity = null }: { currentPath?: string, currentEntity?: any } = $props()
   
-  let menuOpen = $state(false)
   let showLoginModal = $state(false)
   let searchQuery = $state('')
   
@@ -28,28 +27,6 @@
       return auth.email
     }
     return 'User'
-  }
-  
-  async function handleLogout() {
-    if ($authStore?.type === 'magic') {
-      try {
-        const { getMagic } = await import('../lib/magic')
-        const magic = getMagic()
-        await magic.user.logout()
-      } catch (e) {
-        console.error('Magic logout error:', e)
-      }
-    }
-    authStore.logout()
-    menuOpen = false
-  }
-  
-  function toggleMenu() {
-    menuOpen = !menuOpen
-  }
-  
-  function closeMenu() {
-    menuOpen = false
   }
   
   function handleSearch(e: Event) {
@@ -136,20 +113,15 @@
           </button>
           
           {#if isLoggedIn}
-            <!-- Hamburger Menu Button (when logged in) -->
-            <button
-              onclick={toggleMenu}
-              class="p-2 hover:bg-white/5 transition-colors"
-              aria-label="Menu"
+            <!-- Profile Link (when logged in) -->
+            <RouterLink 
+              to="/profile" 
+              className="px-3 py-1.5 border border-white/20 hover:bg-white hover:text-black transition-colors text-xs uppercase tracking-wider"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {#if menuOpen}
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                {:else}
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                {/if}
-              </svg>
-            </button>
+              {#snippet children()}
+                {getDisplayName($authStore)}
+              {/snippet}
+            </RouterLink>
           {:else}
             <!-- Login Button (when logged out) -->
             <button
@@ -163,54 +135,6 @@
       </div>
     </div>
   </header>
-
-  <!-- Dropdown Menu (only when logged in) -->
-  {#if menuOpen && isLoggedIn}
-    <!-- Backdrop -->
-    <button
-      class="fixed inset-0 z-40 bg-black/80"
-      onclick={closeMenu}
-      aria-label="Close menu"
-    ></button>
-    
-    <!-- Menu Panel -->
-    <nav class="fixed top-14 right-4 z-50 w-56 bg-black border border-white/10">
-      <div class="p-3 space-y-3">
-        <!-- User Info -->
-        {#if $authStore}
-          <div class="border-b border-white/10 pb-3">
-            <div class="text-xs text-white/40 mb-1">Signed in as</div>
-            <div class="text-xs font-medium">{getDisplayName($authStore)}</div>
-            <div class="text-xs text-white/30 mt-1">
-              {$authStore.type === 'siwe' ? 'MetaMask' : 'Magic.link'}
-            </div>
-          </div>
-        {/if}
-        
-        <!-- Navigation Links -->
-        <button class="w-full text-left" onclick={closeMenu}>
-          <RouterLink 
-            to="/profile" 
-            className="block px-2 py-1.5 text-xs hover:bg-white/5 transition-colors"
-          >
-            {#snippet children()}
-              Profile
-            {/snippet}
-          </RouterLink>
-        </button>
-        
-        <!-- Auth Actions -->
-        <div class="border-t border-white/10 pt-3">
-          <button 
-            onclick={handleLogout}
-            class="w-full px-3 py-1.5 border border-white/10 hover:bg-white/5 transition-colors text-xs"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    </nav>
-  {/if}
 {/if}
 
 <!-- Modals -->
