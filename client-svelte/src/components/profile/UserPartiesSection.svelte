@@ -11,6 +11,7 @@
   let showCreateForm = $state(false)
   let editingParty = $state<Entity | null>(null)
   let creating = $state(false)
+  let entityFormRef: any = $state(null)
   
   $effect(() => {
     loadParties()
@@ -84,12 +85,33 @@
         })
       }
       
+      // Clear form and reload
+      if (entityFormRef) {
+        entityFormRef.clearSubmitting()
+      }
       showCreateForm = false
       editingParty = null
       await loadParties()
     } catch (error: any) {
       console.error('Failed to save party:', error)
-      alert('Failed to save: ' + (error.message || error))
+      
+      // Extract error details
+      let errorMessage = 'Failed to save'
+      let validationErrors: string[] = []
+      
+      if (error.validationErrors && Array.isArray(error.validationErrors)) {
+        validationErrors = error.validationErrors
+        errorMessage = 'Validation failed'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      // Pass error to form
+      if (entityFormRef) {
+        entityFormRef.setError(errorMessage, validationErrors)
+      } else {
+        alert(`${errorMessage}${validationErrors.length > 0 ? ':\n' + validationErrors.join('\n') : ''}`)
+      }
     } finally {
       creating = false
     }
@@ -113,6 +135,7 @@
     <div class="text-xs text-white/60">Loading...</div>
   {:else if showCreateForm}
     <EntityForm
+      bind:this={entityFormRef}
       entity={editingParty}
       parentSlug="/"
       mode={editingParty ? 'edit' : 'create'}

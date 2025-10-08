@@ -18,6 +18,10 @@ export class Validator {
         errors.push('Slug cannot contain consecutive slashes');
       } else if (data.slug.length > 200) {
         errors.push('Slug cannot exceed 200 characters');
+      } else if (data.slug.includes(' ')) {
+        errors.push('Slug cannot contain spaces');
+      } else if (!/^\/[a-zA-Z0-9\-_\/]*$/.test(data.slug)) {
+        errors.push('Slug can only contain letters, numbers, hyphens, underscores, and forward slashes');
       }
     }
 
@@ -65,21 +69,21 @@ export class Validator {
     }
 
     // Location validation
-    if (data.latitude !== undefined) {
+    if (data.latitude !== undefined && data.latitude !== null) {
       const lat = parseFloat(data.latitude);
       if (isNaN(lat) || lat < -90 || lat > 90) {
         errors.push('Latitude must be between -90 and 90');
       }
     }
 
-    if (data.longitude !== undefined) {
+    if (data.longitude !== undefined && data.longitude !== null) {
       const lon = parseFloat(data.longitude);
       if (isNaN(lon) || lon < -180 || lon > 180) {
         errors.push('Longitude must be between -180 and 180');
       }
     }
 
-    if (data.radius !== undefined) {
+    if (data.radius !== undefined && data.radius !== null) {
       const radius = parseFloat(data.radius);
       if (isNaN(radius) || radius < 0) {
         errors.push('Radius must be a positive number');
@@ -87,11 +91,11 @@ export class Validator {
     }
 
     // Date validation
-    if (data.begins !== undefined && !this.isValidDate(data.begins)) {
+    if (data.begins !== undefined && data.begins !== null && !this.isValidDate(data.begins)) {
       errors.push('Invalid begins date');
     }
 
-    if (data.ends !== undefined && !this.isValidDate(data.ends)) {
+    if (data.ends !== undefined && data.ends !== null && !this.isValidDate(data.ends)) {
       errors.push('Invalid ends date');
     }
 

@@ -23,19 +23,35 @@
     longitude: entity?.longitude || null
   })
   
+  let submitting = $state(false)
+  let errorMessage = $state<string | null>(null)
+  let validationErrors = $state<string[]>([])
+  
   const entityTypes = ['post', 'group', 'party', 'agent', 'place', 'thing']
   const viewTypes = ['', 'default', 'grid', 'list', 'cards', 'map']
   
   function handleSubmit() {
+    // Clear previous errors
+    errorMessage = null
+    validationErrors = []
+    
+    // Client-side validation
     if (!formData.title.trim()) {
-      alert('Title is required')
+      errorMessage = 'Title is required'
       return
     }
     
     if (!formData.slug.trim()) {
-      alert('Slug is required')
+      errorMessage = 'Slug is required'
       return
     }
+    
+    if (!formData.slug.startsWith('/')) {
+      errorMessage = 'Slug must start with /'
+      return
+    }
+    
+    submitting = true
     
     dispatch('submit', {
       ...formData,
@@ -50,12 +66,39 @@
   function regenerateSlug() {
     formData.slug = buildEntitySlug(parentSlug)
   }
+  
+  // Expose method to set errors from parent component
+  export function setError(message: string, errors: string[] = []) {
+    submitting = false
+    errorMessage = message
+    validationErrors = errors
+  }
+  
+  // Expose method to clear submitting state on success
+  export function clearSubmitting() {
+    submitting = false
+  }
 </script>
 
 <div class="bg-white/5 border border-white/20 rounded-lg p-6 space-y-4">
   <h2 class="text-lg font-semibold mb-4">
     {mode === 'create' ? 'New Entity' : 'Edit Entity'}
   </h2>
+  
+  {#if errorMessage || validationErrors.length > 0}
+    <div class="bg-red-500/10 border border-red-500/30 rounded p-4">
+      {#if errorMessage}
+        <p class="text-sm text-red-400 font-medium mb-2">{errorMessage}</p>
+      {/if}
+      {#if validationErrors.length > 0}
+        <ul class="text-xs text-red-400 space-y-1 list-disc list-inside">
+          {#each validationErrors as error}
+            <li>{error}</li>
+          {/each}
+        </ul>
+      {/if}
+    </div>
+  {/if}
   
   <div>
     <label for="type" class="block text-xs text-white/60 mb-1">
@@ -65,7 +108,7 @@
       id="type"
       bind:value={formData.type}
       class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
-      disabled={mode === 'edit'}
+      disabled={mode === 'edit' || submitting}
     >
       {#each entityTypes as type}
         <option value={type}>{type}</option>
@@ -86,6 +129,7 @@
       bind:value={formData.title}
       class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
       placeholder="Enter title"
+      disabled={submitting}
     />
   </div>
   
@@ -96,6 +140,7 @@
           type="button"
           onclick={regenerateSlug}
           class="text-blue-400 hover:text-blue-300 ml-2"
+          disabled={submitting}
         >
           (regenerate)
         </button>
@@ -107,6 +152,7 @@
       bind:value={formData.slug}
       class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white font-mono"
       placeholder="/path/to/entity"
+      disabled={submitting}
     />
     <p class="text-xs text-white/40 mt-1">
       Must be unique. Format: /path/to/entity
@@ -123,6 +169,7 @@
       rows="6"
       class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
       placeholder="Enter content (supports Markdown)"
+      disabled={submitting}
     ></textarea>
   </div>
   
@@ -135,6 +182,7 @@
         id="view"
         bind:value={formData.view}
         class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
+        disabled={submitting}
       >
         {#each viewTypes as view}
           <option value={view}>{view || '(default)'}</option>
@@ -156,6 +204,7 @@
       bind:value={formData.depiction}
       class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
       placeholder="https://example.com/image.jpg"
+      disabled={submitting}
     />
   </div>
   
@@ -172,6 +221,7 @@
           bind:value={formData.latitude}
           class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
           placeholder="45.5152"
+          disabled={submitting}
         />
       </div>
       <div>
@@ -185,6 +235,7 @@
           bind:value={formData.longitude}
           class="w-full bg-black border border-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white"
           placeholder="-122.6784"
+          disabled={submitting}
         />
       </div>
     </div>
@@ -197,14 +248,20 @@
     <button
       type="button"
       onclick={handleSubmit}
-      class="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-medium"
+      class="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+      disabled={submitting}
     >
-      {mode === 'create' ? 'Create Entity' : 'Save Changes'}
+      {#if submitting}
+        {mode === 'create' ? 'Creating...' : 'Saving...'}
+      {:else}
+        {mode === 'create' ? 'Create Entity' : 'Save Changes'}
+      {/if}
     </button>
     <button
       type="button"
       onclick={handleCancel}
-      class="px-4 py-2 border border-white/20 hover:bg-white/10 transition-colors text-sm"
+      class="px-4 py-2 border border-white/20 hover:bg-white/10 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      disabled={submitting}
     >
       Cancel
     </button>
