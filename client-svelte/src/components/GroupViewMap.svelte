@@ -8,12 +8,14 @@
   let { entity }: { entity: Entity } = $props()
 
   let mapContainer = $state<HTMLDivElement | undefined>()
+  let mapParentContainer = $state<HTMLDivElement | undefined>()
   let map: any = null
   let mapReady = $state(false)
   let initError = $state<string | null>(null)
   let hasInitialized = $state(false)
   let children = $state<Entity[]>([])
   let loading = $state(true)
+  let mapHeight = $state(400)
 
   // Filter state
   let activeFilters = $state<Set<string>>(new Set(['post', 'party', 'group', 'place', 'event']))
@@ -35,6 +37,38 @@
   // Track markers and circles for updates
   let markers: any[] = []
   let circles: any[] = []
+
+  // Calculate map height based on parent container
+  $effect(() => {
+    if (mapParentContainer) {
+      const updateHeight = () => {
+        const rect = mapParentContainer!.getBoundingClientRect()
+        mapHeight = rect.height
+        console.log('Map parent height:', rect.height)
+        
+        // Force map resize if it exists
+        if (map && mapReady) {
+          if (mapProvider === 'mapbox') {
+            map.resize()
+          } else {
+            // @ts-ignore
+            if (typeof window.L !== 'undefined') {
+              map.invalidateSize()
+            }
+          }
+        }
+      }
+      
+      updateHeight()
+      
+      const resizeObserver = new ResizeObserver(updateHeight)
+      resizeObserver.observe(mapParentContainer)
+      
+      return () => {
+        resizeObserver.disconnect()
+      }
+    }
+  })
 
   // Load children when component mounts
   $effect(() => {
@@ -63,7 +97,7 @@
   }
 
   $effect(() => {
-    if (!mapContainer || hasInitialized) {
+    if (!mapContainer || hasInitialized || mapHeight === 0) {
       return
     }
 
@@ -423,6 +457,8 @@
       const centerLat = entity.latitude || locatedChildren[0]?.latitude || 45.5152
       const centerLng = entity.longitude || locatedChildren[0]?.longitude || -122.6784
 
+      console.log('Initializing Mapbox with container height:', mapHeight)
+
       // Create map with dark style and angled camera
       map = new mapboxgl.Map({
         container: mapContainer!,
@@ -544,6 +580,8 @@
       const centerLat = entity.latitude || locatedChildren[0]?.latitude || 45.5152
       const centerLng = entity.longitude || locatedChildren[0]?.longitude || -122.6784
 
+      console.log('Initializing Leaflet with container height:', mapHeight)
+
       // Create map
       map = L.map(mapContainer!).setView([centerLat, centerLng], 13)
 
@@ -587,8 +625,8 @@
   }
 </script>
 
-<div class="absolute inset-0 flex flex-col">
-  <div class="flex-shrink-0 px-4 pt-8 pb-4">
+<div class="absolute inset-0 flex flex-col" id="group-view-map-root">
+  <div class="flex-shrink-0 px-4 pt-8 pb-4" id="group-view-map-header">
     <EntityHeader {entity} showContent={false} showStats={true} />
 
     {#if initError}
@@ -598,17 +636,19 @@
     {/if}
   </div>
 
-  <div class="flex-1 min-h-0 relative px-4 pb-4">
+  <div class="flex-1 min-h-0 relative px-4 pb-4" bind:this={mapParentContainer} id="group-view-map-parent">
     <div
       bind:this={mapContainer} 
-      class="absolute inset-0 mx-4 mb-4 rounded-lg border border-white/20 overflow-hidden"
-      style="background: #0a0a0a;"
+      id="group-view-map-container"
+      class="rounded-lg border border-white/20 overflow-hidden"
+      style="background: #0a0a0a; width: 100%; height: {mapHeight}px; position: relative;"
     ></div>
 
     <!-- Pull-up Drawer -->
     <div 
       class="absolute bottom-4 left-4 right-4 bg-black/95 backdrop-blur-sm border-t border-white/20 transition-all duration-300 ease-out rounded-t-lg"
       style={drawerMode === 'minimized' ? 'height: 48px;' : drawerMode === 'places' ? 'height: 200px;' : 'height: 400px;'}
+      id="group-view-map-drawer"
     >
       <!-- Drawer Bar -->
       <button
