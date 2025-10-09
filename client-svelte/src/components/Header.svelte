@@ -148,7 +148,7 @@
     >
       Login
     </button>
-  {/if}
+  {/if}shoul
 {/snippet}
 
 {#snippet actionButtons()}
@@ -161,13 +161,11 @@
 {/snippet}
 
 {#if showHeader}
-  <header class="sticky top-0 z-50 bg-white dark:bg-black border-b border-black/10 dark:border-white/10">
-    <div class="w-full max-w-container mx-auto px-4">
-      <div class="flex items-center justify-between h-14 gap-4">
-        {@render logo()}
-        {@render searchBar()}
-        {@render actionButtons()}
-      </div>
+  <header class="shrink-0 min-h-0 z-50 h-14 bg-white dark:bg-black border-b border-black/10 dark:border-white/10">
+    <div class="w-full max-w-container mx-auto h-full px-4 flex items-center justify-between gap-4">
+      {@render logo()}
+      {@render searchBar()}
+      {@render actionButtons()}
     </div>
   </header>
 {/if}

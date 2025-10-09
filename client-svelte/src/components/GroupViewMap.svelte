@@ -434,6 +434,9 @@
         antialias: true
       })
 
+      // resize
+      map.resize()
+
       // Add navigation controls
       map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
@@ -587,7 +590,7 @@
   }
 </script>
 
-<div class="flex flex-col h-screen">
+<div class="flex flex-col flex-1 min-h-0">
   <div class="flex-shrink-0 px-4 pt-8">
     <EntityHeader {entity} showContent={false} showStats={true} />
 
@@ -598,7 +601,7 @@
     {/if}
   </div>
 
-  <div class="flex-1 relative min-h-0 px-4 pb-4">
+  <div class="flex-1 relative min-h-[200px] px-4 pb-4">
     <div 
       bind:this={mapContainer} 
       class="w-full h-full rounded-lg border border-white/20 overflow-hidden"
