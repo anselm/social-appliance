@@ -587,27 +587,27 @@
   }
 </script>
 
-<div class="flex flex-col flex-1 min-h-0">
-  <div class="flex-shrink-0 px-4 pt-8">
+<div class="absolute inset-0 flex flex-col">
+  <div class="flex-shrink-0 px-4 pt-8 pb-4">
     <EntityHeader {entity} showContent={false} showStats={true} />
 
     {#if initError}
-      <div class="mb-4 text-xs text-red-400">
+      <div class="mt-4 text-xs text-red-400">
         Map initialization error: {initError}
       </div>
     {/if}
   </div>
 
-  <div class="flex-1 min-h-0 relative px-4 pb-4 flex flex-col">
+  <div class="flex-1 min-h-0 relative px-4 pb-4">
     <div
       bind:this={mapContainer} 
-      class="flex-1 min-h-[300px] rounded-lg border border-white/20 overflow-hidden"
+      class="absolute inset-0 mx-4 mb-4 rounded-lg border border-white/20 overflow-hidden"
       style="background: #0a0a0a;"
     ></div>
 
     <!-- Pull-up Drawer -->
     <div 
-      class="absolute bottom-0 left-4 right-4 bg-black/95 backdrop-blur-sm border-t border-white/20 transition-all duration-300 ease-out rounded-t-lg"
+      class="absolute bottom-4 left-4 right-4 bg-black/95 backdrop-blur-sm border-t border-white/20 transition-all duration-300 ease-out rounded-t-lg"
       style={drawerMode === 'minimized' ? 'height: 48px;' : drawerMode === 'places' ? 'height: 200px;' : 'height: 400px;'}
     >
       <!-- Drawer Bar -->
