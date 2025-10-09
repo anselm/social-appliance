@@ -14,7 +14,14 @@
     "server:prod": "cd server && npm start",
     "setup": "npm run setup:server && npm run setup:client",
     "setup:server": "cd server && npm install",
-    "setup:client": "cd client-svelte && npm install"
+    "setup:client": "cd client-svelte && npm install",
+    "docker:build": "cd docker && docker-compose build",
+    "docker:up": "cd docker && docker-compose up -d",
+    "docker:down": "cd docker && docker-compose down",
+    "docker:logs": "cd docker && docker-compose logs -f",
+    "docker:deploy": "chmod +x scripts/deploy-docker-compose.sh && ./scripts/deploy-docker-compose.sh",
+    "gcloud:run": "chmod +x scripts/deploy-gcloud-run.sh && ./scripts/deploy-gcloud-run.sh",
+    "deploy": "npm run docker:deploy"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

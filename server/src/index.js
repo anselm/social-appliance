@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
+import MongoStore from 'connect-mongo';
 import dotenv from 'dotenv';
 import { connectDB } from './db/connection.js';
 import apiRoutes from './routes/api.js';
@@ -17,7 +18,11 @@ const rootDir = join(__dirname, '../../');
 dotenv.config({ path: join(rootDir, '.env') });
 
 const app = express();
-const PORT = process.env.SERVERPORT || 8001;
+const PORT = process.env.PORT || 3000;
+const SERVERPORT = process.env.SERVERPORT || 8001;
+
+// Determine which port to use
+const serverPort = process.env.NODE_ENV === 'production' ? PORT : SERVERPORT;
 
 // Middleware
 app.use(cors({
@@ -26,8 +31,8 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Session middleware
-app.use(session({
+// Session configuration
+const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
@@ -37,17 +42,35 @@ app.use(session({
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
   }
-}));
+};
+
+// Use MongoDB session store if MongoDB URI is available
+if (process.env.MONGODB_URI) {
+  sessionConfig.store = MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    dbName: process.env.DB_NAME || 'social_appliance',
+    touchAfter: 24 * 3600 // lazy session update
+  });
+  Logger.info('Using MongoDB session store');
+} else {
+  Logger.warn('Using memory session store (not recommended for production)');
+}
+
+app.use(session(sessionConfig));
+
+// Health check endpoints (before other routes)
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // API Routes
 app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/test', testRoutes);
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
 
 // In production, serve static files from the client build directory
 if (process.env.NODE_ENV === 'production') {
@@ -108,10 +131,15 @@ async function start() {
       await seedLoader.loadSeedData(seedDataPath);
     }
     
-    app.listen(PORT, () => {
-      Logger.success(`Server running on http://localhost:${PORT}`);
+    app.listen(serverPort, () => {
+      Logger.success(`Server running on http://localhost:${serverPort}`);
       Logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
       Logger.info(`CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:8000'}`);
+      Logger.info(`Health check: http://localhost:${serverPort}/healthz`);
+      
+      if (process.env.NODE_ENV === 'production') {
+        Logger.info('Serving static client files');
+      }
       
       // Log authentication status
       if (process.env.MAGIC_SECRET_KEY) {

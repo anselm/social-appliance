@@ -1,0 +1,69 @@
+# Dependencies
+node_modules
+*/node_modules
+
+# Build outputs
+dist
+*/dist
+build
+*/build
+client-svelte/dist
+
+# Development files
+.env
+.env.*
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+docker/*.yml
+
+# Documentation
+README.md
+docs
+*.md
+
+# Tests
+*.test.js
+*.spec.js
+*.test.ts
+*.spec.ts
+test
+tests
+__tests__
+coverage
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# Misc
+.nyc_output
+.cache
+.parcel-cache
+assets
+scripts/*.sh
