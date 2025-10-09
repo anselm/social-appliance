@@ -20,6 +20,12 @@ A decentralized social platform built with Node.js, MongoDB, and Svelte, featuri
   - Viem for Ethereum interactions
   - TailwindCSS for styling
 
+- **Progressive Web App (PWA):**
+  - Installable on mobile and desktop
+  - Offline-capable
+  - Native app-like experience
+  - No overscroll or pull-to-refresh
+
 ## Quick Start
 
 ### Prerequisites
@@ -29,6 +35,7 @@ A decentralized social platform built with Node.js, MongoDB, and Svelte, featuri
 - MetaMask browser extension (for SIWE authentication)
 - Magic.link account (for email authentication)
 - Infura account (recommended for ENS name resolution)
+- ImageMagick (optional, for generating PWA icons)
 
 ### Installation
 
@@ -59,7 +66,7 @@ cp .env.example .env
 ```
 
 4. Get your Magic.link keys (optional, for email authentication):
-   - Sign up at https://magic.link
+   - Sign up at https://magic.Link
    - Create a new app
    - Copy the publishable key to `client-svelte/.env` as `VITE_MAGIC_PUBLISHABLE_KEY`
    - Copy the secret key to root `.env` as `MAGIC_SECRET_KEY`
@@ -72,6 +79,21 @@ cp .env.example .env
      ```
      VITE_ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/YOUR_PROJECT_ID
      ```
+
+6. Get your Mapbox access token (for map features):
+   - Sign up at https://www.mapbox.com/
+   - Create an access token
+   - Add to `client-svelte/.env` as:
+     ```
+     VITE_MAPBOX_ACCESS_TOKEN=your_token_here
+     ```
+
+7. Generate PWA icons (optional):
+```bash
+# Create an assets/logo.png file first (512x512 recommended)
+chmod +x scripts/generate-pwa-icons.sh
+./scripts/generate-pwa-icons.sh
+```
 
 ### Development
 
@@ -98,6 +120,27 @@ The server will:
 - Serve the API on `/api/*` routes
 - Serve the built Svelte app for all other routes
 - Automatically seed the database if `LOAD_SEED_DATA` is not set to `false`
+
+## PWA Icons
+
+To generate PWA icons from your logo:
+
+1. Place your logo at `assets/logo.png` (512x512 or larger recommended)
+2. Make the script executable: `chmod +x scripts/generate-pwa-icons.sh`
+3. Run the script: `./scripts/generate-pwa-icons.sh`
+4. Icons will be generated in `client-svelte/public/`
+
+The script generates:
+- Multiple icon sizes (72x72 to 512x512) for various devices
+- Apple Touch Icon (180x180) for iOS devices
+- Favicons (16x16, 32x32, .ico) for browsers
+- Maskable icon (512x512) for Android adaptive icons
+
+**Requirements:**
+- ImageMagick must be installed
+  - macOS: `brew install imagemagick`
+  - Ubuntu/Debian: `sudo apt-get install imagemagick`
+  - Fedora: `sudo dnf install imagemagick`
 
 ## Project Structure
 
@@ -131,6 +174,9 @@ social-appliance/
 │   └── package.json
 ├── client-console/        # Console-based client
 ├── seed-data/            # Sample data for development
+├── scripts/              # Utility scripts
+│   └── generate-pwa-icons.sh
+├── assets/               # Source assets (logo, etc.)
 └── package.json          # Root package.json
 ```
 
@@ -195,6 +241,12 @@ Magic.link provides passwordless authentication via email.
 - `PUT /api/entities/:id` - Update entity (requires auth)
 - `DELETE /api/entities/:id` - Delete entity (requires auth)
 
+### Relationships
+
+- `GET /api/relationships` - Query relationships
+- `POST /api/relationships` - Create relationship (requires auth)
+- `DELETE /api/relationships/:id` - Delete relationship (requires auth)
+
 ## Configuration
 
 ### Server Configuration (.env)
@@ -227,6 +279,9 @@ LOAD_SEED_DATA=true
 # Magic.link
 VITE_MAGIC_PUBLISHABLE_KEY=pk_live_your_key
 
+# Mapbox
+VITE_MAPBOX_ACCESS_TOKEN=your_token
+
 # API
 VITE_API_BASE_URL=
 
@@ -249,6 +304,12 @@ Deploy just the client as a static site:
 2. Edit `client-svelte/dist/config.js` to set `serverless: true`
 3. The app will use entities from `static.info.js` and cached data
 4. Deploy the `client-svelte/dist` folder to any static host
+
+### 3. PWA Installation
+Users can install the app on their devices:
+- **iOS**: Tap Share → Add to Home Screen
+- **Android**: Tap menu → Install app / Add to Home Screen
+- **Desktop**: Look for install icon in address bar
 
 ## Console Client
 
@@ -276,6 +337,7 @@ Console commands:
 - **Use HTTPS in production**: Set `secure: true` for cookies
 - **Keep Magic.link secret key secure**: Never commit to git
 - **Keep Infura API key secure**: Never commit to git
+- **Keep Mapbox token secure**: Never commit to git
 - **Use environment variables**: For all secrets and configuration
 - **Enable CORS properly**: Set `CORS_ORIGIN` to your production domain
 - **Nonce expiration**: Nonces expire after 5 minutes to prevent replay attacks
@@ -289,6 +351,7 @@ Console commands:
 - Test both authentication methods to ensure proper setup
 - Monitor MongoDB for session and entity data
 - Check browser console for ENS lookup status and results
+- Test PWA features in Chrome DevTools → Application → Manifest
 
 ## Troubleshooting
 
@@ -311,6 +374,12 @@ Console commands:
 - Without an API key, addresses will be displayed in truncated format (0x1234...5678)
 - The app will fall back to public RPC endpoints, but these may be rate-limited
 
+### Mapbox not loading
+- Verify `VITE_MAPBOX_ACCESS_TOKEN` is set correctly
+- Check browser console for Mapbox errors
+- Ensure you have a valid Mapbox account and token
+- Check that the token has the correct scopes
+
 ### CORS errors
 - Verify `CORS_ORIGIN` matches your client URL
 - Ensure `credentials: true` is set in fetch requests
@@ -320,6 +389,13 @@ Console commands:
 - Verify `SESSION_SECRET` is set
 - Check cookie settings in browser
 - Ensure `credentials: 'include'` in fetch requests
+
+### PWA not installing
+- Ensure HTTPS is enabled (required for PWA)
+- Check manifest.json is accessible
+- Verify all icon files exist
+- Check browser console for PWA errors
+- Test in Chrome DevTools → Application → Manifest
 
 ## External Services
 
@@ -341,6 +417,12 @@ Console commands:
 - **Website**: https://magic.Link
 - **Free Tier**: Yes, 1,000 MAUs
 - **Setup**: Sign up, create app, copy publishable and secret keys
+
+### Mapbox
+- **Purpose**: Interactive maps with 3D buildings and satellite imagery
+- **Website**: https://www.mapbox.com/
+- **Free Tier**: Yes, 50,000 map loads/month
+- **Setup**: Sign up, create access token
 
 ## License
 
