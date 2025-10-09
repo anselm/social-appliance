@@ -58,108 +58,120 @@
   }
 </script>
 
+{#snippet logo()}
+  <RouterLink to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0">
+    {#snippet children()}
+      <span class="font-medium text-sm">{title}</span>
+    {/snippet}
+  </RouterLink>
+{/snippet}
+
+{#snippet searchBar()}
+  <form onsubmit={handleSearch} class="flex-1 max-w-md">
+    <div class="relative">
+      <input
+        type="text"
+        bind:value={searchQuery}
+        placeholder="Search..."
+        class="w-full bg-white dark:bg-black border border-black/10 dark:border-white/10 px-3 py-1.5 pl-9 text-xs focus:outline-none focus:border-black/20 dark:focus:border-white/20 transition-colors"
+      />
+      <svg 
+        class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-black/40 dark:text-white/40"
+        fill="none" 
+        stroke="currentColor" 
+        viewBox="0 0 24 24"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </div>
+  </form>
+{/snippet}
+
+{#snippet themeToggleButton()}
+  <button
+    onclick={handleThemeToggle}
+    class="p-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+    title="Toggle theme"
+  >
+    {#if $themeStore === 'dark'}
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    {:else}
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+      </svg>
+    {/if}
+  </button>
+{/snippet}
+
+{#snippet createButton()}
+  <button
+    onclick={handleCreate}
+    class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 border border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 text-xs transition-colors"
+    title="Create new content"
+  >
+    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+    <span>Create</span>
+  </button>
+{/snippet}
+
+{#snippet notificationsButton()}
+  <button
+    onclick={handleNotifications}
+    class="relative p-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+    title="Notifications"
+  >
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+    </svg>
+    <span class="absolute top-1 right-1 w-1.5 h-1.5 bg-white dark:bg-white rounded-full"></span>
+  </button>
+{/snippet}
+
+{#snippet userActions()}
+  {#if isLoggedIn}
+    <RouterLink 
+      to="/profile" 
+      className="px-3 py-1.5 border border-black/20 dark:border-white/20 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors text-xs uppercase tracking-wider"
+    >
+      {#snippet children()}
+        {getDisplayName($authStore)}
+      {/snippet}
+    </RouterLink>
+  {:else}
+    <button
+      onclick={handleLoginClick}
+      class="px-3 py-1.5 border border-black/20 dark:border-white/20 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors text-xs uppercase tracking-wider"
+    >
+      Login
+    </button>
+  {/if}
+{/snippet}
+
+{#snippet actionButtons()}
+  <div class="flex items-center gap-1">
+    {@render themeToggleButton()}
+    {@render createButton()}
+    {@render notificationsButton()}
+    {@render userActions()}
+  </div>
+{/snippet}
+
 {#if showHeader}
-  <!-- Main Header Bar -->
   <header class="sticky top-0 z-50 bg-white dark:bg-black border-b border-black/10 dark:border-white/10">
     <div class="w-full max-w-container mx-auto px-4">
       <div class="flex items-center justify-between h-14 gap-4">
-        <!-- Logo -->
-        <RouterLink to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0">
-          {#snippet children()}
-            <span class="font-medium text-sm">{title}</span>
-          {/snippet}
-        </RouterLink>
-        
-        <!-- Search Bar -->
-        <form onsubmit={handleSearch} class="flex-1 max-w-md">
-          <div class="relative">
-            <input
-              type="text"
-              bind:value={searchQuery}
-              placeholder="Search..."
-              class="w-full bg-white dark:bg-black border border-black/10 dark:border-white/10 px-3 py-1.5 pl-9 text-xs focus:outline-none focus:border-black/20 dark:focus:border-white/20 transition-colors"
-            />
-            <svg 
-              class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-black/40 dark:text-white/40"
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-        </form>
-        
-        <!-- Action Buttons -->
-        <div class="flex items-center gap-1">
-          <!-- Theme Toggle -->
-          <button
-            onclick={handleThemeToggle}
-            class="p-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-            title="Toggle theme"
-          >
-            {#if $themeStore === 'dark'}
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            {:else}
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            {/if}
-          </button>
-          
-          <!-- Create Button -->
-          <button
-            onclick={handleCreate}
-            class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 border border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 text-xs transition-colors"
-            title="Create new content"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Create</span>
-          </button>
-          
-          <!-- Notifications Bell -->
-          <button
-            onclick={handleNotifications}
-            class="relative p-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-            title="Notifications"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <!-- Notification Badge -->
-            <span class="absolute top-1 right-1 w-1.5 h-1.5 bg-white dark:bg-white rounded-full"></span>
-          </button>
-          
-          {#if isLoggedIn}
-            <!-- Profile Link (when logged in) -->
-            <RouterLink 
-              to="/profile" 
-              className="px-3 py-1.5 border border-black/20 dark:border-white/20 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors text-xs uppercase tracking-wider"
-            >
-              {#snippet children()}
-                {getDisplayName($authStore)}
-              {/snippet}
-            </RouterLink>
-          {:else}
-            <!-- Login Button (when logged out) -->
-            <button
-              onclick={handleLoginClick}
-              class="px-3 py-1.5 border border-black/20 dark:border-white/20 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors text-xs uppercase tracking-wider"
-            >
-              Login
-            </button>
-          {/if}
-        </div>
+        {@render logo()}
+        {@render searchBar()}
+        {@render actionButtons()}
       </div>
     </div>
   </header>
 {/if}
 
-<!-- Modals -->
 {#if showLoginModal}
   <LoginModal
     on:close={() => showLoginModal = false}
