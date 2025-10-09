@@ -598,10 +598,10 @@
     {/if}
   </div>
 
-  <div class="flex-1 min-h-[300px] relative px-4 pb-4">
+  <div class="flex-1 min-h-0 relative px-4 pb-4 flex flex-col">
     <div
       bind:this={mapContainer} 
-      class="w-full h-full rounded-lg border border-white/20 overflow-hidden"
+      class="flex-1 min-h-[300px] rounded-lg border border-white/20 overflow-hidden"
       style="background: #0a0a0a;"
     ></div>
 
