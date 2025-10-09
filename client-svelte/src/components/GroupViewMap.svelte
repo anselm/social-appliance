@@ -650,37 +650,43 @@
       style={drawerMode === 'minimized' ? 'height: 48px;' : drawerMode === 'places' ? 'height: 200px;' : 'height: 400px;'}
       id="group-view-map-drawer"
     >
-      <!-- Drawer Bar with Orange Circle Button -->
-      <div class="relative h-12 flex items-center justify-center border-b border-white/10">
+      <!-- Drawer Bar with Circle Button and Text -->
+      <div class="relative h-12 flex items-center justify-center px-4">
         <button
           onclick={handleDrawerBarClick}
-          class="absolute -top-3 w-6 h-6 bg-orange-500 border-2 border-white rounded-full hover:bg-orange-600 transition-colors shadow-lg"
+          class="absolute -top-3 w-6 h-6 bg-gray-600 border-2 border-white rounded-full hover:bg-gray-500 transition-colors shadow-lg"
           aria-label="Toggle drawer"
         ></button>
+        {#if drawerMode === 'minimized'}
+          <span class="text-xs text-white/60">Tap to view places</span>
+        {:else if drawerMode === 'places'}
+          <div class="flex items-center justify-between w-full">
+            <h3 class="text-sm font-semibold">Places ({locatedChildren.length})</h3>
+            <div class="flex gap-1">
+              {#each ['post', 'party', 'group', 'place', 'event'] as filterType}
+                {@const count = children.filter(c => c.type === filterType && c.latitude != null && c.longitude != null).length}
+                {#if count > 0}
+                  <button
+                    onclick={() => toggleFilter(filterType)}
+                    class={getFilterButtonClass(filterType)}
+                    aria-label="Filter by {filterType}"
+                  >
+                    {filterType}
+                  </button>
+                {/if}
+              {/each}
+            </div>
+          </div>
+        {:else if drawerMode === 'preview'}
+          <span class="text-xs text-white/60">Preview</span>
+        {/if}
       </div>
 
       <!-- Drawer Content -->
-      <div class="overflow-hidden" style="height: calc(100% - 48px);">
+      <div class="overflow-hidden border-t border-white/10" style="height: calc(100% - 48px);">
         {#if drawerMode === 'places'}
           <!-- Horizontal scrollable places -->
           <div class="p-4">
-            <div class="flex items-center gap-2 mb-3">
-              <h3 class="text-sm font-semibold">Places ({locatedChildren.length})</h3>
-              <div class="flex gap-1 ml-auto">
-                {#each ['post', 'party', 'group', 'place', 'event'] as filterType}
-                  {@const count = children.filter(c => c.type === filterType && c.latitude != null && c.longitude != null).length}
-                  {#if count > 0}
-                    <button
-                      onclick={() => toggleFilter(filterType)}
-                      class={getFilterButtonClass(filterType)}
-                      aria-label="Filter by {filterType}"
-                    >
-                      {filterType}
-                    </button>
-                  {/if}
-                {/each}
-              </div>
-            </div>
             <div class="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
               {#each locatedChildren as child}
                 <button
