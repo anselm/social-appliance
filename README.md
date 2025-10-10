@@ -109,12 +109,20 @@ chmod +x scripts/generate-pwa-icons.sh
 
 ### Development
 
-Run both server and client in development mode:
+**Option 1: Run both server and client with hot reload (recommended for development):**
 ```bash
 npm run dev
 ```
+- Server runs on http://localhost:8000 (serves API + static files)
+- Client dev server runs on http://localhost:8001 (with hot reload)
 
-The API server runs on http://localhost:8000 and the Svelte client on http://localhost:8001
+**Option 2: Run only the server (if client is already built):**
+```bash
+npm run build  # Build the client first
+npm run server:only
+```
+- Server runs on http://localhost:8000 (serves API + built client from dist/)
+- No need to run Vite dev server
 
 ### Production Build
 
@@ -130,7 +138,7 @@ npm start
 
 The server will:
 - Serve the API on `/api/*` routes
-- Serve the built Svelte app for all other routes
+- Serve the built Svelte app from `client-svelte/dist/` for all other routes
 - Automatically seed the database if `LOAD_SEED_DATA` is not set to `false`
 
 ## Docker Deployment
@@ -154,9 +162,9 @@ npm run docker:deploy
 ```
 
 This will:
-- Build the Docker image
+- Build the Docker image (builds client and includes it in the image)
 - Start MongoDB with replica set
-- Start the application with PM2
+- Start the application with PM2 on port 8000
 - Start Caddy reverse proxy with automatic HTTPS
 - Set up health checks and monitoring
 
@@ -214,9 +222,9 @@ npm run gcloud:run
 ```
 
 This will:
-- Build the Docker image
+- Build the Docker image (builds client and includes it)
 - Push to Google Artifact Registry
-- Deploy to Cloud Run
+- Deploy to Cloud Run on port 8080
 - Configure environment variables
 - Set up automatic scaling
 
@@ -239,15 +247,15 @@ gcloud run services delete social-appliance --region=us-central1
 ### Docker Architecture
 
 **Docker Compose (Local):**
-- **App Container:** Node.js application with PM2 cluster mode
+- **App Container:** Node.js application with PM2 cluster mode on port 8000
 - **MongoDB Container:** MongoDB 7 with replica set for transactions
-- **Caddy Container:** Reverse proxy with automatic HTTPS
+- **Caddy Container:** Reverse proxy with automatic HTTPS (proxies to app:8000)
 - **Health Checks:** Automatic monitoring and restart
 - **Volumes:** Persistent data for MongoDB and Caddy
 - **Networks:** Isolated networks for security
 
 **Cloud Run (Production):**
-- **Stateless Container:** Node.js application with PM2
+- **Stateless Container:** Node.js application with PM2 on port 8080
 - **MongoDB Atlas:** Managed MongoDB database
 - **Automatic HTTPS:** Provided by Cloud Run
 - **Auto-scaling:** 0 to 10 instances based on traffic
@@ -285,13 +293,13 @@ export FLUSH_DB=false
 
 ```
 social-appliance/
-├── server/                 # Node.js/Express API server
+├── server/                 # Node.js/Express API server (port 8000)
 │   ├── src/
 │   │   ├── routes/        # API routes
 │   │   ├── middleware/    # Express middleware
 │   │   ├── services/      # Business logic
 │   │   ├── db/           # Database connection
-│   │   └── index.js      # Server entry point
+│   │   └── index.js      # Server entry point (serves API + static files)
 │   └── package.json
 ├── client-svelte/         # Svelte frontend
 │   ├── src/
@@ -300,11 +308,12 @@ social-appliance/
 │   │   ├── components/   # Reusable components
 │   │   ├── stores/       # Svelte stores
 │   │   └── App.svelte
+│   ├── dist/             # Built client (served by server)
 │   └── package.json
 ├── client-console/        # Console-based client
 ├── seed-data/            # Sample data for development
 ├── docker/               # Docker configuration
-│   ├── Dockerfile        # Multi-stage build
+│   ├── Dockerfile        # Multi-stage build (builds client, runs server)
 │   ├── docker-compose.yml # Service orchestration
 │   ├── Caddyfile         # Caddy configuration
 │   ├── ecosystem.config.js # PM2 configuration
@@ -375,8 +384,7 @@ The application uses permissive CORS handling - **all origins are allowed** by d
 
 ### Health
 
-- `GET /healthz` - Health check endpoint
-- `GET /health` - API health check
+- `GET /api/health` - API health check
 
 ### Entities
 
@@ -399,7 +407,7 @@ The application uses permissive CORS handling - **all origins are allowed** by d
 
 ```bash
 # Server
-PORT=8001
+PORT=8000
 
 # Database
 MONGODB_URI=mongodb://localhost:27017
@@ -436,14 +444,14 @@ Deploy the entire stack with one command:
 ```bash
 npm run deploy
 ```
-Includes: App + MongoDB + Caddy (HTTPS)
+Includes: App (port 8000) + MongoDB + Caddy (HTTPS)
 
 ### 2. Google Cloud Run (Recommended for Serverless)
 Deploy to Google Cloud Run with MongoDB Atlas:
 ```bash
 npm run gcloud:run
 ```
-Includes: Stateless app + MongoDB Atlas + Auto-scaling
+Includes: Stateless app (port 8080) + MongoDB Atlas + Auto-scaling
 
 ### 3. Full Server Deployment
 Deploy manually with MongoDB:
@@ -500,6 +508,7 @@ Console commands:
 ## Development Tips
 
 - Use `npm run dev` to run both server and client with hot reload
+- Use `npm run server:only` to run just the server (if client is already built)
 - Check server logs for authentication status on startup
 - Use browser DevTools to inspect authentication tokens
 - Test both authentication methods to ensure proper setup

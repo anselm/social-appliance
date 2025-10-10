@@ -13,12 +13,12 @@
 
 	# Health check endpoint
 	handle_path /api/health {
-		reverse_proxy app:3000
+		reverse_proxy app:8000
 	}
 
 	# API routes
 	handle_path /api/* {
-		reverse_proxy app:3000
+		reverse_proxy app:8000
 	}
 
 	# Static assets
@@ -26,12 +26,12 @@
 		path /assets/* /favicon.ico /robots.txt /manifest.json /pwa-* /*.png /*.svg /*.ico
 	}
 	handle @static {
-		reverse_proxy app:3000
+		reverse_proxy app:8000
 	}
 
 	# All other routes (SPA)
 	handle {
-		reverse_proxy app:3000
+		reverse_proxy app:8000
 	}
 
 	# Security headers

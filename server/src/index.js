@@ -16,7 +16,7 @@ const rootDir = join(__dirname, '../../');
 dotenv.config({ path: join(rootDir, '.env') });
 
 const app = express();
-const PORT = process.env.PORT || process.env.SERVERPORT || 8001;
+const PORT = process.env.PORT || 8000;
 
 // Simple CORS configuration - allow all origins
 const corsOptions = {
@@ -93,7 +93,7 @@ async function start() {
       Logger.info(`CORS: Allowing all origins`);
       Logger.info(`Health check: http://localhost:${PORT}/api/health`);
       Logger.info(`Authentication: Stateless (client-side tokens)`);
-      Logger.info(`Serving static client files`);
+      Logger.info(`Serving static client files from: ${clientBuildPath}`);
       
       // Log authentication status
       if (process.env.MAGIC_SECRET_KEY) {

@@ -12,6 +12,7 @@
     "build:client": "cd client-svelte && npm run build",
     "start": "npm run build && NODE_ENV=production npm run server:prod",
     "server:prod": "cd server && npm start",
+    "server:only": "cd server && npm start",
     "setup": "npm run setup:server && npm run setup:client",
     "setup:server": "cd server && npm install",
     "setup:client": "cd client-svelte && npm install",
