@@ -1,5 +1,5 @@
 # Build stage
-FROM node:22-alpine AS build
+FROM --platform=linux/amd64 node:22-alpine AS build
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ WORKDIR /app/client-svelte
 RUN npm run build
 
 # Runtime stage
-FROM node:22-alpine
+FROM --platform=linux/amd64 node:22-alpine
 
 WORKDIR /app
 
@@ -50,7 +50,9 @@ RUN echo "=== Verifying build ===" && \
     echo "=== Node version ===" && \
     node --version && \
     echo "=== PM2 version ===" && \
-    pm2 --version
+    pm2 --version && \
+    echo "=== Architecture ===" && \
+    uname -m
 
 # Set environment
 ENV NODE_ENV=production
@@ -62,6 +64,6 @@ EXPOSE 8080
 HEALTHCHECK --interval=15s --timeout=3s --retries=10 --start-period=20s \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
 
-# Start with node directly instead of PM2 to debug
-# Once working, we can switch back to PM2
+# Override the default entrypoint and use node directly
+ENTRYPOINT []
 CMD ["node", "server/src/index.js"]
