@@ -43,33 +43,29 @@ app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/test', testRoutes);
 
-// In production, serve static files from the client build directory
-if (process.env.NODE_ENV === 'production') {
-  const clientBuildPath = join(__dirname, '../../client-svelte/dist');
-  Logger.info(`Serving static files from: ${clientBuildPath}`);
-  Logger.debug(`Current working directory: ${process.cwd()}`);
-  Logger.debug(`__dirname: ${__dirname}`);
-  
-  // Check if the build directory exists
-  import('fs').then(fs => {
-    if (fs.existsSync(clientBuildPath)) {
-      Logger.success('Client build directory found');
-    } else {
-      Logger.error('Client build directory not found at:', clientBuildPath);
-    }
-  });
-  
-  app.use(express.static(clientBuildPath));
+// Serve static files from the client build directory
+const clientBuildPath = join(__dirname, '../../client-svelte/dist');
+Logger.info(`Serving static files from: ${clientBuildPath}`);
+Logger.debug(`Current working directory: ${process.cwd()}`);
+Logger.debug(`__dirname: ${__dirname}`);
 
-  // Serve the client app for all non-API routes
-  app.get('*', (req, res) => {
-    const indexPath = join(clientBuildPath, 'index.html');
-    Logger.debug(`Serving index.html for route: ${req.path}`);
-    res.sendFile(indexPath);
-  });
-} else {
-  Logger.info('Running in development mode - not serving static files');
-}
+// Check if the build directory exists
+import('fs').then(fs => {
+  if (fs.existsSync(clientBuildPath)) {
+    Logger.success('Client build directory found');
+  } else {
+    Logger.warn('Client build directory not found at:', clientBuildPath);
+  }
+});
+
+app.use(express.static(clientBuildPath));
+
+// Serve the client app for all non-API routes
+app.get('*', (req, res) => {
+  const indexPath = join(clientBuildPath, 'index.html');
+  Logger.debug(`Serving index.html for route: ${req.path}`);
+  res.sendFile(indexPath);
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -108,10 +104,7 @@ async function start() {
       Logger.info(`CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:8000'}`);
       Logger.info(`Health check: http://localhost:${serverPort}/healthz`);
       Logger.info(`Authentication: Stateless (client-side tokens)`);
-      
-      if (process.env.NODE_ENV === 'production') {
-        Logger.info('Serving static client files');
-      }
+      Logger.info(`Serving static client files`);
       
       // Log authentication status
       if (process.env.MAGIC_SECRET_KEY) {
