@@ -28,7 +28,7 @@ A decentralized social platform built with Node.js, MongoDB, and Svelte, featuri
 
 - **Production Ready:**
   - Docker containerization
-  - Docker Compose orchestration with local MongoDB
+  - Docker Compose orchestration (requires external MongoDB)
   - Google Cloud Run deployment with MongoDB Atlas
   - Automatic HTTPS with Caddy (Docker Compose)
   - PM2 process management
@@ -41,7 +41,7 @@ A decentralized social platform built with Node.js, MongoDB, and Svelte, featuri
 ### Prerequisites
 
 - Node.js 18+
-- MongoDB (local or Atlas)
+- MongoDB Atlas account (or other external MongoDB service)
 - Docker & Docker Compose (for Docker deployment)
 - MetaMask browser extension (for SIWE authentication)
 - Magic.link account (for email authentication)
@@ -145,16 +145,22 @@ The server will:
 
 ### Local Docker Deployment with Docker Compose
 
-Deploy the entire stack locally with Docker Compose (includes MongoDB):
+Deploy the application locally with Docker Compose (requires external MongoDB):
 
-1. **Configure environment:**
+1. **Set up MongoDB Atlas:**
+   - Sign up at https://www.mongodb.com/cloud/atlas
+   - Create a free cluster
+   - Get your connection string (mongodb+srv://...)
+   - Whitelist your IP address or use 0.0.0.0/0 for testing
+
+2. **Configure environment:**
 ```bash
 cd docker
-cp .env.example .env
-# Edit .env with your configuration
+cp env-example.txt .env
+# Edit .env with your MongoDB Atlas connection string and other values
 ```
 
-2. **Deploy:**
+3. **Deploy:**
 ```bash
 npm run deploy
 # or
@@ -163,16 +169,16 @@ npm run docker:deploy
 
 This will:
 - Build the Docker image (builds client and includes it in the image)
-- Start MongoDB with replica set
 - Start the application with PM2 on port 8000
 - Start Caddy reverse proxy with automatic HTTPS
 - Set up health checks and monitoring
+- Connect to your external MongoDB service
 
-3. **Access the application:**
+4. **Access the application:**
 - Local: http://localhost
 - With domain: https://yourdomain.com (after DNS configuration)
 
-4. **Useful commands:**
+5. **Useful commands:**
 ```bash
 npm run docker:build    # Build images
 npm run docker:up       # Start services
@@ -249,11 +255,11 @@ gcloud run services delete social-appliance --region=us-central1
 
 **Docker Compose (Local):**
 - **App Container:** Node.js application with PM2 cluster mode on port 8000
-- **MongoDB Container:** MongoDB 7 with replica set for transactions
--  **Caddy Container:** Reverse proxy with automatic HTTPS (proxies to app:8000)
+- **Caddy Container:** Reverse proxy with automatic HTTPS (proxies to app:8000)
+- **External MongoDB:** MongoDB Atlas or other external MongoDB service
 - **Health Checks:** Automatic monitoring and restart
-- **Volumes:** Persistent data for MongoDB and Caddy
-- **Networks:** Isolated networks for security
+- **Volumes:** Persistent data for Caddy
+- **Networks:** Isolated network for security
 
 **Cloud Run (Production):**
 - **Stateless Container:** Node.js application with PM2 on port 8080
@@ -269,7 +275,7 @@ gcloud run services delete social-appliance --region=us-central1
 ```bash
 PORT=8000
 CLIENTPORT=8001
-MONGODB_URI=mongodb://localhost:27017
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/social_appliance
 DB_NAME=social_appliance
 JWT_SECRET=your-jwt-secret
 MAGIC_SECRET_KEY=your-magic-secret-key
@@ -281,7 +287,7 @@ LOAD_SEED_DATA=true
 NODE_ENV=production
 PORT=8000
 DOMAIN=yourdomain.com
-MONGODB_URI=mongodb://mongo:27017/social_appliance?replicaSet=rs0
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/social_appliance
 DB_NAME=social_appliance
 MAGIC_SECRET_KEY=your_magic_secret_key
 JWT_SECRET=your_jwt_secret
@@ -331,7 +337,7 @@ social-appliance/
 │   ├── docker-compose.yml # Service orchestration
 │   ├── Caddyfile         # Caddy configuration
 │   ├── ecosystem.config.js # PM2 configuration
-│   └── .env.example      # Environment template
+│   └── env-example.txt   # Environment template
 ├── scripts/              # Utility scripts
 │   ├── generate-pwa-icons.sh
 │   ├── deploy-docker-compose.sh
@@ -424,8 +430,8 @@ The application uses permissive CORS handling - **all origins are allowed** by d
 PORT=8000
 CLIENTPORT=8001
 
-# Database
-MONGODB_URI=mongodb://localhost:27017
+# Database (MongoDB Atlas or other external MongoDB)
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/social_appliance
 DB_NAME=social_appliance
 
 # Authentication
@@ -460,11 +466,11 @@ VITE_ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID
 ## Deployment Options
 
 ### 1. Docker Compose (Recommended for VPS/Self-hosted)
-Deploy the entire stack with one command:
+Deploy with Docker Compose (requires external MongoDB):
 ```bash
 npm run deploy
 ```
-Includes: App (port 8000) + MongoDB + Caddy (HTTPS)
+Includes: App (port 8000) + Caddy (HTTPS) + External MongoDB
 
 ### 2. Google Cloud Run (Recommended for Serverless)
 Deploy to Google Cloud Run with MongoDB Atlas:
@@ -565,6 +571,7 @@ Console commands:
 - Verify `.env` file exists in `docker/` directory
 - Check container logs: `docker-compose logs -f`
 - Restart services: `docker-compose restart`
+- Ensure MongoDB Atlas connection string is correct
 
 ### Cloud Run deployment issues
 - Ensure gcloud CLI is installed and authenticated
@@ -596,7 +603,7 @@ Console commands:
 
 ## External Services
 
-### MongoDB Atlas (Required for Cloud Run)
+### MongoDB Atlas (Required)
 - **Purpose**: Managed MongoDB database
 - **Website**: https://www.mongodb.com/cloud/atlas
 - **Free Tier**: Yes, 512MB storage

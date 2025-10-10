@@ -13,11 +13,6 @@ services:
       - NODE_ENV=production
     ports:
       - "8000:8000"
-    depends_on:
-      mongo:
-        condition: service_healthy
-      mongo-init:
-        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8000/api/health || exit 1"]
       interval: 15s
@@ -26,45 +21,7 @@ services:
       start_period: 20s
     networks:
       - webnet
-      - backend
     restart: unless-stopped
-
-  mongo:
-    image: mongo:7
-    command: ["--replSet", "rs0", "--bind_ip_all"]
-    volumes:
-      - mongodata:/data/db
-    healthcheck:
-      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand({ping:1})' || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 30
-      start_period: 20s
-    networks:
-      - backend
-    restart: unless-stopped
-
-  mongo-init:
-    image: mongo:7
-    depends_on:
-      mongo:
-        condition: service_healthy
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      "mongosh --host mongo --eval '
-        try {
-          rs.status();
-          print(\"Replica set already initialized\");
-        } catch(e) {
-          rs.initiate({
-            _id: \"rs0\",
-            members: [{_id: 0, host: \"mongo:27017\"}]
-          });
-          print(\"Replica set initialized\");
-        }
-      '"
-    networks:
-      - backend
 
   caddy:
     image: caddy:2
@@ -84,10 +41,8 @@ services:
     restart: unless-stopped
 
 volumes:
-  mongodata:
   caddydata:
   caddyconfig:
 
 networks:
   webnet:
-  backend:

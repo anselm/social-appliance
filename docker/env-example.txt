@@ -7,10 +7,9 @@ PORT=8000
 # For production: DOMAIN=yourdomain.com
 DOMAIN=localhost
 
-# Database - Use MongoDB Atlas for Cloud Run
-# Local Docker Compose: mongodb://mongo:27017/social_appliance?replicaSet=rs0
+# Database - MongoDB Atlas or other external MongoDB service
 # MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/social_appliance?retryWrites=true&w=majority
-MONGODB_URI=mongodb://mongo:27017/social_appliance?replicaSet=rs0
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/social_appliance?retryWrites=true&w=majority
 DB_NAME=social_appliance
 
 # Authentication
