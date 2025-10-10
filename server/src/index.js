@@ -67,10 +67,13 @@ app.use((err, req, res, next) => {
 
 // Start server
 async function start() {
+  let dbConnected = false;
+  
   // Try to connect to MongoDB, but don't fail if it's unavailable
   try {
     await connectDB();
     Logger.success('MongoDB connected successfully');
+    dbConnected = true;
     
     // Flush database if requested
     if (process.env.FLUSH_DB === 'true') {
@@ -85,8 +88,38 @@ async function start() {
     // Load seed data if enabled
     if (process.env.LOAD_SEED_DATA !== 'false') {
       const seedDataPath = process.env.SEED_DATA_PATH || join(rootDir, 'seed-data');
-      const seedLoader = new SeedLoader();
-      await seedLoader.loadSeedData(seedDataPath);
+      Logger.info(`Attempting to load seed data from: ${seedDataPath}`);
+      
+      // Check if seed data directory exists
+      const fs = await import('fs');
+      if (fs.existsSync(seedDataPath)) {
+        Logger.info('Seed data directory found');
+        const files = fs.readdirSync(seedDataPath);
+        Logger.info(`Seed data files: ${files.join(', ')}`);
+      } else {
+        Logger.warn(`Seed data directory not found at: ${seedDataPath}`);
+      }
+      
+      try {
+        const seedLoader = new SeedLoader();
+        await seedLoader.loadSeedData(seedDataPath);
+        Logger.success('Seed data loaded successfully');
+        
+        // Verify root entity exists
+        const { getDB } = await import('./db/connection.js');
+        const db = await getDB();
+        const rootEntity = await db.collection('entities').findOne({ slug: '/' });
+        if (rootEntity) {
+          Logger.success(`Root entity verified: ${rootEntity.id}`);
+        } else {
+          Logger.error('Root entity not found after seed data load!');
+        }
+      } catch (seedError) {
+        Logger.error('Failed to load seed data:', seedError);
+        Logger.error('Stack trace:', seedError.stack);
+      }
+    } else {
+      Logger.info('Seed data loading disabled (LOAD_SEED_DATA=false)');
     }
   } catch (error) {
     Logger.error('MongoDB connection failed:', error);
@@ -102,6 +135,7 @@ async function start() {
     Logger.info(`Health check: http://localhost:${PORT}/api/health`);
     Logger.info(`Authentication: Stateless (client-side tokens)`);
     Logger.info(`Serving static client files from: ${clientBuildPath}`);
+    Logger.info(`Database connected: ${dbConnected ? 'YES' : 'NO'}`);
     
     // Log authentication status
     if (process.env.MAGIC_SECRET_KEY) {
@@ -117,6 +151,15 @@ async function start() {
     }
     
     Logger.info('Test endpoints available at /api/test/*');
+    
+    // Log environment variables (sanitized)
+    Logger.debug('Environment variables:');
+    Logger.debug(`  PORT: ${PORT}`);
+    Logger.debug(`  NODE_ENV: ${process.env.NODE_ENV}`);
+    Logger.debug(`  MONGODB_URI: ${process.env.MONGODB_URI ? '***set***' : 'not set'}`);
+    Logger.debug(`  DB_NAME: ${process.env.DB_NAME || 'social_appliance'}`);
+    Logger.debug(`  LOAD_SEED_DATA: ${process.env.LOAD_SEED_DATA}`);
+    Logger.debug(`  FLUSH_DB: ${process.env.FLUSH_DB}`);
   });
 }
 
