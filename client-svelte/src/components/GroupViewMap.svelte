@@ -467,11 +467,15 @@
         zoom: 14,
         pitch: 60,
         bearing: -17.6,
-        antial ias: true
+        antialias: true,
+        attributionControl: false,
+        logoPosition: 'top-right'
       })
 
       // Add navigation controls
       map.addControl(new mapboxgl.NavigationControl(), 'top-right')
+
+      map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'top-right');
 
       map.on('load', () => {
         // Enable 3D buildings for dramatic effect
@@ -589,7 +593,7 @@
       const satelliteLayer = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         {
-          attribution: 'Tiles &copy; Esri',
+          //attribution: 'Tiles &copy; Esri',
           maxZoom: 19
         }
       )
@@ -600,7 +604,7 @@
       const labelsLayer = L.tileLayer(
         'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',
         {
-          attribution: '&copy; OpenStreetMap, &copy; CARTO',
+          //attribution: '&copy; OpenStreetMap, &copy; CARTO',
           subdomains: 'abcd',
           maxZoom: 19
         }
@@ -646,20 +650,23 @@
 
     <!-- Pull-up Drawer -->
     <div 
-      class="absolute bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t border-white/20 transition-all duration-300 ease-out rounded-t-lg"
+      class="absolute bottom-0 left-0 right-0 bg-green/95 backdrop-blur-sm border-t border-white/20 transition-all duration-300 ease-out"
       style={drawerMode === 'minimized' ? 'height: 48px;' : drawerMode === 'places' ? 'height: 200px;' : 'height: 400px;'}
       id="group-view-map-drawer"
     >
       <!-- Drawer Bar with Circle Button and Text -->
-      <div class="relative h-12 flex items-center justify-center px-4">
+      <div class="relative h-1 flex items-center justify-center px-4">
         <button
           onclick={handleDrawerBarClick}
           class="absolute -top-3 w-6 h-6 bg-gray-600 border-2 border-white rounded-full hover:bg-gray-500 transition-colors shadow-lg"
           aria-label="Toggle drawer"
         ></button>
         {#if drawerMode === 'minimized'}
+          <!--
           <span class="text-xs text-white/60">Tap to view places</span>
+          -->
         {:else if drawerMode === 'places'}
+          <!--
           <div class="flex items-center justify-between w-full">
             <h3 class="text-sm font-semibold">Places ({locatedChildren.length})</h3>
             <div class="flex gap-1">
@@ -677,17 +684,18 @@
               {/each}
             </div>
           </div>
+          -->
         {:else if drawerMode === 'preview'}
           <span class="text-xs text-white/60">Preview</span>
         {/if}
       </div>
 
       <!-- Drawer Content -->
-      <div class="overflow-hidden border-t border-white/10" style="height: calc(100% - 48px);">
+      <div class="overflow-hidden" style="height: calc(100%);">
         {#if drawerMode === 'places'}
           <!-- Horizontal scrollable places -->
           <div class="p-4">
-            <div class="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+            <div class="flex gap-3 overflow-x-auto -mx-4">
               {#each locatedChildren as child}
                 <button
                   onclick={() => handlePlaceCardClick(child)}
@@ -824,4 +832,17 @@
   :global(.mapboxgl-ctrl-icon) {
     filter: invert(1);
   }
+
+  :global(.mapboxgl-ctrl-attrib) {
+    font-size: 10px !important;
+    padding: 2px 4px !important;
+    line-height: 1.1 !important;
+    opacity: 0.7;
+  }
+
+  :global(.mapboxgl-ctrl-bottom-right) {
+    margin-bottom: 2px !important;
+    margin-right: 4px !important;
+  }
+
 </style>

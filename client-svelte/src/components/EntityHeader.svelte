@@ -77,9 +77,9 @@
   }
 </script>
 
-<div class="mb-8">
+<div>
   {#if showDepiction && entity.depiction}
-    <div class="mb-6 -mx-4 md:mx-0">
+    <div class="mb-2 -mx-4 md:mx-0">
       <img 
         src={entity.depiction} 
         alt={entity.title || 'Banner'} 

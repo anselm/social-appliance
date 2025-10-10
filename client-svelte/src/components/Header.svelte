@@ -148,7 +148,7 @@
     >
       Login
     </button>
-  {/if}shoul
+  {/if}
 {/snippet}
 
 {#snippet actionButtons()}

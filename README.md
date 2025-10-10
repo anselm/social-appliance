@@ -114,7 +114,7 @@ Run both server and client in development mode:
 npm run dev
 ```
 
-The API server runs on http://localhost:8001 and the Svelte client on http://localhost:8000.
+The API server runs on http://localhost:8000 and the Svelte client on http://localhost:8001
 
 ### Production Build
 
@@ -259,7 +259,7 @@ gcloud run services delete social-appliance --region=us-central1
 **Docker Compose (.env):**
 ```bash
 NODE_ENV=production
-PORT=3000
+PORT=8000
 DOMAIN=yourdomain.com
 MONGODB_URI=mongodb://mongo:27017/social_appliance?replicaSet=rs0
 DB_NAME=social_appliance
