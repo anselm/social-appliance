@@ -26,6 +26,9 @@ FROM --platform=linux/amd64 node:22-alpine
 
 WORKDIR /app
 
+# Install CA certificates for SSL/TLS connections (required for MongoDB Atlas)
+RUN apk add --no-cache ca-certificates
+
 # Install PM2 globally
 RUN npm install -g pm2
 
@@ -52,7 +55,9 @@ RUN echo "=== Verifying build ===" && \
     echo "=== PM2 version ===" && \
     pm2 --version && \
     echo "=== Architecture ===" && \
-    uname -m
+    uname -m && \
+    echo "=== CA Certificates ===" && \
+    ls -la /etc/ssl/certs/
 
 # Set environment
 ENV NODE_ENV=production
