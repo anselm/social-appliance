@@ -22,11 +22,68 @@ const SERVERPORT = process.env.SERVERPORT || 8001;
 // Determine which port to use
 const serverPort = process.env.NODE_ENV === 'production' ? PORT : SERVERPORT;
 
+// Dynamic CORS configuration
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // In development, allow all origins
+    if (process.env.NODE_ENV !== 'production') {
+      Logger.debug(`CORS: Allowing origin in development: ${origin}`);
+      return callback(null, true);
+    }
+
+    // In production, check against whitelist or patterns
+    const allowedOrigins = process.env.CORS_ORIGIN 
+      ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+      : [];
+
+    // Allow if origin matches any in the whitelist
+    if (allowedOrigins.includes(origin)) {
+      Logger.debug(`CORS: Allowing whitelisted origin: ${origin}`);
+      return callback(null, true);
+    }
+
+    // Allow if CORS_ORIGIN is set to '*'
+    if (allowedOrigins.includes('*')) {
+      Logger.debug(`CORS: Allowing all origins (wildcard)`);
+      return callback(null, true);
+    }
+
+    // Allow same-origin requests (when serving static files)
+    const requestUrl = new URL(origin);
+    const serverUrl = `http://localhost:${serverPort}`;
+    if (origin === serverUrl || requestUrl.host === `localhost:${serverPort}`) {
+      Logger.debug(`CORS: Allowing same-origin request: ${origin}`);
+      return callback(null, true);
+    }
+
+    // Allow Cloud Run URLs (*.run.app)
+    if (requestUrl.hostname.endsWith('.run.app')) {
+      Logger.debug(`CORS: Allowing Cloud Run origin: ${origin}`);
+      return callback(null, true);
+    }
+
+    // Allow localhost on any port in production (for testing)
+    if (requestUrl.hostname === 'localhost' || requestUrl.hostname === '127.0.0.1') {
+      Logger.debug(`CORS: Allowing localhost origin: ${origin}`);
+      return callback(null, true);
+    }
+
+    // Reject all other origins
+    Logger.warn(`CORS: Rejecting origin: ${origin}`);
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
 // Middleware
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:8000',
-  credentials: true
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Health check endpoints (before other routes)
@@ -101,7 +158,15 @@ async function start() {
     app.listen(serverPort, () => {
       Logger.success(`Server running on http://localhost:${serverPort}`);
       Logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      Logger.info(`CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:8000'}`);
+      
+      // Log CORS configuration
+      if (process.env.NODE_ENV === 'production') {
+        const corsOrigins = process.env.CORS_ORIGIN || 'localhost, *.run.app (auto-detected)';
+        Logger.info(`CORS origins: ${corsOrigins}`);
+      } else {
+        Logger.info(`CORS: Allowing all origins (development mode)`);
+      }
+      
       Logger.info(`Health check: http://localhost:${serverPort}/healthz`);
       Logger.info(`Authentication: Stateless (client-side tokens)`);
       Logger.info(`Serving static client files`);
