@@ -6,6 +6,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     image: social-appliance:latest
+    pull_policy: never
     env_file:
       - .env
     environment:
