@@ -80,9 +80,6 @@ async function start() {
       Logger.success('Database flushed');
     }
     
-    // Clean up any duplicate root entities
-    await cleanupDuplicateRootEntities();
-    
     // Load seed data if enabled
     if (process.env.LOAD_SEED_DATA !== 'false') {
       const seedDataPath = process.env.SEED_DATA_PATH || join(rootDir, 'seed-data');
@@ -116,20 +113,6 @@ async function start() {
   } catch (error) {
     Logger.error('Failed to start server:', error);
     process.exit(1);
-  }
-}
-
-async function cleanupDuplicateRootEntities() {
-  const { getDB } = await import('./db/connection.js');
-  const db = await getDB();
-  const rootEntities = await db.collection('entities').find({ slug: '/' }).toArray();
-  
-  if (rootEntities.length > 1) {
-    Logger.warn(`Found ${rootEntities.length} root entities, cleaning up duplicates...`);
-    const [keep, ...remove] = rootEntities;
-    const idsToRemove = remove.map(e => e.id);
-    await db.collection('entities').deleteMany({ id: { $in: idsToRemove } });
-    Logger.success(`Removed ${remove.length} duplicate root entities`);
   }
 }
 
