@@ -39,11 +39,10 @@ COPY --from=build /app/package*.json ./
 RUN cd server && npm ci --omit=dev
 
 # Copy PM2 ecosystem config
-COPY docker/ecosystem.config.cjs ./
+COPY docker/ecosystem.config.cjs ./ecosystem.config.cjs
 
 # Set environment
 ENV NODE_ENV=production
-ENV PORT=8080
 
 # Expose port (Cloud Run uses 8080 by default)
 EXPOSE 8080
@@ -52,5 +51,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=15s --timeout=3s --retries=10 --start-period=20s \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
 
-# Start with PM2
+# Start with PM2 - use exec form to avoid shell issues
 CMD ["pm2-runtime", "start", "ecosystem.config.cjs", "--env", "production"]
