@@ -1,6 +1,7 @@
 import express from 'express';
 import { API } from '../api/index.js';
 import { Logger } from '../utils/logger.js';
+import { getDB } from '../db/connection.js';
 
 const router = express.Router();
 const api = new API();
@@ -15,9 +16,67 @@ function handleError(res, error) {
   res.status(status).json(message);
 }
 
-// Health check
-router.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+// Health check with diagnostic information
+router.get('/health', async (req, res) => {
+  try {
+    const health = {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      database: {
+        connected: false,
+        name: process.env.DB_NAME || 'social_appliance',
+        entities: 0,
+        relationships: 0,
+        hasRootEntity: false
+      }
+    };
+
+    // Try to get database stats
+    try {
+      const db = await getDB();
+      health.database.connected = true;
+      
+      // Count entities
+      health.database.entities = await db.collection('entities').countDocuments();
+      
+      // Count relationships
+      health.database.relationships = await db.collection('relationships').countDocuments();
+      
+      // Check for root entity
+      const rootEntity = await db.collection('entities').findOne({ slug: '/' });
+      health.database.hasRootEntity = !!rootEntity;
+      
+      if (rootEntity) {
+        health.database.rootEntityId = rootEntity.id;
+        health.database.rootEntityTitle = rootEntity.title || 'Untitled';
+      }
+      
+      // Get entity type breakdown
+      const entityTypes = await db.collection('entities').aggregate([
+        { $group: { _id: '$type', count: { $sum: 1 } } }
+      ]).toArray();
+      
+      health.database.entityTypes = {};
+      entityTypes.forEach(type => {
+        health.database.entityTypes[type._id || 'unknown'] = type.count;
+      });
+      
+    } catch (dbError) {
+      health.database.error = dbError.message;
+      Logger.warn('Health check: Database not available:', dbError.message);
+    }
+
+    res.json(health);
+  } catch (error) {
+    Logger.error('Health check error:', error);
+    res.status(500).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      error: error.message
+    });
+  }
 });
 
 // Entity routes
