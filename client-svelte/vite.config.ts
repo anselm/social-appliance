@@ -1,5 +1,5 @@
 // vite.config.js
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
@@ -19,56 +19,59 @@ function buildInfoPlugin() {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  
+  return {
+    plugins: [
+      buildInfoPlugin(),
+      svelte({ 
+        preprocess: vitePreprocess(),
+        hot: false,
+        emitCss: true
+      }),
+    ],
 
-  plugins: [
-    buildInfoPlugin(),
-    svelte({ 
-      preprocess: vitePreprocess(),
-      hot: false,
-      emitCss: true
-    }),
-  ],
-
-  server: {
-    port: 8001,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true
-      }
-    },
-    hmr: false,
-    // SPA fallback - serve index.html for all routes
-    historyApiFallback: {
-      rewrites: [
-        { from: /^\/api\/.*$/, to: context => context.parsedUrl.path },
-        { from: /./, to: '/index.html' }
-      ]
-    }
-  },
-
-  build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
-    sourcemap: false,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['svelte']
+    server: {
+      port: parseInt(env.CLIENTPORT || '8001'),
+      proxy: {
+        '/api': {
+          target: env.VITE_API_BASE_URL || `http://localhost:${env.PORT || '8000'}`,
+          changeOrigin: true
         }
+      },
+      hmr: false,
+      // SPA fallback - serve index.html for all routes
+      historyApiFallback: {
+        rewrites: [
+          { from: /^\/api\/.*$/, to: context => context.parsedUrl.path },
+          { from: /./, to: '/index.html' }
+        ]
       }
     },
-    dynamicImportVarsOptions: {
-      exclude: [/\.info\.js$/]
+
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['svelte']
+          }
+        }
+      },
+      dynamicImportVarsOptions: {
+        exclude: [/\.info\.js$/]
+      }
+    },
+
+    resolve: {
+      conditions: ['browser', 'default']
+    },
+
+    optimizeDeps: {
+      exclude: ['svelte']
     }
-  },
-
-  resolve: {
-    conditions: ['browser', 'default']
-  },
-
-  optimizeDeps: {
-    exclude: ['svelte']
-  }
+  };
 });
