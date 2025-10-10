@@ -81,6 +81,16 @@ if [ ! -f .env ]; then
             sed -i.bak "s|DB_NAME=.*|DB_NAME=$DB_NAME|" .env
         fi
         
+        if [ ! -z "$DOMAIN" ]; then
+            echo "  - Copying DOMAIN"
+            sed -i.bak "s|DOMAIN=.*|DOMAIN=$DOMAIN|" .env
+        fi
+        
+        if [ ! -z "$PM2_INSTANCES" ]; then
+            echo "  - Copying PM2_INSTANCES"
+            sed -i.bak "s|PM2_INSTANCES=.*|PM2_INSTANCES=$PM2_INSTANCES|" .env
+        fi
+        
         # Clean up backup files
         rm -f .env.bak
         
