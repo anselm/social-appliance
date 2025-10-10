@@ -11,15 +11,27 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Configuration
+echo -e "${GREEN}Social Appliance - Google Cloud Run Deployment${NC}"
+echo "=============================================="
+
+# Load environment variables from .env file
+if [ -f .env ]; then
+    echo -e "${GREEN}Loading environment variables from .env file...${NC}"
+    # Export variables from .env, ignoring comments and empty lines
+    set -a
+    source <(grep -v '^#' .env | grep -v '^$' | sed 's/\r$//')
+    set +a
+else
+    echo -e "${YELLOW}Warning: .env file not found in current directory${NC}"
+    echo "Checking for environment variables..."
+fi
+
+# Configuration - use env vars or defaults
 PROJECT_ID="${GCLOUD_PROJECT_ID}"
 REGION="${GCLOUD_REGION:-us-central1}"
 SERVICE_NAME="${GCLOUD_SERVICE_NAME:-social-appliance}"
 IMAGE_NAME="social-appliance"
 IMAGE_TAG="latest"
-
-echo -e "${GREEN}Social Appliance - Google Cloud Run Deployment${NC}"
-echo "=============================================="
 
 # Check if gcloud is installed
 if ! command -v gcloud &> /dev/null; then
@@ -30,22 +42,32 @@ fi
 
 # Check if PROJECT_ID is set
 if [ -z "$PROJECT_ID" ]; then
-    echo -e "${RED}Error: GCLOUD_PROJECT_ID environment variable is not set${NC}"
-    echo "Set it with: export GCLOUD_PROJECT_ID=your-project-id"
+    echo -e "${RED}Error: GCLOUD_PROJECT_ID is not set${NC}"
+    echo "Please set it in your .env file or export it:"
+    echo "  export GCLOUD_PROJECT_ID=your-project-id"
     exit 1
 fi
 
 # Check if MONGODB_URI is set
 if [ -z "$MONGODB_URI" ]; then
-    echo -e "${RED}Error: MONGODB_URI environment variable is not set${NC}"
-    echo "Set it with: export MONGODB_URI=your-mongodb-atlas-uri"
+    echo -e "${RED}Error: MONGODB_URI is not set${NC}"
+    echo "Please set it in your .env file or export it:"
+    echo "  export MONGODB_URI=your-mongodb-atlas-uri"
     echo "Get a free MongoDB Atlas cluster at: https://www.mongodb.com/cloud/atlas"
     exit 1
+fi
+
+# Check if JWT_SECRET is set
+if [ -z "$JWT_SECRET" ]; then
+    echo -e "${YELLOW}Warning: JWT_SECRET is not set${NC}"
+    echo "Using default value (not recommended for production)"
+    JWT_SECRET="change-me-in-production"
 fi
 
 echo -e "${YELLOW}Project ID: ${PROJECT_ID}${NC}"
 echo -e "${YELLOW}Region: ${REGION}${NC}"
 echo -e "${YELLOW}Service: ${SERVICE_NAME}${NC}"
+echo -e "${YELLOW}MongoDB URI: ${MONGODB_URI:0:30}...${NC}"
 echo ""
 
 # Authenticate with Google Cloud
@@ -91,7 +113,7 @@ gcloud run deploy ${SERVICE_NAME} \
     --cpu=1 \
     --min-instances=0 \
     --max-instances=10 \
-    --set-env-vars="NODE_ENV=production,PORT=8080,MONGODB_URI=${MONGODB_URI},DB_NAME=${DB_NAME:-social_appliance},JWT_SECRET=${JWT_SECRET:-change-me-in-production},MAGIC_SECRET_KEY=${MAGIC_SECRET_KEY:-},LOAD_SEED_DATA=${LOAD_SEED_DATA:-true},FLUSH_DB=${FLUSH_DB:-false}" \
+    --set-env-vars="NODE_ENV=production,PORT=8080,MONGODB_URI=${MONGODB_URI},DB_NAME=${DB_NAME:-social_appliance},JWT_SECRET=${JWT_SECRET},MAGIC_SECRET_KEY=${MAGIC_SECRET_KEY:-},LOAD_SEED_DATA=${LOAD_SEED_DATA:-true},FLUSH_DB=${FLUSH_DB:-false}" \
     --timeout=300
 
 # Get service URL
@@ -111,7 +133,7 @@ echo ""
 echo -e "${GREEN}Important Notes:${NC}"
 echo "1. Cloud Run is stateless - using MongoDB Atlas for database"
 echo "2. Authentication is stateless - client sends tokens with each request"
-echo "3. Update CORS_ORIGIN in your environment to: ${SERVICE_URL}"
+echo "3. CORS allows all origins by default"
 echo "4. For custom domain, see: https://cloud.google.com/run/docs/mapping-custom-domains"
 echo ""
 echo -e "${GREEN}Useful commands:${NC}"
@@ -119,9 +141,9 @@ echo "  View logs: gcloud run services logs read ${SERVICE_NAME} --region=${REGI
 echo "  Update service: gcloud run services update ${SERVICE_NAME} --region=${REGION}"
 echo "  Delete service: gcloud run services delete ${SERVICE_NAME} --region=${REGION}"
 echo ""
-echo -e "${GREEN}Environment Variables to Set:${NC}"
-echo "  export GCLOUD_PROJECT_ID=${PROJECT_ID}"
-echo "  export MONGODB_URI=your-mongodb-atlas-uri"
-echo "  export JWT_SECRET=your-jwt-secret"
-echo "  export MAGIC_SECRET_KEY=your-magic-secret-key"
+echo -e "${GREEN}Configuration loaded from .env file${NC}"
+echo "  GCLOUD_PROJECT_ID=${PROJECT_ID}"
+echo "  MONGODB_URI=${MONGODB_URI:0:30}..."
+echo "  JWT_SECRET=***"
+echo "  MAGIC_SECRET_KEY=${MAGIC_SECRET_KEY:+***}"
 echo -e "${NC}"

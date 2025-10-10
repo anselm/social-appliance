@@ -207,13 +207,14 @@ gcloud auth login
 gcloud auth configure-docker
 ```
 
-4. **Set environment variables:**
+4. **Configure environment variables in .env file:**
 ```bash
-export GCLOUD_PROJECT_ID=your-project-id
-export MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/social_appliance
-export JWT_SECRET=your-jwt-secret
-export MAGIC_SECRET_KEY=your-magic-secret-key
-export LOAD_SEED_DATA=true
+# Edit your .env file and add:
+GCLOUD_PROJECT_ID=your-project-id
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/social_appliance
+JWT_SECRET=your-jwt-secret
+MAGIC_SECRET_KEY=your-magic-secret-key
+LOAD_SEED_DATA=true
 ```
 
 5. **Deploy:**
@@ -221,7 +222,7 @@ export LOAD_SEED_DATA=true
 npm run gcloud:run
 ```
 
-This will:
+The script will automatically read your `.env` file and:
 - Build the Docker image (builds client and includes it)
 - Push to Google Artifact Registry
 - Deploy to Cloud Run on port 8080
@@ -249,7 +250,7 @@ gcloud run services delete social-appliance --region=us-central1
 **Docker Compose (Local):**
 - **App Container:** Node.js application with PM2 cluster mode on port 8000
 - **MongoDB Container:** MongoDB 7 with replica set for transactions
-- **Caddy Container:** Reverse proxy with automatic HTTPS (proxies to app:8000)
+-  **Caddy Container:** Reverse proxy with automatic HTTPS (proxies to app:8000)
 - **Health Checks:** Automatic monitoring and restart
 - **Volumes:** Persistent data for MongoDB and Caddy
 - **Networks:** Isolated networks for security
@@ -264,7 +265,18 @@ gcloud run services delete social-appliance --region=us-central1
 
 ### Environment Variables
 
-**Docker Compose (.env):**
+**Local Development (.env):**
+```bash
+PORT=8000
+CLIENTPORT=8001
+MONGODB_URI=mongodb://localhost:27017
+DB_NAME=social_appliance
+JWT_SECRET=your-jwt-secret
+MAGIC_SECRET_KEY=your-magic-secret-key
+LOAD_SEED_DATA=true
+```
+
+**Docker Compose (docker/.env):**
 ```bash
 NODE_ENV=production
 PORT=8000
@@ -278,15 +290,17 @@ FLUSH_DB=false
 PM2_INSTANCES=max
 ```
 
-**Cloud Run (Environment Variables):**
+**Cloud Run (root .env):**
 ```bash
-export GCLOUD_PROJECT_ID=your-project-id
-export MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/social_appliance
-export JWT_SECRET=your-jwt-secret
-export MAGIC_SECRET_KEY=your-magic-secret-key
-export DB_NAME=social_appliance
-export LOAD_SEED_DATA=true
-export FLUSH_DB=false
+GCLOUD_PROJECT_ID=your-project-id
+GCLOUD_REGION=us-central1
+GCLOUD_SERVICE_NAME=social-appliance
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/social_appliance
+JWT_SECRET=your-jwt-secret
+MAGIC_SECRET_KEY=your-magic-secret-key
+DB_NAME=social_appliance
+LOAD_SEED_DATA=true
+FLUSH_DB=false
 ```
 
 ## Project Structure
@@ -408,6 +422,7 @@ The application uses permissive CORS handling - **all origins are allowed** by d
 ```bash
 # Server
 PORT=8000
+CLIENTPORT=8001
 
 # Database
 MONGODB_URI=mongodb://localhost:27017
@@ -419,6 +434,11 @@ JWT_SECRET=your-jwt-secret
 
 # Seed Data
 LOAD_SEED_DATA=true
+
+# Google Cloud (for deployment)
+GCLOUD_PROJECT_ID=your-project-id
+GCLOUD_REGION=us-central1
+GCLOUD_SERVICE_NAME=social-appliance
 ```
 
 ### Client Configuration (client-svelte/.env)
@@ -449,6 +469,7 @@ Includes: App (port 8000) + MongoDB + Caddy (HTTPS)
 ### 2. Google Cloud Run (Recommended for Serverless)
 Deploy to Google Cloud Run with MongoDB Atlas:
 ```bash
+# Configure .env file first with GCLOUD_PROJECT_ID and MONGODB_URI
 npm run gcloud:run
 ```
 Includes: Stateless app (port 8080) + MongoDB Atlas + Auto-scaling
@@ -547,11 +568,11 @@ Console commands:
 
 ### Cloud Run deployment issues
 - Ensure gcloud CLI is installed and authenticated
-- Verify `GCLOUD_PROJECT_ID` is set correctly
+- Verify `GCLOUD_PROJECT_ID` is set in `.env` file
 - Check that MongoDB Atlas connection string is correct
 - Whitelist Cloud Run IP ranges in MongoDB Atlas
 - View logs: `gcloud run services logs read social-appliance`
-- Check environment variables are set correctly
+- Check environment variables are set correctly in `.env`
 
 ### MongoDB Atlas connection issues
 - Verify connection string format
