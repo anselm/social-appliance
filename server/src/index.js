@@ -70,27 +70,62 @@ app.use((err, req, res, next) => {
 async function start() {
   let dbConnected = false;
   
+  // Log critical environment variables
+  Logger.info('=== Environment Configuration ===');
+  Logger.info(`MONGODB_URI: ${process.env.MONGODB_URI ? process.env.MONGODB_URI.substring(0, 50) + '...' : 'NOT SET'}`);
+  Logger.info(`DB_NAME: ${process.env.DB_NAME || 'social_appliance (default)'}`);
+  Logger.info(`NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+  Logger.info(`LOAD_SEED_DATA: ${process.env.LOAD_SEED_DATA}`);
+  Logger.info(`FLUSH_DB: ${process.env.FLUSH_DB}`);
+  Logger.info('================================');
+  
   // Try to connect to MongoDB, but don't fail if it's unavailable
   try {
     await connectDB();
     Logger.success('MongoDB connected successfully');
     dbConnected = true;
     
+    // Immediately check what's in the database
+    const { getDB } = await import('./db/connection.js');
+    const db = await getDB();
+    
+    Logger.info('=== Database Status Check ===');
+    const entityCount = await db.collection('entities').countDocuments();
+    Logger.info(`Total entities in database: ${entityCount}`);
+    
+    if (entityCount > 0) {
+      // Check for root entity
+      const rootEntity = await db.collection('entities').findOne({ slug: '/' });
+      if (rootEntity) {
+        Logger.success(`✓ Root entity found: ${rootEntity.id} - "${rootEntity.title || 'Untitled'}"`);
+      } else {
+        Logger.error('✗ Root entity (slug: "/") NOT FOUND');
+        
+        // Show what entities exist
+        const sampleEntities = await db.collection('entities').find({}).limit(10).toArray();
+        Logger.info('Sample entities in database:');
+        sampleEntities.forEach(e => {
+          Logger.info(`  - ${e.slug || 'no-slug'} (${e.type}) - "${e.title || 'Untitled'}" [${e.id}]`);
+        });
+      }
+    } else {
+      Logger.warn('Database is empty - no entities found');
+    }
+    Logger.info('============================');
+    
     // Flush database if requested
     if (process.env.FLUSH_DB === 'true') {
       Logger.warn('Flushing database...');
-      const { getDB } = await import('./db/connection.js');
-      const db = await getDB();
       await db.collection('entities').deleteMany({});
       await db.collection('relationships').deleteMany({});
       Logger.success('Database flushed');
     }
     
-    // Load seed data if enabled
-    if (process.env.LOAD_SEED_DATA !== 'false') {
+    // Load seed data if enabled and database is empty
+    if (process.env.LOAD_SEED_DATA !== 'false' && entityCount === 0) {
+      Logger.info('Database is empty, attempting to load seed data...');
       const seedDataPath = process.env.SEED_DATA_PATH || join(rootDir, 'seed-data');
-      Logger.info(`Attempting to load seed data from: ${seedDataPath}`);
-      Logger.info(`Absolute seed data path: ${join(process.cwd(), seedDataPath)}`);
+      Logger.info(`Seed data path: ${seedDataPath}`);
       
       // Check if seed data directory exists
       const fs = await import('fs');
@@ -98,8 +133,7 @@ async function start() {
         Logger.success('Seed data directory found!');
         try {
           const files = await readdir(seedDataPath);
-          Logger.info(`Seed data directory contains ${files.length} files/folders`);
-          Logger.info(`Files: ${files.join(', ')}`);
+          Logger.info(`Seed data directory contains ${files.length} files/folders: ${files.join(', ')}`);
           
           // Look for .info.js files recursively
           const infoFiles = [];
@@ -116,58 +150,38 @@ async function start() {
           }
           await findInfoFiles(seedDataPath);
           Logger.info(`Found ${infoFiles.length} .info.js files`);
+          
           if (infoFiles.length > 0) {
-            Logger.info(`Info files: ${infoFiles.map(f => f.replace(seedDataPath, '')).join(', ')}`);
+            const seedLoader = new SeedLoader();
+            await seedLoader.loadSeedData(seedDataPath);
+            Logger.success('Seed data loaded successfully');
+            
+            // Verify root entity was created
+            const rootEntity = await db.collection('entities').findOne({ slug: '/' });
+            if (rootEntity) {
+              Logger.success(`Root entity created: ${rootEntity.id}`);
+            } else {
+              Logger.error('Root entity still not found after seed data load!');
+            }
+          } else {
+            Logger.warn('No .info.js files found in seed data directory');
           }
-        } catch (readError) {
-          Logger.error('Error reading seed data directory:', readError);
+        } catch (seedError) {
+          Logger.error('Failed to load seed data:', seedError);
+          Logger.error('Stack trace:', seedError.stack);
         }
       } else {
         Logger.error(`Seed data directory NOT found at: ${seedDataPath}`);
-        Logger.info('Checking what exists in current directory:');
+        Logger.info('Current directory contents:');
         try {
           const cwdFiles = await readdir(process.cwd());
-          Logger.info(`Current directory (${process.cwd()}) contains: ${cwdFiles.join(', ')}`);
-          
-          // Check if seed-data exists at root
-          const rootSeedPath = join(process.cwd(), 'seed-data');
-          if (fs.existsSync(rootSeedPath)) {
-            Logger.info(`Found seed-data at: ${rootSeedPath}`);
-            const rootSeedFiles = await readdir(rootSeedPath);
-            Logger.info(`Root seed-data contains: ${rootSeedFiles.join(', ')}`);
-          }
-        } catch (cwdError) {
-          Logger.error('Error reading current directory:', cwdError);
+          Logger.info(`  ${cwdFiles.join(', ')}`);
+        } catch (e) {
+          Logger.error('Could not read current directory');
         }
       }
-      
-      try {
-        const seedLoader = new SeedLoader();
-        await seedLoader.loadSeedData(seedDataPath);
-        Logger.success('Seed data loaded successfully');
-        
-        // Verify root entity exists
-        const { getDB } = await import('./db/connection.js');
-        const db = await getDB();
-        const rootEntity = await db.collection('entities').findOne({ slug: '/' });
-        if (rootEntity) {
-          Logger.success(`Root entity verified: ${rootEntity.id}`);
-        } else {
-          Logger.error('Root entity not found after seed data load!');
-          
-          // Check if any entities exist
-          const entityCount = await db.collection('entities').countDocuments();
-          Logger.info(`Total entities in database: ${entityCount}`);
-          
-          if (entityCount > 0) {
-            const sampleEntities = await db.collection('entities').find({}).limit(5).toArray();
-            Logger.info('Sample entities:', sampleEntities.map(e => ({ id: e.id, slug: e.slug, type: e.type })));
-          }
-        }
-      } catch (seedError) {
-        Logger.error('Failed to load seed data:', seedError);
-        Logger.error('Stack trace:', seedError.stack);
-      }
+    } else if (entityCount > 0) {
+      Logger.info('Database already has data, skipping seed data load');
     } else {
       Logger.info('Seed data loading disabled (LOAD_SEED_DATA=false)');
     }
@@ -201,15 +215,6 @@ async function start() {
     }
     
     Logger.info('Test endpoints available at /api/test/*');
-    
-    // Log environment variables (sanitized)
-    Logger.debug('Environment variables:');
-    Logger.debug(`  PORT: ${PORT}`);
-    Logger.debug(`  NODE_ENV: ${process.env.NODE_ENV}`);
-    Logger.debug(`  MONGODB_URI: ${process.env.MONGODB_URI ? '***set***' : 'not set'}`);
-    Logger.debug(`  DB_NAME: ${process.env.DB_NAME || 'social_appliance'}`);
-    Logger.debug(`  LOAD_SEED_DATA: ${process.env.LOAD_SEED_DATA}`);
-    Logger.debug(`  FLUSH_DB: ${process.env.FLUSH_DB}`);
   });
 }
 

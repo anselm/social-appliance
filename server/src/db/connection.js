@@ -13,8 +13,11 @@ export async function connectDB() {
   try {
     const options = {};
     
+    // Log connection details (sanitized)
     const sanitizedUri = uri.replace(/\/\/([^:]+):([^@]+)@/, '//$1:****@');
-    Logger.info(`Connecting to MongoDB at: ${sanitizedUri}`);
+    Logger.info(`Connecting to MongoDB...`);
+    Logger.info(`  URI: ${sanitizedUri}`);
+    Logger.info(`  Database: ${dbName}`);
     
     client = new MongoClient(uri, options);
     await client.connect();
@@ -23,7 +26,8 @@ export async function connectDB() {
     await client.db(dbName).command({ ping: 1 });
     
     db = client.db(dbName);
-    Logger.success(`Connected to MongoDB (database: ${dbName})`);
+    Logger.success(`✓ Connected to MongoDB`);
+    Logger.success(`✓ Using database: ${dbName}`);
     
     // Create unique index on slug field
     await createIndexes(db);
@@ -31,9 +35,11 @@ export async function connectDB() {
     return db;
   } catch (error) {
     Logger.error('MongoDB connection error:', error);
+    Logger.error(`Failed to connect to: ${uri.split('@')[1] || 'unknown host'}`);
+    Logger.error(`Database name: ${dbName}`);
+    
     if (error.code === 18) {
-      Logger.error('Authentication failed. Please check your MongoDB credentials in the .env file.');
-      Logger.info('Expected format: MONGODB_URI=mongodb://username:password@host:port/database');
+      Logger.error('Authentication failed. Please check your MongoDB credentials.');
     }
     throw error;
   }
@@ -49,10 +55,10 @@ async function createIndexes(db) {
         background: true 
       }
     );
-    Logger.success('Created unique index on slug field');
+    Logger.success('✓ Database indexes verified');
   } catch (error) {
     if (error.code !== 85) { // 85 = IndexOptionsConflict
-      Logger.warn('Could not create unique index on slug:', error);
+      Logger.warn('Could not create unique index on slug:', error.message);
     }
   }
 }
