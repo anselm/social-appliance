@@ -12,7 +12,7 @@
 	encode gzip zstd
 
 	# Health check endpoint
-	handle_path /healthz {
+	handle_path /api/health {
 		reverse_proxy app:3000
 	}
 

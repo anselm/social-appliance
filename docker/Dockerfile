@@ -48,9 +48,9 @@ ENV PORT=8080
 # Expose port (Cloud Run uses 8080 by default)
 EXPOSE 8080
 
-# Health check
+# Health check - use /api/health endpoint
 HEALTHCHECK --interval=15s --timeout=3s --retries=10 --start-period=20s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/healthz || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
 
 # Start with PM2
 CMD ["pm2-runtime", "start", "ecosystem.config.js", "--env", "production"]
