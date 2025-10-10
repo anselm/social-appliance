@@ -17,6 +17,11 @@ COPY server ./server
 COPY client-svelte ./client-svelte
 COPY seed-data ./seed-data
 
+# Verify seed-data was copied
+RUN echo "=== Checking seed-data in build stage ===" && \
+    ls -la seed-data/ && \
+    find seed-data -name "*.info.js" -type f
+
 # Build client
 WORKDIR /app/client-svelte
 RUN npm run build
@@ -47,8 +52,14 @@ COPY docker/ecosystem.config.cjs ./ecosystem.config.cjs
 # Verify files are in place
 RUN echo "=== Verifying build ===" && \
     ls -la && \
+    echo "=== Server files ===" && \
     ls -la server/src/ && \
+    echo "=== Client dist ===" && \
     ls -la client-svelte/dist/ && \
+    echo "=== Seed data ===" && \
+    ls -la seed-data/ && \
+    find seed-data -name "*.info.js" -type f && \
+    echo "=== PM2 config ===" && \
     cat ecosystem.config.cjs && \
     echo "=== Node version ===" && \
     node --version && \
@@ -57,7 +68,7 @@ RUN echo "=== Verifying build ===" && \
     echo "=== Architecture ===" && \
     uname -m && \
     echo "=== CA Certificates ===" && \
-    ls -la /etc/ssl/certs/
+    ls -la /etc/ssl/certs/ | head -20
 
 # Set environment
 ENV NODE_ENV=production

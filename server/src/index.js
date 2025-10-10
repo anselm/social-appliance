@@ -9,6 +9,7 @@ import { SeedLoader } from './services/seedLoader.js';
 import { Logger } from './utils/logger.js';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { readdir } from 'fs/promises';
 
 // Load .env from project root
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -89,15 +90,55 @@ async function start() {
     if (process.env.LOAD_SEED_DATA !== 'false') {
       const seedDataPath = process.env.SEED_DATA_PATH || join(rootDir, 'seed-data');
       Logger.info(`Attempting to load seed data from: ${seedDataPath}`);
+      Logger.info(`Absolute seed data path: ${join(process.cwd(), seedDataPath)}`);
       
       // Check if seed data directory exists
       const fs = await import('fs');
       if (fs.existsSync(seedDataPath)) {
-        Logger.info('Seed data directory found');
-        const files = fs.readdirSync(seedDataPath);
-        Logger.info(`Seed data files: ${files.join(', ')}`);
+        Logger.success('Seed data directory found!');
+        try {
+          const files = await readdir(seedDataPath);
+          Logger.info(`Seed data directory contains ${files.length} files/folders`);
+          Logger.info(`Files: ${files.join(', ')}`);
+          
+          // Look for .info.js files recursively
+          const infoFiles = [];
+          async function findInfoFiles(dir) {
+            const entries = await readdir(dir, { withFileTypes: true });
+            for (const entry of entries) {
+              const fullPath = join(dir, entry.name);
+              if (entry.isDirectory()) {
+                await findInfoFiles(fullPath);
+              } else if (entry.name.endsWith('.info.js')) {
+                infoFiles.push(fullPath);
+              }
+            }
+          }
+          await findInfoFiles(seedDataPath);
+          Logger.info(`Found ${infoFiles.length} .info.js files`);
+          if (infoFiles.length > 0) {
+            Logger.info(`Info files: ${infoFiles.map(f => f.replace(seedDataPath, '')).join(', ')}`);
+          }
+        } catch (readError) {
+          Logger.error('Error reading seed data directory:', readError);
+        }
       } else {
-        Logger.warn(`Seed data directory not found at: ${seedDataPath}`);
+        Logger.error(`Seed data directory NOT found at: ${seedDataPath}`);
+        Logger.info('Checking what exists in current directory:');
+        try {
+          const cwdFiles = await readdir(process.cwd());
+          Logger.info(`Current directory (${process.cwd()}) contains: ${cwdFiles.join(', ')}`);
+          
+          // Check if seed-data exists at root
+          const rootSeedPath = join(process.cwd(), 'seed-data');
+          if (fs.existsSync(rootSeedPath)) {
+            Logger.info(`Found seed-data at: ${rootSeedPath}`);
+            const rootSeedFiles = await readdir(rootSeedPath);
+            Logger.info(`Root seed-data contains: ${rootSeedFiles.join(', ')}`);
+          }
+        } catch (cwdError) {
+          Logger.error('Error reading current directory:', cwdError);
+        }
       }
       
       try {
@@ -113,6 +154,15 @@ async function start() {
           Logger.success(`Root entity verified: ${rootEntity.id}`);
         } else {
           Logger.error('Root entity not found after seed data load!');
+          
+          // Check if any entities exist
+          const entityCount = await db.collection('entities').countDocuments();
+          Logger.info(`Total entities in database: ${entityCount}`);
+          
+          if (entityCount > 0) {
+            const sampleEntities = await db.collection('entities').find({}).limit(5).toArray();
+            Logger.info('Sample entities:', sampleEntities.map(e => ({ id: e.id, slug: e.slug, type: e.type })));
+          }
         }
       } catch (seedError) {
         Logger.error('Failed to load seed data:', seedError);
