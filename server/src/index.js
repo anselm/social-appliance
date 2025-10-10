@@ -30,15 +30,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Health check endpoints (before other routes)
-app.get('/healthz', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
 // API Routes
 app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
@@ -103,7 +94,7 @@ async function start() {
       Logger.success(`Server running on http://localhost:${PORT}`);
       Logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
       Logger.info(`CORS: Allowing all origins`);
-      Logger.info(`Health check: http://localhost:${PORT}/healthz`);
+      Logger.info(`Health check: http://localhost:${PORT}/api/health`);
       Logger.info(`Authentication: Stateless (client-side tokens)`);
       Logger.info(`Serving static client files`);
       
