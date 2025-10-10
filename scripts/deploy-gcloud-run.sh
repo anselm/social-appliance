@@ -106,6 +106,7 @@ echo -e "${GREEN}Step 5: Pushing image to Artifact Registry...${NC}"
 docker push ${GCR_IMAGE}
 
 # Deploy to Cloud Run
+# Note: PORT is automatically set by Cloud Run, so we don't include it in env vars
 echo -e "${GREEN}Step 6: Deploying to Cloud Run...${NC}"
 gcloud run deploy ${SERVICE_NAME} \
     --image=${GCR_IMAGE} \
@@ -117,7 +118,7 @@ gcloud run deploy ${SERVICE_NAME} \
     --cpu=1 \
     --min-instances=0 \
     --max-instances=10 \
-    --set-env-vars="NODE_ENV=production,PORT=8080,MONGODB_URI=${MONGODB_URI},DB_NAME=${DB_NAME:-social_appliance},JWT_SECRET=${JWT_SECRET},MAGIC_SECRET_KEY=${MAGIC_SECRET_KEY:-},LOAD_SEED_DATA=${LOAD_SEED_DATA:-true},FLUSH_DB=${FLUSH_DB:-false}" \
+    --set-env-vars="NODE_ENV=production,MONGODB_URI=${MONGODB_URI},DB_NAME=${DB_NAME:-social_appliance},JWT_SECRET=${JWT_SECRET},MAGIC_SECRET_KEY=${MAGIC_SECRET_KEY:-},LOAD_SEED_DATA=${LOAD_SEED_DATA:-true},FLUSH_DB=${FLUSH_DB:-false}" \
     --timeout=300
 
 # Get service URL
@@ -138,7 +139,8 @@ echo -e "${GREEN}Important Notes:${NC}"
 echo "1. Cloud Run is stateless - using MongoDB Atlas for database"
 echo "2. Authentication is stateless - client sends tokens with each request"
 echo "3. CORS allows all origins by default"
-echo "4. For custom domain, see: https://cloud.google.com/run/docs/mapping-custom-domains"
+echo "4. Cloud Run automatically sets PORT environment variable (8080)"
+echo "5. For custom domain, see: https://cloud.google.com/run/docs/mapping-custom-domains"
 echo ""
 echo -e "${GREEN}Useful commands:${NC}"
 echo "  View logs: gcloud run services logs read ${SERVICE_NAME} --region=${REGION}"
