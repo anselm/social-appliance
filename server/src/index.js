@@ -67,8 +67,10 @@ app.use((err, req, res, next) => {
 
 // Start server
 async function start() {
+  // Try to connect to MongoDB, but don't fail if it's unavailable
   try {
     await connectDB();
+    Logger.success('MongoDB connected successfully');
     
     // Flush database if requested
     if (process.env.FLUSH_DB === 'true') {
@@ -86,34 +88,36 @@ async function start() {
       const seedLoader = new SeedLoader();
       await seedLoader.loadSeedData(seedDataPath);
     }
-    
-    app.listen(PORT, () => {
-      Logger.success(`Server running on http://localhost:${PORT}`);
-      Logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      Logger.info(`CORS: Allowing all origins`);
-      Logger.info(`Health check: http://localhost:${PORT}/api/health`);
-      Logger.info(`Authentication: Stateless (client-side tokens)`);
-      Logger.info(`Serving static client files from: ${clientBuildPath}`);
-      
-      // Log authentication status
-      if (process.env.MAGIC_SECRET_KEY) {
-        Logger.success('Magic.link authentication enabled');
-      } else {
-        Logger.warn('Magic.link authentication disabled (MAGIC_SECRET_KEY not set)');
-      }
-      
-      if (process.env.JWT_SECRET && process.env.JWT_SECRET !== 'default-secret-change-in-production') {
-        Logger.success('JWT authentication configured');
-      } else {
-        Logger.warn('Using default JWT secret - change in production!');
-      }
-      
-      Logger.info('Test endpoints available at /api/test/*');
-    });
   } catch (error) {
-    Logger.error('Failed to start server:', error);
-    process.exit(1);
+    Logger.error('MongoDB connection failed:', error);
+    Logger.warn('Server will start without database connection');
+    Logger.warn('Database-dependent features will not be available');
   }
+  
+  // Start the server regardless of database connection status
+  app.listen(PORT, () => {
+    Logger.success(`Server running on http://localhost:${PORT}`);
+    Logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    Logger.info(`CORS: Allowing all origins`);
+    Logger.info(`Health check: http://localhost:${PORT}/api/health`);
+    Logger.info(`Authentication: Stateless (client-side tokens)`);
+    Logger.info(`Serving static client files from: ${clientBuildPath}`);
+    
+    // Log authentication status
+    if (process.env.MAGIC_SECRET_KEY) {
+      Logger.success('Magic.link authentication enabled');
+    } else {
+      Logger.warn('Magic.link authentication disabled (MAGIC_SECRET_KEY not set)');
+    }
+    
+    if (process.env.JWT_SECRET && process.env.JWT_SECRET !== 'default-secret-change-in-production') {
+      Logger.success('JWT authentication configured');
+    } else {
+      Logger.warn('Using default JWT secret - change in production!');
+    }
+    
+    Logger.info('Test endpoints available at /api/test/*');
+  });
 }
 
 start();
