@@ -8,9 +8,9 @@ COPY package*.json ./
 COPY server/package*.json ./server/
 COPY client-svelte/package*.json ./client-svelte/
 
-# Install dependencies
+# Install dependencies with legacy peer deps to handle version conflicts
 RUN cd server && npm ci
-RUN cd client-svelte && npm ci
+RUN cd client-svelte && npm ci --legacy-peer-deps
 
 # Copy source files
 COPY server ./server
