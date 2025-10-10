@@ -34,7 +34,7 @@ A decentralized social platform built with Node.js, MongoDB, and Svelte, featuri
   - PM2 process management
   - Health checks and monitoring
   - Stateless authentication (no server-side sessions)
-  - Smart CORS handling (auto-detects origins in production)
+  - Permissive CORS (allows all origins)
 
 ## Quick Start
 
@@ -116,8 +116,6 @@ npm run dev
 
 The API server runs on http://localhost:8001 and the Svelte client on http://localhost:8000.
 
-**Note:** In development mode, CORS allows all origins automatically.
-
 ### Production Build
 
 Build the client for production:
@@ -130,10 +128,10 @@ Run the production server (serves both API and client):
 npm start
 ```
 
-The server will: - Serve the API on `/api/*` routes
+The server will:
+- Serve the API on `/api/*` routes
 - Serve the built Svelte app for all other routes
 - Automatically seed the database if `LOAD_SEED_DATA` is not set to `false`
-- Auto-detect and allow localhost and Cloud Run origins
 
 ## Docker Deployment
 
@@ -221,11 +219,9 @@ This will:
 - Deploy to Cloud Run
 - Configure environment variables
 - Set up automatic scaling
-- Auto-detect Cloud Run URL for CORS
 
 6. **Access your application:**
    - Cloud Run will provide a URL like: https://social-appliance-xxxxx-uc.a.run.app
-   - CORS will automatically allow this origin (*.run.app pattern)
 
 7. **Useful commands:**
 ```bash
@@ -257,7 +253,6 @@ gcloud run services delete social-appliance --region=us-central1
 - **Auto-scaling:** 0 to 10 instances based on traffic
 - **Health Checks:** Built-in monitoring
 - **Stateless Auth:** Client sends tokens with each request
-- **Smart CORS:** Auto-detects Cloud Run origins
 
 ### Environment Variables
 
@@ -270,8 +265,6 @@ MONGODB_URI=mongodb://mongo:27017/social_appliance?replicaSet=rs0
 DB_NAME=social_appliance
 MAGIC_SECRET_KEY=your_magic_secret_key
 JWT_SECRET=your_jwt_secret
-CORS_ORIGIN=https://yourdomain.com
-# Or use CORS_ORIGIN=* to allow all origins
 LOAD_SEED_DATA=true
 FLUSH_DB=false
 PM2_INSTANCES=max
@@ -286,7 +279,6 @@ export MAGIC_SECRET_KEY=your-magic-secret-key
 export DB_NAME=social_appliance
 export LOAD_SEED_DATA=true
 export FLUSH_DB=false
-# CORS_ORIGIN is optional - Cloud Run URLs are auto-detected
 ```
 
 ## Project Structure
@@ -369,34 +361,7 @@ Magic.link provides passwordless authentication via email.
 
 ## CORS Configuration
 
-The application uses smart CORS handling:
-
-**Development Mode:**
-- All origins are automatically allowed
-- No configuration needed
-
-**Production Mode:**
-- Automatically allows:
-  - `localhost` on any port
-  - `*.run.app` domains (Google Cloud Run)
-  - Origins specified in `CORS_ORIGIN` environment variable
-- Set `CORS_ORIGIN=*` to allow all origins
-- Set `CORS_ORIGIN=https://domain1.com,https://domain2.com` for multiple specific domains
-
-**Examples:**
-```bash
-# Allow all origins
-CORS_ORIGIN=*
-
-# Allow specific domain
-CORS_ORIGIN=https://yourdomain.com
-
-# Allow multiple domains
-CORS_ORIGIN=https://yourdomain.com,https://www.yourdomain.com,https://app.yourdomain.com
-
-# Leave empty to use auto-detection (localhost + *.run.app)
-CORS_ORIGIN=
-```
+The application uses permissive CORS handling - **all origins are allowed** by default. This simplifies development and deployment without compromising security since authentication is handled via JWT tokens.
 
 ## API Endpoints
 
@@ -434,9 +399,7 @@ CORS_ORIGIN=
 
 ```bash
 # Server
-PORT=3000
-SERVERPORT=8001
-NODE_ENV=development
+PORT=8001
 
 # Database
 MONGODB_URI=mongodb://localhost:27017
@@ -445,9 +408,6 @@ DB_NAME=social_appliance
 # Authentication
 MAGIC_SECRET_KEY=sk_live_your_key
 JWT_SECRET=your-jwt-secret
-
-# CORS (optional in production, auto-detects localhost and *.run.app)
-CORS_ORIGIN=
 
 # Seed Data
 LOAD_SEED_DATA=true
@@ -483,7 +443,7 @@ Deploy to Google Cloud Run with MongoDB Atlas:
 ```bash
 npm run gcloud:run
 ```
-Includes: Stateless app + MongoDB Atlas + Auto-scaling + Smart CORS
+Includes: Stateless app + MongoDB Atlas + Auto-scaling
 
 ### 3. Full Server Deployment
 Deploy manually with MongoDB:
@@ -530,7 +490,7 @@ Console commands:
 - **Use HTTPS in production**: Caddy handles this automatically (Docker Compose), Cloud Run provides it
 - **Keep secrets secure**: Never commit `.env` files to git
 - **Use environment variables**: For all secrets and configuration
-- **CORS is smart**: Auto-detects safe origins, but you can restrict further with `CORS_ORIGIN`
+- **CORS is permissive**: All origins allowed - security is handled via JWT tokens
 - **Nonce expiration**: Nonces expire after 5 minutes
 - **JWT expiration**: Tokens expire after 7 days by default
 - **MongoDB Atlas**: Use IP whitelisting and strong passwords
@@ -548,7 +508,6 @@ Console commands:
 - Test PWA features in Chrome DevTools → Application → Manifest
 - Use `docker-compose logs -f` to monitor container logs
 - Use `gcloud run services logs read` to view Cloud Run logs
-- CORS is permissive in development - all origins allowed
 
 ## Troubleshooting
 
@@ -584,7 +543,6 @@ Console commands:
 - Whitelist Cloud Run IP ranges in MongoDB Atlas
 - View logs: `gcloud run services logs read social-appliance`
 - Check environment variables are set correctly
-- CORS should work automatically for *.run.app domains
 
 ### MongoDB Atlas connection issues
 - Verify connection string format
@@ -593,19 +551,11 @@ Console commands:
 - Ensure cluster is running
 - Check network access settings
 
-### CORS errors
-- In development: All origins are allowed automatically
-- In production: Check server logs to see which origins are being rejected
-- Set `CORS_ORIGIN=*` to allow all origins (not recommended for production)
-- Verify the origin making the request
-- localhost and *.run.app are automatically allowed
-
 ### Authentication not working
 - Verify JWT token is being sent in Authorization header
 - Check that `JWT_SECRET` is set correctly
 - Ensure token hasn't expired (7 day default)
 - Check browser console for authentication errors
-- Verify CORS is configured correctly
 
 ### PWA not installing
 - Ensure HTTPS is enabled (required for PWA)
