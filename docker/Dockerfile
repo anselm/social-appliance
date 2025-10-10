@@ -41,6 +41,17 @@ RUN cd server && npm ci --omit=dev
 # Copy PM2 ecosystem config
 COPY docker/ecosystem.config.cjs ./ecosystem.config.cjs
 
+# Verify files are in place
+RUN echo "=== Verifying build ===" && \
+    ls -la && \
+    ls -la server/src/ && \
+    ls -la client-svelte/dist/ && \
+    cat ecosystem.config.cjs && \
+    echo "=== Node version ===" && \
+    node --version && \
+    echo "=== PM2 version ===" && \
+    pm2 --version
+
 # Set environment
 ENV NODE_ENV=production
 
@@ -51,5 +62,6 @@ EXPOSE 8080
 HEALTHCHECK --interval=15s --timeout=3s --retries=10 --start-period=20s \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
 
-# Start with PM2 - use exec form to avoid shell issues
-CMD ["pm2-runtime", "start", "ecosystem.config.cjs", "--env", "production"]
+# Start with node directly instead of PM2 to debug
+# Once working, we can switch back to PM2
+CMD ["node", "server/src/index.js"]
