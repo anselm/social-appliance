@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import session from 'express-session';
 import dotenv from 'dotenv';
 import { connectDB } from './db/connection.js';
 import apiRoutes from './routes/api.js';
@@ -29,23 +28,6 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-
-// Session configuration - using in-memory store
-const sessionConfig = {
-  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
-  }
-};
-
-Logger.info('Using in-memory session store (sessions will be lost on restart)');
-
-app.use(session(sessionConfig));
 
 // Health check endpoints (before other routes)
 app.get('/healthz', (req, res) => {
@@ -125,6 +107,7 @@ async function start() {
       Logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
       Logger.info(`CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:8000'}`);
       Logger.info(`Health check: http://localhost:${serverPort}/healthz`);
+      Logger.info(`Authentication: Stateless (client-side tokens)`);
       
       if (process.env.NODE_ENV === 'production') {
         Logger.info('Serving static client files');

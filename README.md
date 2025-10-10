@@ -7,7 +7,7 @@ A decentralized social platform built with Node.js, MongoDB, and Svelte, featuri
 - **Multiple Authentication Methods:**
   - Sign-In with Ethereum (SIWE) via MetaMask
   - Passwordless email authentication via Magic.link
-  - Session-based and JWT token authentication
+  - Stateless JWT token authentication
 
 - **Flexible Data Storage:**
   - MongoDB for persistent storage
@@ -33,6 +33,7 @@ A decentralized social platform built with Node.js, MongoDB, and Svelte, featuri
   - Automatic HTTPS with Caddy (Docker Compose)
   - PM2 process management
   - Health checks and monitoring
+  - Stateless authentication (no server-side sessions)
 
 ## Quick Start
 
@@ -201,7 +202,6 @@ gcloud auth configure-docker
 ```bash
 export GCLOUD_PROJECT_ID=your-project-id
 export MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/social_appliance
-export SESSION_SECRET=your-session-secret
 export JWT_SECRET=your-jwt-secret
 export MAGIC_SECRET_KEY=your-magic-secret-key
 export LOAD_SEED_DATA=true
@@ -252,6 +252,7 @@ gcloud run services delete social-appliance --region=us-central1
 - **Automatic HTTPS:** Provided by Cloud Run
 - **Auto-scaling:** 0 to 10 instances based on traffic
 - **Health Checks:** Built-in monitoring
+- **Stateless Auth:** Client sends tokens with each request
 
 ### Environment Variables
 
@@ -263,7 +264,6 @@ DOMAIN=yourdomain.com
 MONGODB_URI=mongodb://mongo:27017/social_appliance?replicaSet=rs0
 DB_NAME=social_appliance
 MAGIC_SECRET_KEY=your_magic_secret_key
-SESSION_SECRET=your_session_secret
 JWT_SECRET=your_jwt_secret
 CORS_ORIGIN=https://yourdomain.com
 LOAD_SEED_DATA=true
@@ -275,7 +275,6 @@ PM2_INSTANCES=max
 ```bash
 export GCLOUD_PROJECT_ID=your-project-id
 export MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/social_appliance
-export SESSION_SECRET=your-session-secret
 export JWT_SECRET=your-jwt-secret
 export MAGIC_SECRET_KEY=your-magic-secret-key
 export DB_NAME=social_appliance
@@ -321,6 +320,8 @@ social-appliance/
 
 ## Authentication
 
+The application uses **stateless authentication** - the client sends authentication tokens with each request, and the server verifies them without maintaining session state. This makes the application fully stateless and perfect for serverless deployments like Cloud Run.
+
 ### Sign-In with Ethereum (SIWE)
 
 SIWE allows users to authenticate using their Ethereum wallet through MetaMask.
@@ -329,7 +330,8 @@ SIWE allows users to authenticate using their Ethereum wallet through MetaMask.
 1. User clicks "Sign in with MetaMask"
 2. Server generates a unique nonce
 3. User signs a message containing the nonce with their wallet
-4. Server verifies the signature and creates a session
+4. Server verifies the signature and returns a JWT token
+5. Client stores the token and sends it with each API request
 
 **No additional setup required** beyond having MetaMask installed.
 
@@ -355,17 +357,18 @@ Magic.link provides passwordless authentication via email.
 1. User enters their email
 2. Magic sends a one-time password or magic link
 3. User completes authentication
-4. Server verifies the DID token and creates a session
+4. Server verifies the DID token and returns a JWT token
+5. Client stores the token and sends it with each API request
 
 ## API Endpoints
 
 ### Authentication
 
 - `GET /api/nonce` - Get a nonce for SIWE
-- `POST /api/verify-siwe` - Verify SIWE signature
-- `POST /api/verify-magic` - Verify Magic.link DID token
-- `GET /api/me` - Get current user (requires auth)
-- `POST /api/logout` - Logout current user
+- `POST /api/verify-siwe` - Verify SIWE signature and get JWT token
+- `POST /api/verify-magic` - Verify Magic.link DID token and get JWT token
+- `GET /api/me` - Get current user (requires JWT token in Authorization header)
+- `POST /api/logout` - Logout (client-side token removal)
 
 ### Health
 
@@ -403,7 +406,6 @@ DB_NAME=social_appliance
 
 # Authentication
 MAGIC_SECRET_KEY=sk_live_your_key
-SESSION_SECRET=your-session-secret
 JWT_SECRET=your-jwt-secret
 
 # CORS
@@ -486,7 +488,7 @@ Console commands:
 
 ## Security Notes
 
-- **Change default secrets in production**: Update `SESSION_SECRET` and `JWT_SECRET`
+- **Change default secrets in production**: Update `JWT_SECRET`
 - **Use HTTPS in production**: Caddy handles this automatically (Docker Compose), Cloud Run provides it
 - **Keep secrets secure**: Never commit `.env` files to git
 - **Use environment variables**: For all secrets and configuration
@@ -495,6 +497,7 @@ Console commands:
 - **JWT expiration**: Tokens expire after 7 days by default
 - **MongoDB Atlas**: Use IP whitelisting and strong passwords
 - **Cloud Run**: Use Secret Manager for sensitive data
+- **Stateless authentication**: No server-side session state to manage
 
 ## Development Tips
 
@@ -502,7 +505,7 @@ Console commands:
 - Check server logs for authentication status on startup
 - Use browser DevTools to inspect authentication tokens
 - Test both authentication methods to ensure proper setup
-- Monitor MongoDB for session and entity data
+- Monitor MongoDB for entity data
 - Check browser console for ENS lookup status and results
 - Test PWA features in Chrome DevTools → Application → Manifest
 - Use `docker-compose logs -f` to monitor container logs
@@ -556,11 +559,12 @@ Console commands:
 - Check that server is running on the correct port
 - Update CORS_ORIGIN after deploying to Cloud Run
 
-### Session not persisting
-- Verify `SESSION_SECRET` is set
-- Check cookie settings in browser
-- Ensure `credentials: 'include'` in fetch requests
-- In production, ensure `secure: true` for cookies over HTTPS
+### Authentication not working
+- Verify JWT token is being sent in Authorization header
+- Check that `JWT_SECRET` is set correctly
+- Ensure token hasn't expired (7 day default)
+- Check browser console for authentication errors
+- Verify CORS is configured correctly
 
 ### PWA not installing
 - Ensure HTTPS is enabled (required for PWA)

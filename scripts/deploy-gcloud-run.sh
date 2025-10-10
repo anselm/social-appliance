@@ -91,7 +91,7 @@ gcloud run deploy ${SERVICE_NAME} \
     --cpu=1 \
     --min-instances=0 \
     --max-instances=10 \
-    --set-env-vars="NODE_ENV=production,PORT=8080,MONGODB_URI=${MONGODB_URI},DB_NAME=${DB_NAME:-social_appliance},SESSION_SECRET=${SESSION_SECRET:-change-me-in-production},JWT_SECRET=${JWT_SECRET:-change-me-in-production},MAGIC_SECRET_KEY=${MAGIC_SECRET_KEY:-},LOAD_SEED_DATA=${LOAD_SEED_DATA:-true},FLUSH_DB=${FLUSH_DB:-false}" \
+    --set-env-vars="NODE_ENV=production,PORT=8080,MONGODB_URI=${MONGODB_URI},DB_NAME=${DB_NAME:-social_appliance},JWT_SECRET=${JWT_SECRET:-change-me-in-production},MAGIC_SECRET_KEY=${MAGIC_SECRET_KEY:-},LOAD_SEED_DATA=${LOAD_SEED_DATA:-true},FLUSH_DB=${FLUSH_DB:-false}" \
     --timeout=300
 
 # Get service URL
@@ -110,8 +110,9 @@ echo -e "Access your app at: ${YELLOW}${SERVICE_URL}${NC}"
 echo ""
 echo -e "${GREEN}Important Notes:${NC}"
 echo "1. Cloud Run is stateless - using MongoDB Atlas for database"
-echo "2. Update CORS_ORIGIN in your environment to: ${SERVICE_URL}"
-echo "3. For custom domain, see: https://cloud.google.com/run/docs/mapping-custom-domains"
+echo "2. Authentication is stateless - client sends tokens with each request"
+echo "3. Update CORS_ORIGIN in your environment to: ${SERVICE_URL}"
+echo "4. For custom domain, see: https://cloud.google.com/run/docs/mapping-custom-domains"
 echo ""
 echo -e "${GREEN}Useful commands:${NC}"
 echo "  View logs: gcloud run services logs read ${SERVICE_NAME} --region=${REGION}"
@@ -121,7 +122,6 @@ echo ""
 echo -e "${GREEN}Environment Variables to Set:${NC}"
 echo "  export GCLOUD_PROJECT_ID=${PROJECT_ID}"
 echo "  export MONGODB_URI=your-mongodb-atlas-uri"
-echo "  export SESSION_SECRET=your-session-secret"
 echo "  export JWT_SECRET=your-jwt-secret"
 echo "  export MAGIC_SECRET_KEY=your-magic-secret-key"
 echo -e "${NC}"
