@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
       port: parseInt(env.CLIENTPORT || '8001'),
       proxy: {
         '/api': {
-          target: env.VITE_API_BASE_URL || `http://localhost:${env.PORT || '8000'}`,
+          target: env.VITE_API_BASE_URL || `http://localhost:${env.PORT || '8080'}`,
           changeOrigin: true
         }
       },

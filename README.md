@@ -30,7 +30,6 @@ A decentralized social platform built with Node.js, MongoDB, and Svelte, featuri
   - Docker containerization
   - Docker Compose orchestration (requires external MongoDB)
   - Google Cloud Run deployment with MongoDB Atlas
-  - Automatic HTTPS with Caddy (Docker Compose)
   - PM2 process management
   - Health checks and monitoring
   - Stateless authentication (no server-side sessions)
@@ -113,7 +112,7 @@ chmod +x scripts/generate-pwa-icons.sh
 ```bash
 npm run dev
 ```
-- Server runs on http://localhost:8000 (serves API + static files)
+- Server runs on http://localhost:8080 (serves API + static files)
 - Client dev server runs on http://localhost:8001 (with hot reload)
 
 **Option 2: Run only the server (if client is already built):**
@@ -121,7 +120,7 @@ npm run dev
 npm run build  # Build the client first
 npm run server:only
 ```
-- Server runs on http://localhost:8000 (serves API + built client from dist/)
+- Server runs on http://localhost:8080 (serves API + built client from dist/)
 - No need to run Vite dev server
 
 ### Production Build
@@ -169,14 +168,12 @@ npm run docker:deploy
 
 This will:
 - Build the Docker image (builds client and includes it in the image)
-- Start the application with PM2 on port 8000
-- Start Caddy reverse proxy with automatic HTTPS
+- Start the application with PM2 on port 8080
 - Set up health checks and monitoring
 - Connect to your external MongoDB service
 
 4. **Access the application:**
-- Local: http://localhost
-- With domain: https://yourdomain.com (after DNS configuration)
+- Local: http://localhost:8080
 
 5. **Useful commands:**
 ```bash
@@ -254,11 +251,9 @@ gcloud run services delete social-appliance --region=us-central1
 ### Docker Architecture
 
 **Docker Compose (Local):**
-- **App Container:** Node.js application with PM2 cluster mode on port 8000
-- **Caddy Container:** Reverse proxy with automatic HTTPS (proxies to app:8000)
+- **App Container:** Node.js application with PM2 cluster mode on port 8080
 - **External MongoDB:** MongoDB Atlas or other external MongoDB service
 - **Health Checks:** Automatic monitoring and restart
-- **Volumes:** Persistent data for Caddy
 - **Networks:** Isolated network for security
 
 **Cloud Run (Production):**
@@ -273,7 +268,7 @@ gcloud run services delete social-appliance --region=us-central1
 
 **Local Development (.env):**
 ```bash
-PORT=8000
+PORT=8080
 CLIENTPORT=8001
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/social_appliance
 DB_NAME=social_appliance
@@ -285,7 +280,7 @@ LOAD_SEED_DATA=true
 **Docker Compose (docker/.env):**
 ```bash
 NODE_ENV=production
-PORT=8000
+PORT=8080
 DOMAIN=yourdomain.com
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/social_appliance
 DB_NAME=social_appliance
@@ -313,7 +308,7 @@ FLUSH_DB=false
 
 ```
 social-appliance/
-├── server/                 # Node.js/Express API server (port 8000)
+├── server/                 # Node.js/Express API server (port 8080)
 │   ├── src/
 │   │   ├── routes/        # API routes
 │   │   ├── middleware/    # Express middleware
@@ -321,7 +316,7 @@ social-appliance/
 │   │   ├── db/           # Database connection
 │   │   └── index.js      # Server entry point (serves API + static files)
 │   └── package.json
-├── client-svelte/         # Svelte frontend
+├── client-svelte/         # Svelte frontend (dev server port 8001)
 │   ├── src/
 │   │   ├── lib/          # Utilities and helpers
 │   │   ├── pages/        # Page components
@@ -336,7 +331,7 @@ social-appliance/
 │   ├── Dockerfile        # Multi-stage build (builds client, runs server)
 │   ├── docker-compose.yml # Service orchestration
 │   ├── Caddyfile         # Caddy configuration
-│   ├── ecosystem.config.js # PM2 configuration
+│   ├── ecosystem.config.cjs # PM2 configuration
 │   └── env-example.txt   # Environment template
 ├── scripts/              # Utility scripts
 │   ├── generate-pwa-icons.sh
@@ -427,7 +422,7 @@ The application uses permissive CORS handling - **all origins are allowed** by d
 
 ```bash
 # Server
-PORT=8000
+PORT=8080
 CLIENTPORT=8001
 
 # Database (MongoDB Atlas or other external MongoDB)
@@ -470,7 +465,7 @@ Deploy with Docker Compose (requires external MongoDB):
 ```bash
 npm run deploy
 ```
-Includes: App (port 8000) + Caddy (HTTPS) + External MongoDB
+Includes: App (port 8080) + External MongoDB
 
 ### 2. Google Cloud Run (Recommended for Serverless)
 Deploy to Google Cloud Run with MongoDB Atlas:
@@ -522,7 +517,7 @@ Console commands:
 ## Security Notes
 
 - **Change default secrets in production**: Update `JWT_SECRET`
-- **Use HTTPS in production**: Caddy handles this automatically (Docker Compose), Cloud Run provides it
+- **Use HTTPS in production**: Cloud Run provides it automatically
 - **Keep secrets secure**: Never commit `.env` files to git
 - **Use environment variables**: For all secrets and configuration
 - **CORS is permissive**: All origins allowed - security is handled via JWT tokens
@@ -542,7 +537,7 @@ Console commands:
 - Monitor MongoDB for entity data
 - Check browser console for ENS lookup status and results
 - Test PWA features in Chrome DevTools → Application → Manifest
-- Use `docker-compose logs -f` to monitor container logs
+- Use `docker compose logs -f` to monitor container logs
 - Use `gcloud run services logs read` to view Cloud Run logs
 
 ## Troubleshooting
@@ -567,10 +562,10 @@ Console commands:
 
 ### Docker issues
 - Ensure Docker and Docker Compose are installed
-- Check that ports 80 and 443 are not in use
+- Check that port 8080 is not in use
 - Verify `.env` file exists in `docker/` directory
-- Check container logs: `docker-compose logs -f`
-- Restart services: `docker-compose restart`
+- Check container logs: `docker compose logs -f`
+- Restart services: `docker compose restart`
 - Ensure MongoDB Atlas connection string is correct
 
 ### Cloud Run deployment issues

@@ -16,7 +16,7 @@ const rootDir = join(__dirname, '../../');
 dotenv.config({ path: join(rootDir, '.env') });
 
 const app = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8080;
 
 // Simple CORS configuration - allow all origins
 const corsOptions = {

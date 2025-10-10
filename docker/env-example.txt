@@ -1,6 +1,6 @@
 # Application
 NODE_ENV=production
-PORT=8000
+PORT=8080
 
 # Domain (replace with your actual domain or IP)
 # For testing with Google Cloud external IP: DOMAIN=<your-ip>.nip.io
