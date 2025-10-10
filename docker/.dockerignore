@@ -32,6 +32,7 @@ Thumbs.db
 docker-compose.yml
 Dockerfile
 .dockerignore
+ecosystem.config.js
 
 # Documentation
 README.md
