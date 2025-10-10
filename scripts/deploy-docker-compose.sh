@@ -39,14 +39,14 @@ cd "$DOCKER_DIR"
 if [ ! -f .env ]; then
     echo -e "${YELLOW}Warning: .env file not found in docker directory${NC}"
     
-    # Check if .env.example exists
-    if [ ! -f .env.example ]; then
-        echo -e "${RED}Error: docker/.env.example not found${NC}"
+    # Check if env-example.txt exists
+    if [ ! -f env-example.txt ]; then
+        echo -e "${RED}Error: docker/env-example.txt not found${NC}"
         exit 1
     fi
     
-    echo "Creating docker/.env from .env.example..."
-    cp .env.example .env
+    echo "Creating docker/.env from env-example.txt..."
+    cp env-example.txt .env
     
     # Try to populate some values from root .env if it exists
     if [ -f "$PROJECT_ROOT/.env" ]; then

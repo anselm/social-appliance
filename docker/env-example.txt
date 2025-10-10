@@ -1,0 +1,28 @@
+# Application
+NODE_ENV=production
+PORT=8000
+
+# Domain (replace with your actual domain or IP)
+# For testing with Google Cloud external IP: DOMAIN=<your-ip>.nip.io
+# For production: DOMAIN=yourdomain.com
+DOMAIN=localhost
+
+# Database - Use MongoDB Atlas for Cloud Run
+# Local Docker Compose: mongodb://mongo:27017/social_appliance?replicaSet=rs0
+# MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/social_appliance?retryWrites=true&w=majority
+MONGODB_URI=mongodb://mongo:27017/social_appliance?replicaSet=rs0
+DB_NAME=social_appliance
+
+# Authentication
+MAGIC_SECRET_KEY=your_magic_secret_key_here
+JWT_SECRET=your_jwt_secret_here_change_in_production
+
+# Seed Data
+LOAD_SEED_DATA=true
+FLUSH_DB=false
+
+# PM2
+PM2_INSTANCES=max
+
+# Email for Let's Encrypt (optional, set in Caddyfile)
+# ACME_EMAIL=admin@yourdomain.com
