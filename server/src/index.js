@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
-import MongoStore from 'connect-mongo';
 import dotenv from 'dotenv';
 import { connectDB } from './db/connection.js';
 import apiRoutes from './routes/api.js';
@@ -31,7 +30,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Session configuration
+// Session configuration - using in-memory store
 const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
@@ -44,17 +43,7 @@ const sessionConfig = {
   }
 };
 
-// Use MongoDB session store if MongoDB URI is available
-if (process.env.MONGODB_URI) {
-  sessionConfig.store = MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    dbName: process.env.DB_NAME || 'social_appliance',
-    touchAfter: 24 * 3600 // lazy session update
-  });
-  Logger.info('Using MongoDB session store');
-} else {
-  Logger.warn('Using memory session store (not recommended for production)');
-}
+Logger.info('Using in-memory session store (sessions will be lost on restart)');
 
 app.use(session(sessionConfig));
 
