@@ -29,11 +29,15 @@ else
 fi
 
 # Navigate to docker directory
-cd "$(dirname "$0")/../docker"
+SCRIPT_DIR="$(dirname "$0")"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+DOCKER_DIR="$PROJECT_ROOT/docker"
 
-# Check if .env file exists
+cd "$DOCKER_DIR"
+
+# Check if .env file exists in docker directory
 if [ ! -f .env ]; then
-    echo -e "${YELLOW}Warning: .env file not found${NC}"
+    echo -e "${YELLOW}Warning: .env file not found in docker directory${NC}"
     echo "Creating from .env.example..."
     cp .env.example .env
     echo -e "${RED}Please edit docker/.env with your configuration before continuing${NC}"

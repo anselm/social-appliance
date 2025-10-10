@@ -14,7 +14,12 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}Social Appliance - Google Cloud Run Deployment${NC}"
 echo "=============================================="
 
-# Load environment variables from .env file
+# Navigate to project root
+SCRIPT_DIR="$(dirname "$0")"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
+
+# Load environment variables from .env file in project root
 if [ -f .env ]; then
     echo -e "${GREEN}Loading environment variables from .env file...${NC}"
     # Export variables from .env, ignoring comments and empty lines
@@ -22,7 +27,7 @@ if [ -f .env ]; then
     source <(grep -v '^#' .env | grep -v '^$' | sed 's/\r$//')
     set +a
 else
-    echo -e "${YELLOW}Warning: .env file not found in current directory${NC}"
+    echo -e "${YELLOW}Warning: .env file not found in project root${NC}"
     echo "Checking for environment variables..."
 fi
 
@@ -93,7 +98,6 @@ gcloud artifacts repositories create ${IMAGE_NAME} \
 
 # Build Docker image
 echo -e "${GREEN}Step 4: Building Docker image...${NC}"
-cd "$(dirname "$0")/.."
 GCR_IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${IMAGE_NAME}/${IMAGE_NAME}:${IMAGE_TAG}"
 docker build -f docker/Dockerfile -t ${GCR_IMAGE} .
 
