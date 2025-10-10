@@ -37,73 +37,15 @@ cd "$DOCKER_DIR"
 
 # Check if .env file exists in docker directory
 if [ ! -f .env ]; then
-    echo -e "${YELLOW}Warning: .env file not found in docker directory${NC}"
-    
-    # Check if env-example.txt exists
-    if [ ! -f env-example.txt ]; then
-        echo -e "${RED}Error: docker/env-example.txt not found${NC}"
-        exit 1
-    fi
-    
-    echo "Creating docker/.env from env-example.txt..."
-    cp env-example.txt .env
-    
-    # Try to populate some values from root .env if it exists
-    if [ -f "$PROJECT_ROOT/.env" ]; then
-        echo -e "${GREEN}Found root .env file, copying some values...${NC}"
-        
-        # Load values from root .env
-        set -a
-        source <(grep -v '^#' "$PROJECT_ROOT/.env" | grep -v '^$' | sed 's/\r$//')
-        set +a
-        
-        # Update docker/.env with values from root .env
-        if [ ! -z "$MONGODB_URI" ]; then
-            # Only copy if it's not the default local MongoDB
-            if [[ "$MONGODB_URI" != "mongodb://localhost:27017"* ]]; then
-                echo "  - Copying MONGODB_URI"
-                sed -i.bak "s|MONGODB_URI=.*|MONGODB_URI=$MONGODB_URI|" .env
-            fi
-        fi
-        
-        if [ ! -z "$JWT_SECRET" ] && [ "$JWT_SECRET" != "your-jwt-secret-change-in-production" ]; then
-            echo "  - Copying JWT_SECRET"
-            sed -i.bak "s|JWT_SECRET=.*|JWT_SECRET=$JWT_SECRET|" .env
-        fi
-        
-        if [ ! -z "$MAGIC_SECRET_KEY" ]; then
-            echo "  - Copying MAGIC_SECRET_KEY"
-            sed -i.bak "s|MAGIC_SECRET_KEY=.*|MAGIC_SECRET_KEY=$MAGIC_SECRET_KEY|" .env
-        fi
-        
-        if [ ! -z "$DB_NAME" ]; then
-            echo "  - Copying DB_NAME"
-            sed -i.bak "s|DB_NAME=.*|DB_NAME=$DB_NAME|" .env
-        fi
-        
-        if [ ! -z "$DOMAIN" ]; then
-            echo "  - Copying DOMAIN"
-            sed -i.bak "s|DOMAIN=.*|DOMAIN=$DOMAIN|" .env
-        fi
-        
-        if [ ! -z "$PM2_INSTANCES" ]; then
-            echo "  - Copying PM2_INSTANCES"
-            sed -i.bak "s|PM2_INSTANCES=.*|PM2_INSTANCES=$PM2_INSTANCES|" .env
-        fi
-        
-        # Clean up backup files
-        rm -f .env.bak
-        
-        echo -e "${GREEN}Values copied from root .env${NC}"
-    fi
-    
+    echo -e "${RED}Error: docker/.env file not found${NC}"
     echo ""
-    echo -e "${YELLOW}Please review docker/.env and update the following:${NC}"
-    echo "  - DOMAIN: Set your domain name (or leave as localhost for local testing)"
-    echo "  - MONGODB_URI: Verify MongoDB connection string"
-    echo "  - Other settings as needed"
+    echo "Please create docker/.env file with your configuration."
+    echo "You can use docker/env-example.txt as a template:"
     echo ""
-    echo -e "${RED}Edit docker/.env and run this script again${NC}"
+    echo "  cd docker"
+    echo "  cp env-example.txt .env"
+    echo "  # Edit .env with your values"
+    echo ""
     exit 1
 fi
 
