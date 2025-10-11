@@ -2,7 +2,10 @@ import { writable } from 'svelte/store'
 
 type Theme = 'light' | 'dark'
 
+console.log('[Theme] Module loading - START')
+
 function prefersDarkMode(): boolean {
+  console.log('[Theme] prefersDarkMode called')
   if (typeof window === 'undefined') {
     console.log('[Theme] Window is undefined, returning false')
     return false
@@ -12,11 +15,12 @@ function prefersDarkMode(): boolean {
     return false
   }
   const matches = window.matchMedia('(prefers-color-scheme: dark)').matches
-  console.log('[Theme] prefersDarkMode check:', matches)
+  console.log('[Theme] prefersDarkMode check result:', matches)
   return matches
 }
 
 function getSystemTheme(): Theme {
+  console.log('[Theme] getSystemTheme called')
   const isDark = prefersDarkMode()
   const theme = isDark ? 'dark' : 'light'
   console.log('[Theme] getSystemTheme returning:', theme)
@@ -24,7 +28,7 @@ function getSystemTheme(): Theme {
 }
 
 function createThemeStore() {
-  console.log('[Theme] createThemeStore called')
+  console.log('[Theme] createThemeStore called - START')
   
   // Always start with system preference
   const systemTheme = getSystemTheme()
@@ -53,49 +57,63 @@ function createThemeStore() {
     }
   }
 
-  // Apply initial theme
+  // Apply initial theme immediately
   console.log('[Theme] Applying initial theme')
   applyTheme(systemTheme)
 
-  // Listen for system theme changes
-  if (typeof window !== 'undefined' && window.matchMedia) {
-    console.log('[Theme] Setting up matchMedia listener')
-    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    console.log('[Theme] Media query created, current matches:', darkModeMediaQuery.matches)
+  // Set up listener after a short delay to ensure everything is ready
+  if (typeof window !== 'undefined') {
+    console.log('[Theme] Window is available, setting up listener')
     
-    const handleChange = (event: MediaQueryListEvent) => {
-      console.log('[Theme] ===== MEDIA QUERY CHANGE EVENT FIRED =====')
-      console.log('[Theme] Event object:', event)
-      console.log('[Theme] Event.matches:', event.matches)
+    setTimeout(() => {
+      console.log('[Theme] Setting up matchMedia listener (delayed)')
       
-      if (event.matches) {
-        console.log('[Theme] System switched to Dark Mode')
-        set('dark')
-        applyTheme('dark')
-      } else {
-        console.log('[Theme] System switched to Light Mode')
-        set('light')
-        applyTheme('light')
+      if (!window.matchMedia) {
+        console.log('[Theme] matchMedia not available')
+        return
       }
-    }
-    
-    console.log('[Theme] Adding event listener to media query')
-    darkModeMediaQuery.addEventListener('change', handleChange)
-    console.log('[Theme] Event listener added successfully')
-    
-    // Test that the listener is attached
-    console.log('[Theme] Listener attached. Waiting for system theme changes...')
+      
+      const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      console.log('[Theme] Media query created')
+      console.log('[Theme] Current matches value:', darkModeMediaQuery.matches)
+      
+      const handleChange = (event: MediaQueryListEvent) => {
+        console.log('[Theme] ===== MEDIA QUERY CHANGE EVENT FIRED =====')
+        console.log('[Theme] Event:', event)
+        console.log('[Theme] Event.matches:', event.matches)
+        console.log('[Theme] Event.media:', event.media)
+        
+        if (event.matches) {
+          console.log('[Theme] System switched to Dark Mode')
+          set('dark')
+          applyTheme('dark')
+        } else {
+          console.log('[Theme] System switched to Light Mode')
+          set('light')
+          applyTheme('light')
+        }
+      }
+      
+      console.log('[Theme] Adding event listener')
+      darkModeMediaQuery.addEventListener('change', handleChange)
+      console.log('[Theme] Event listener added successfully')
+      
+      // Verify the listener was added
+      console.log('[Theme] Listener setup complete. Waiting for system theme changes...')
+      console.log('[Theme] To test: Change your system theme and watch for events')
+    }, 100)
   } else {
-    console.log('[Theme] Cannot set up listener - window or matchMedia not available')
+    console.log('[Theme] Window not available, cannot set up listener')
   }
 
-  console.log('[Theme] Store creation complete')
+  console.log('[Theme] createThemeStore called - END')
 
   return {
     subscribe
   }
 }
 
-console.log('[Theme] Module loading...')
+console.log('[Theme] Creating theme store...')
 export const themeStore = createThemeStore()
-console.log('[Theme] themeStore exported')
+console.log('[Theme] Theme store created and exported')
+console.log('[Theme] Module loading - END')

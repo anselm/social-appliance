@@ -3,8 +3,12 @@ import { mount } from 'svelte'
 import App from './App.svelte'
 import { apiClient } from './services/apiClient'
 import loggers from './services/logger'
+import { themeStore } from './stores/theme'
 
 const log = loggers.app
+
+console.log('[Main] Application starting')
+console.log('[Main] Theme store imported:', themeStore)
 
 async function initApp() {
   log.info('Initializing application...')
