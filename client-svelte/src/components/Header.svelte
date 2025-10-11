@@ -154,7 +154,7 @@
 
 {#if showHeader}
   <header class="shrink-0 min-h-0 z-50 h-14 bg-white dark:bg-black border-b border-black/10 dark:border-white/10">
-    <div class="w-full max-w-container mx-auto h-full px-4 flex items-center justify-between gap-4">
+    <div class="w-full max-w-container mx-auto h-full flex items-center justify-between gap-4">
       {@render logo()}
       {@render searchBar()}
       {@render actionButtons()}

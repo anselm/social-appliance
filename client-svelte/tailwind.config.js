@@ -11,7 +11,7 @@ export default {
         'mono': ['JetBrains Mono', 'Consolas', 'Monaco', 'monospace'],
       },
       maxWidth: {
-        'container': '1400px', // Changed from 1200px
+        'container': '1000px',
       },
     },
   },

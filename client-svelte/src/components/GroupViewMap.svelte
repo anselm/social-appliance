@@ -629,7 +629,7 @@
   }
 </script>
 
-<div class="absolute inset-0 flex flex-col" id="group-view-map-root">
+<div class="absolute inset-0 flex flex-col px-0 w-full max-w-container mx-auto " id="group-view-map-root">
   <div class="flex-shrink-0" id="group-view-map-header">
     <EntityHeader {entity} showContent={false} showStats={true} />
 
@@ -781,11 +781,6 @@
     </div>
   </div>
 
-  {#if locatedChildren.length === 0 && mapReady}
-    <div class="flex-shrink-0 px-4 pb-4 text-xs text-white/60">
-      No locations to display with current filters. Add posts with latitude and longitude coordinates.
-    </div>
-  {/if}
 </div>
 
 <style>
