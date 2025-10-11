@@ -108,19 +108,6 @@
     } else {
       initLeaflet()
     }
-
-    // Cleanup function
-    return () => {
-      if (map) {
-        map.remove()
-        map = null
-      }
-      markers = []
-      circles = []
-      mapReady = false
-      hasInitialized = false
-      delete (window as any).handleMarkerClick
-    }
   })
 
   // Update markers when filters change
