@@ -13,7 +13,12 @@ export const portlandGroup = {
   longitude: -122.6784,
   radius: 25000, // 25km radius covering Portland metro
   createdAt: '2024-01-25T08:00:00.000Z',
-  updatedAt: '2024-01-25T08:00:00.000Z'
+  updatedAt: '2024-01-25T08:00:00.000Z',
+  metadata: {
+    memberCount: 523,
+    recentPosts: 94,
+    isPublic: true
+  }
 };
 
 // Portland posts with specific locations

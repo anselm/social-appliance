@@ -10,7 +10,12 @@ export const hikingGroup = {
   depiction: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=1200&h=600&fit=crop',
   tags: ['outdoors', 'hiking', 'nature', 'fitness'],
   createdAt: '2024-01-15T10:00:00.000Z',
-  updatedAt: '2024-01-15T10:00:00.000Z'
+  updatedAt: '2024-01-15T10:00:00.000Z',
+  metadata: {
+    memberCount: 156,
+    recentPosts: 42,
+    isPublic: true
+  }
 };
 
 // Hiking posts

@@ -12,6 +12,9 @@ export default {
   depiction: "https://www.doc.govt.nz/thumbs/hero/globalassets/images/places/fiordland/kepler-track/kepler-1920.jpg",
   metadata: {
     isRoot: true,
-    description: 'This is the root group that serves as the top-level container for all other entities'
+    description: 'This is the root group that serves as the top-level container for all other entities',
+    memberCount: 0,
+    recentPosts: 0,
+    isPublic: true
   }
 };

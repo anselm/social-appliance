@@ -13,7 +13,12 @@ export const baliGroup = {
   longitude: 115.1889,
   radius: 50000, // 50km radius covering most of Bali
   createdAt: '2024-01-20T08:00:00.000Z',
-  updatedAt: '2024-01-20T08:00:00.000Z'
+  updatedAt: '2024-01-20T08:00:00.000Z',
+  metadata: {
+    memberCount: 342,
+    recentPosts: 28,
+    isPublic: true
+  }
 };
 
 // Bali posts

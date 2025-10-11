@@ -11,7 +11,10 @@ export const rootGroup = {
   permissions: ['public:view'],
   metadata: {
     isRoot: true,
-    description: 'This is the root group that serves as the top-level container for all other entities'
+    description: 'This is the root group that serves as the top-level container for all other entities',
+    memberCount: 0,
+    recentPosts: 0,
+    isPublic: true
   }
 };
 
