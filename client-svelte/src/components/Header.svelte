@@ -13,6 +13,12 @@
   let showHeader = $derived($config.header?.show !== false)
   let title = $derived($config.header?.title || 'Social Appliance')
   let isLoggedIn = $derived(authStore.isFullyAuthenticated($authStore))
+  let showCreateButton = $derived(
+    isLoggedIn && 
+    !$config.api?.serverless && 
+    $config.features?.authentication !== false && 
+    $config.features?.allowCreate !== false
+  )
   
   function getDisplayName(auth: any): string {
     if (!auth) return ''
@@ -106,16 +112,18 @@
 {/snippet}
 
 {#snippet createButton()}
-  <button
-    onclick={handleCreate}
-    class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 border border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 text-xs transition-colors"
-    title="Create new content"
-  >
-    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-    </svg>
-    <span>Create</span>
-  </button>
+  {#if showCreateButton}
+    <button
+      onclick={handleCreate}
+      class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 border border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 text-xs transition-colors"
+      title="Create new content"
+    >
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      <span>Create</span>
+    </button>
+  {/if}
 {/snippet}
 
 {#snippet notificationsButton()}
