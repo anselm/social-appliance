@@ -127,7 +127,7 @@
 {#snippet listView()}
   <div class="space-y-2">
     {#each children as child}
-      <RouterLink to={child.slug || `/${child.id}`} className="block border-b border-black/10 dark:border-white/10 pb-2 hover:border-black/30 dark:hover:border-white/30 transition-colors">
+      <RouterLink to={child.slug || `/${child.id}`} className="block pb-2 hover:opacity-80 transition-opacity">
         <div class="flex items-baseline gap-3">
           <span class="text-xs text-black/40 dark:text-white/40">[{child.type}]</span>
           <div class="flex-grow">
@@ -145,7 +145,7 @@
 
 {#snippet renderChild(child: Entity)}
   {#if child.type === 'post'}
-    <div class="border-b border-black/10 dark:border-white/10 pb-4">
+    <div class="pb-4">
       <RouterLink to={child.slug || `/${child.id}`} className="block hover:opacity-80 transition-opacity">
         <div class="flex gap-4">
           {#if child.depiction}
@@ -168,7 +168,7 @@
       </RouterLink>
     </div>
   {:else}
-    <div class="border-b border-black/10 dark:border-white/10 pb-4">
+    <div class="pb-4">
       <RouterLink to={child.slug || `/${child.id}`} className="hover:underline">
         <div class="flex items-baseline gap-2">
           <span class="text-xs text-black/60 dark:text-white/60">[{child.type}]</span>
