@@ -57,3 +57,40 @@ export const portlandPost1 = {
   createdAt: '2024-03-08T10:00:00.000Z',
   updatedAt: '2024-03-08T10:00:00.000Z'
 };
+
+export const hikingGroup = {
+  id: 'group-hiking-001',
+  slug: '/hiking',
+  parentId: 'root-group',  
+  type: 'group',
+  title: 'Hiking Enthusiasts',
+  content: 'A community for people who love hiking and outdoor adventures',
+  view: 'list',
+  depiction: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=1200&h=600&fit=crop',
+  tags: ['outdoors', 'hiking', 'nature', 'fitness'],
+  createdAt: '2024-01-15T10:00:00.000Z',
+  updatedAt: '2024-01-15T10:00:00.000Z',
+  metadata: {
+    memberCount: 156,
+    recentPosts: 42,
+    isPublic: true
+  }
+};
+
+// Hiking posts
+export const hikingPost1 = {
+  id: 'post-hike-001',
+  slug: '/hiking/weekend-tamalpais',
+  parentId: 'group-hiking-001',
+  type: 'post',
+  title: 'Weekend hike to Mount Tamalpais',
+  content: 'Planning a group hike this Saturday morning. Who wants to join? We will meet at the Pantoll parking lot at 8 AM and take the Steep Ravine trail.',
+  depiction: 'https://images.unsplash.com/photo-1533692328991-08159ff19fca?w=800&h=600&fit=crop',
+  sponsorId: 'admin-001',
+  tags: ['hike', 'weekend', 'mount-tamalpais'],
+  latitude: 37.9235,
+  longitude: -122.5965,
+  radius: 5000,
+  createdAt: '2024-03-01T09:00:00.000Z',
+  updatedAt: '2024-03-01T09:00:00.000Z'
+};

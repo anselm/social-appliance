@@ -5,7 +5,7 @@ window.APP_CONFIG = {
   header: {
 
     // title if any
-    title: 'intothe.blue',
+    title: 'Locale.ai',
 
     // Whether to show the header
     enabled: true,

@@ -136,7 +136,7 @@
               <span class="text-xs text-black/70 dark:text-white/60 ml-2">{getPreview(child.content, 100)}</span>
             {/if}
           </div>
-          <span class="text-xs text-black/40 dark:text-white/40">{fixDate(child.updatedAt)}</span>
+          <span class="text-xs text-black/40 dark:text-white/40 whitespace-nowrap">{fixDate(child.updatedAt)}</span>
         </div>
       </RouterLink>
     {/each}
