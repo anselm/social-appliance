@@ -2,9 +2,13 @@ import { writable } from 'svelte/store'
 
 type Theme = 'light' | 'dark'
 
+function prefersDarkMode(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
 function getSystemTheme(): Theme {
-  if (typeof window === 'undefined') return 'light'
-  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  const isDark = prefersDarkMode()
   console.log('[Theme] System theme detected:', isDark ? 'dark' : 'light')
   return isDark ? 'dark' : 'light'
 }
@@ -34,26 +38,21 @@ function createThemeStore() {
   applyTheme(systemTheme)
 
   // Listen for system theme changes
-  if (typeof window !== 'undefined') {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    console.log('[Theme] Setting up media query listener, current matches:', mediaQuery.matches)
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    console.log('[Theme] Setting up media query listener, current matches:', darkModeMediaQuery.matches)
     
-    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
-      const newTheme = e.matches ? 'dark' : 'light'
-      console.log('[Theme] System theme changed to:', newTheme)
-      set(newTheme)
-      applyTheme(newTheme)
-    }
-    
-    // Modern browsers
-    if (mediaQuery.addEventListener) {
-      console.log('[Theme] Using addEventListener for media query')
-      mediaQuery.addEventListener('change', handleChange)
-    } else {
-      // Fallback for older browsers
-      console.log('[Theme] Using addListener (legacy) for media query')
-      mediaQuery.addListener(handleChange)
-    }
+    darkModeMediaQuery.addEventListener('change', (event) => {
+      if (event.matches) {
+        console.log('[Theme] System switched to Dark Mode')
+        set('dark')
+        applyTheme('dark')
+      } else {
+        console.log('[Theme] System switched to Light Mode')
+        set('light')
+        applyTheme('light')
+      }
+    })
   }
 
   return {
