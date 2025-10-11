@@ -1,15 +1,9 @@
 <script lang="ts">
   import Header from './Header.svelte'
   import { config } from '../stores/appConfig'
-  import { themeStore } from '../stores/theme'
   import type { Snippet } from 'svelte'
   
   let { currentPath = '/', currentEntity = null, children }: { currentPath?: string, currentEntity?: any, children?: Snippet } = $props()
-  
-  // Initialize theme on mount
-  $effect(() => {
-    themeStore.init()
-  })
   
   // Prevent pull-to-refresh on mobile
   $effect(() => {
