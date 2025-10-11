@@ -1,7 +1,7 @@
 {
   "name": "social-appliance",
-  "version": "1.0.0",
-  "description": "Social Appliance monorepo",
+  "version": "1.0.1",
+  "description": "Open source social network with an emphasis on sharing places.",
   "private": true,
   "type": "module",
   "scripts": {

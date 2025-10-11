@@ -41,7 +41,7 @@ for size in "${SIZES[@]}"; do
         -background none \
         -gravity center \
         -extent "${size}x${size}" \
-        "$OUTPUT_DIR/icon-${size}x${size}.png"
+        "$OUTPUT_DIR/icons/icon-${size}x${size}.png"
 done
 
 # Generate Apple Touch Icon (180x180)
@@ -96,7 +96,7 @@ convert "$SOURCE_LOGO" \
     -background none \
     -gravity center \
     -extent "512x512" \
-    "$OUTPUT_DIR/icon-maskable-512x512.png"
+    "$OUTPUT_DIR/icons/icon-maskable-512x512.png"
 
 echo ""
 echo "✅ PWA icons generated successfully!"
@@ -109,7 +109,7 @@ echo "  - apple-touch-icon.png"
 echo "  - favicon-32x32.png"
 echo "  - favicon-16x16.png"
 echo "  - favicon.ico"
-echo "  - icon-maskable-512x512.png"
+echo "  - icons/icon-maskable-512x512.png"
 echo ""
 echo "Next steps:"
 echo "1. Icons are already configured in client-svelte/public/manifest.json"

@@ -1,41 +1,10 @@
 # Social Appliance
 
-A decentralized social platform built with Node.js, MongoDB, and Svelte, featuring multiple authentication methods.
+Open source social network with an emphasis on sharing places.
 
-## Features
+See FEATURES.md for more.
 
-- **Multiple Authentication Methods:**
-  - Sign-In with Ethereum (SIWE) via MetaMask
-  - Passwordless email authentication via Magic.link
-  - Stateless JWT token authentication
-
-- **Flexible Data Storage:**
-  - MongoDB for persistent storage
-  - IndexedDB for client-side caching
-  - Static file loading for demo/development
-
-- **Modern Stack:**
-  - Node.js/Express backend
-  - Svelte frontend with TypeScript
-  - Viem for Ethereum interactions
-  - TailwindCSS for styling
-
-- **Progressive Web App (PWA):**
-  - Installable on mobile and desktop
-  - Offline-capable
-  - Native app-like experience
-  - No overscroll or pull-to-refresh
-
-- **Production Ready:**
-  - Docker containerization
-  - Docker Compose orchestration (requires external MongoDB)
-  - Google Cloud Run deployment with MongoDB Atlas
-  - PM2 process management
-  - Health checks and monitoring
-  - Stateless authentication (no server-side sessions)
-  - Permissive CORS (allows all origins)
-
-## Quick Start
+## Getting Started
 
 ### Prerequisites
 
@@ -61,7 +30,7 @@ cd social-appliance
 npm run setup
 ```
 
-3. Configure environment variables
+3. Configure environment variables (ignoring docker for local exercises)
 
 **Root .env file:**
 ```bash
@@ -152,11 +121,11 @@ Deploy the application locally with Docker Compose (requires external MongoDB):
    - Get your connection string (mongodb+srv://...)
    - Whitelist your IP address or use 0.0.0.0/0 for testing
 
-2. **Configure environment:**
+2. **Configure root environment:**
 ```bash
 cd docker
 cp env-example.txt .env
-# Edit .env with your MongoDB Atlas connection string and other values
+# Edit root .env with your MongoDB Atlas connection string and other values
 ```
 
 3. **Deploy:**
@@ -210,9 +179,9 @@ gcloud auth login
 gcloud auth configure-docker
 ```
 
-4. **Configure environment variables in .env file:**
+4. **Configure environment variables in root and docker .env file:**
 ```bash
-# Edit your .env file and add:
+# Edit your root .env file and add:
 GCLOUD_PROJECT_ID=your-project-id
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/social_appliance
 JWT_SECRET=your-jwt-secret
@@ -225,7 +194,7 @@ LOAD_SEED_DATA=true
 npm run gcloud:run
 ```
 
-The script will automatically read your `.env` file and:
+The script will automatically read your root `.env` file and:
 - Build the Docker image (builds client and includes it)
 - Push to Google Artifact Registry
 - Deploy to Cloud Run on port 8080
@@ -266,7 +235,7 @@ gcloud run services delete social-appliance --region=us-central1
 
 ### Environment Variables
 
-**Local Development (.env):**
+**Local Development (root .env):**
 ```bash
 PORT=8080
 CLIENTPORT=8001
@@ -304,19 +273,24 @@ LOAD_SEED_DATA=true
 FLUSH_DB=false
 ```
 
+**Server env:**
+
+There is no server/.env file!
+
 ## Project Structure
 
 ```
 social-appliance/
-├── server/                 # Node.js/Express API server (port 8080)
+├── server/               # Node.js/Express API server (port 8080)
 │   ├── src/
-│   │   ├── routes/        # API routes
-│   │   ├── middleware/    # Express middleware
-│   │   ├── services/      # Business logic
+│   │   ├── routes/       # API routes
+│   │   ├── middleware/   # Express middleware
+│   │   ├── services/     # Business logic
 │   │   ├── db/           # Database connection
 │   │   └── index.js      # Server entry point (serves API + static files)
 │   └── package.json
-├── client-svelte/         # Svelte frontend (dev server port 8001)
+├── client-svelte/        # Svelte frontend (dev server port 8001)
+│   ├── .env              # Client env (you provide this)
 │   ├── src/
 │   │   ├── lib/          # Utilities and helpers
 │   │   ├── pages/        # Page components
@@ -325,13 +299,14 @@ social-appliance/
 │   │   └── App.svelte
 │   ├── dist/             # Built client (served by server)
 │   └── package.json
-├── client-console/        # Console-based client
+├── client-console/       # Console-based client
 ├── seed-data/            # Sample data for development
 ├── docker/               # Docker configuration
 │   ├── Dockerfile        # Multi-stage build (builds client, runs server)
 │   ├── docker-compose.yml # Service orchestration
 │   ├── Caddyfile         # Caddy configuration
 │   ├── ecosystem.config.cjs # PM2 configuration
+│   ├── .env              # Docker .env (you provide)
 │   └── env-example.txt   # Environment template
 ├── scripts/              # Utility scripts
 │   ├── generate-pwa-icons.sh
@@ -339,11 +314,12 @@ social-appliance/
 │   └── deploy-gcloud-run.sh
 ├── assets/               # Source assets (logo, etc.)
 └── package.json          # Root package.json
+└── .env                  # Root env (you provide this)
 ```
 
 ## Authentication
 
-The application uses **stateless authentication** - the client sends authentication tokens with each request, and the server verifies them without maintaining session state. This makes the application fully stateless and perfect for serverless deployments like Cloud Run.
+The application uses **stateless authentication** - the client sends authentication tokens with each request, and the server verifies them without maintaining session state.
 
 ### Sign-In with Ethereum (SIWE)
 
@@ -360,14 +336,14 @@ SIWE allows users to authenticate using their Ethereum wallet through MetaMask.
 
 **ENS Name Resolution:**
 - The app automatically resolves Ethereum addresses to ENS names (like "vitalik.eth")
-- Requires an Infura API key (recommended) or other RPC provider
+- Requires an Infura API key (recommended) or other RPC provider (free providers seem to fail often)
 - Get a free API key at https://www.infura.io/
-- Without an API key, the app will show truncated addresses instead
+- Without an API key, the app will show truncated addresses instead if it cannot get the ENS name
 - Falls back to public RPC endpoints if Infura is not configured
 
 ### Magic.link Email Authentication
 
-Magic.link provides passwordless authentication via email.
+Magic.link provides passwordless authentication via email. They basically issue non-custodial wallets.
 
 **Setup:**
 1. Create account at https://magic.Link

@@ -5,7 +5,7 @@ window.APP_CONFIG = {
   header: {
 
     // title if any
-    title: 'locavore.ai', 
+    title: 'intothe.blue',
 
     // Whether to show the header
     enabled: true,
@@ -19,23 +19,23 @@ window.APP_CONFIG = {
   
   // API configuration
   api: {
-    // Base URL for API calls
+    // Base URL for API calls - by default looks on port 8080 if running the client vite - see vite.config.ts
     baseUrl: '/api',
     
     // Serverless mode - use only cached/static data
-    serverless: false,
+    serverless: true,
     
-    // Enable client-side caching with IndexedDB
-    enableCache: false,
-    
-    // Cache duration in milliseconds (default: 5 minutes)
-    cacheDuration: 5 * 60 * 1000,
+    // Enable client-side caching with IndexedDB (@todo bug! this must be set the same as serverless for now!)
+    enableCache: true,
     
     // Load root info.js on startup
-    loadStaticData: false,
+    loadStaticData: true,
     
     // Flush cache on startup (useful for development)
     flushCacheOnStartup: true,
+
+    // Cache duration in milliseconds (default: 5 minutes)
+    cacheDuration: 5 * 60 * 1000,
     
     // Server availability check interval (milliseconds)
     // Set to 0 to disable automatic retry
@@ -45,16 +45,16 @@ window.APP_CONFIG = {
   // Feature flags
   features: {
     // Enable user authentication
-    authentication: true,
+    authentication: false,
     
     // Enable content creation
-    allowCreate: true,
+    allowCreate: false,
     
     // Enable content editing
-    allowEdit: true,
+    allowEdit: false,
     
     // Enable content deletion
-    allowDelete: true 
+    allowDelete: false 
   },
   
   // Routing configuration
@@ -72,7 +72,7 @@ window.APP_CONFIG = {
     provider: 'mapbox',
     
     // Mapbox access token (required if provider is 'mapbox')
-    // This will be replaced at build time with the environment variable
+    // This will be replaced at build time with the environment variable - see .env
     mapboxAccessToken: ''
   }
   

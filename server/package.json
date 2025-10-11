@@ -1,6 +1,6 @@
 {
   "name": "social-appliance-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Backend server for social appliance",
   "main": "src/index.js",
   "type": "module",
