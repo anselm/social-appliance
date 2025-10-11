@@ -8,17 +8,10 @@ function getSystemTheme(): Theme {
 }
 
 function createThemeStore() {
-  // Initialize with system preference
+  // Always start with system preference
   const systemTheme = getSystemTheme()
   
-  // Check if user has a saved preference, otherwise use system theme
-  const savedTheme = typeof window !== 'undefined' 
-    ? (localStorage.getItem('theme') as Theme | null)
-    : null
-  
-  const initialTheme = savedTheme || systemTheme
-  
-  const { subscribe, set, update } = writable<Theme>(initialTheme)
+  const { subscribe, set, update } = writable<Theme>(systemTheme)
 
   // Apply theme to document
   function applyTheme(theme: Theme) {
@@ -32,20 +25,17 @@ function createThemeStore() {
   }
 
   // Apply initial theme
-  applyTheme(initialTheme)
+  applyTheme(systemTheme)
 
   // Listen for system theme changes
   if (typeof window !== 'undefined') {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     
     const handleChange = (e: MediaQueryListEvent) => {
-      // Only auto-switch if user hasn't set a manual preference
-      const savedTheme = localStorage.getItem('theme')
-      if (!savedTheme) {
-        const newTheme = e.matches ? 'dark' : 'light'
-        set(newTheme)
-        applyTheme(newTheme)
-      }
+      // Always follow system preference changes
+      const newTheme = e.matches ? 'dark' : 'light'
+      set(newTheme)
+      applyTheme(newTheme)
     }
     
     // Modern browsers
@@ -62,28 +52,13 @@ function createThemeStore() {
     set: (theme: Theme) => {
       set(theme)
       applyTheme(theme)
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('theme', theme)
-      }
     },
     toggle: () => {
       update(current => {
         const newTheme = current === 'light' ? 'dark' : 'light'
         applyTheme(newTheme)
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('theme', newTheme)
-        }
         return newTheme
       })
-    },
-    reset: () => {
-      // Clear saved preference and use system theme
-      if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem('theme')
-      }
-      const systemTheme = getSystemTheme()
-      set(systemTheme)
-      applyTheme(systemTheme)
     }
   }
 }
