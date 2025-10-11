@@ -44,7 +44,6 @@
       const updateHeight = () => {
         const rect = mapParentContainer!.getBoundingClientRect()
         mapHeight = rect.height
-        console.log('Map parent height:', rect.height)
         
         // Force map resize if it exists
         if (map && mapReady) {
@@ -96,6 +95,7 @@
     }
   }
 
+  // Initialize map when container is ready
   $effect(() => {
     if (!mapContainer || hasInitialized || mapHeight === 0) {
       return
@@ -109,6 +109,7 @@
       initLeaflet()
     }
 
+    // Cleanup function
     return () => {
       if (map) {
         map.remove()
@@ -116,6 +117,8 @@
       }
       markers = []
       circles = []
+      mapReady = false
+      hasInitialized = false
       delete (window as any).handleMarkerClick
     }
   })
@@ -457,8 +460,6 @@
       const centerLat = entity.latitude || locatedChildren[0]?.latitude || 45.5152
       const centerLng = entity.longitude || locatedChildren[0]?.longitude || -122.6784
 
-      console.log('Initializing Mapbox with container height:', mapHeight)
-
       // Create map with dark style and angled camera
       map = new mapboxgl.Map({
         container: mapContainer!,
@@ -584,8 +585,6 @@
       const centerLat = entity.latitude || locatedChildren[0]?.latitude || 45.5152
       const centerLng = entity.longitude || locatedChildren[0]?.longitude || -122.6784
 
-      console.log('Initializing Leaflet with container height:', mapHeight)
-
       // Create map
       map = L.map(mapContainer!).setView([centerLat, centerLng], 13)
 
@@ -593,7 +592,6 @@
       const satelliteLayer = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         {
-          //attribution: 'Tiles &copy; Esri',
           maxZoom: 19
         }
       )
@@ -604,7 +602,6 @@
       const labelsLayer = L.tileLayer(
         'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',
         {
-          //attribution: '&copy; OpenStreetMap, &copy; CARTO',
           subdomains: 'abcd',
           maxZoom: 19
         }
@@ -650,7 +647,7 @@
 
     <!-- Pull-up Drawer -->
     <div 
-      class="absolute bottom-0 left-0 right-0 bg-green/95 backdrop-blur-sm border-t border-white/20 transition-all duration-300 ease-out"
+      class="absolute bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-white/20 transition-all duration-300 ease-out"
       style={drawerMode === 'minimized' ? 'height: 48px;' : drawerMode === 'places' ? 'height: 200px;' : 'height: 400px;'}
       id="group-view-map-drawer"
     >
@@ -703,8 +700,8 @@
                 <button
                   onclick={() => navigateTo(selectedMarker!.slug || `/${selectedMarker!.id}`)}
                   class="px-3 py-2 border border-white/20 hover:bg-white/10 transition-colors text-sm rounded"
-                  aria-label="Close preview"
-                > > Details
+                  aria-label="View details"
+                >→ Details
                 </button>
               </div>
 
