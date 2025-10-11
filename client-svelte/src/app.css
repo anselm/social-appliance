@@ -24,21 +24,10 @@
     overflow: hidden;
     /* Disable iOS bounce/rubber-band effect */
     -webkit-overflow-scrolling: touch;
-    /* Prevent text selection on long press */
-    -webkit-user-select: none;
-    user-select: none;
     /* Disable tap highlight */
     -webkit-tap-highlight-color: transparent;
     /* Prevent callout menu on long press */
     -webkit-touch-callout: none;
-  }
-  
-  /* Allow text selection in specific content areas */
-  .prose-content,
-  input,
-  textarea {
-    -webkit-user-select: text;
-    user-select: text;
   }
   
   /* Main app container should handle scrolling */
