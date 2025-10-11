@@ -82,10 +82,10 @@
         <div class="p-4">
           <div class="flex items-baseline gap-2 mb-2">
             <span class="text-xs text-black/40 dark:text-white/40">[{child.type}]</span>
-            <h3 class="text-sm font-medium flex-1">{child.title || child.slug || 'Untitled'}</h3>
+            <h3 class="text-sm font-medium flex-1 text-black dark:text-white">{child.title || child.slug || 'Untitled'}</h3>
           </div>
           {#if child.content}
-            <p class="text-xs text-black/60 dark:text-white/60 line-clamp-3">{child.content}</p>
+            <p class="text-xs text-black/70 dark:text-white/60 line-clamp-3">{child.content}</p>
           {/if}
         </div>
       </RouterLink>
@@ -108,7 +108,7 @@
           <div class="flex items-start justify-between mb-3">
             <div>
               <span class="text-xs text-black/40 dark:text-white/40 uppercase tracking-wider">[{child.type}]</span>
-              <h3 class="text-lg font-medium mt-1">{child.title || child.slug || 'Untitled'}</h3>
+              <h3 class="text-lg font-medium mt-1 text-black dark:text-white">{child.title || child.slug || 'Untitled'}</h3>
             </div>
             <span class="text-xs text-black/40 dark:text-white/40">{new Date(child.createdAt).toLocaleDateString()}</span>
           </div>
@@ -131,9 +131,9 @@
         <div class="flex items-baseline gap-3">
           <span class="text-xs text-black/40 dark:text-white/40">[{child.type}]</span>
           <div class="flex-grow">
-            <h3 class="text-sm font-medium inline">{child.title || child.slug || 'Untitled'}</h3>
+            <h3 class="text-sm font-medium inline text-black dark:text-white">{child.title || child.slug || 'Untitled'}</h3>
             {#if child.content}
-              <span class="text-xs text-black/60 dark:text-white/60 ml-2">{getPreview(child.content, 100)}</span>
+              <span class="text-xs text-black/70 dark:text-white/60 ml-2">{getPreview(child.content, 100)}</span>
             {/if}
           </div>
           <span class="text-xs text-black/40 dark:text-white/40">{fixDate(child.updatedAt)}</span>
@@ -156,9 +156,9 @@
             />
           {/if}
           <div class="flex-1">
-            <h3 class="text-sm font-medium mb-1">{child.title || 'Untitled'}</h3>
+            <h3 class="text-sm font-medium mb-1 text-black dark:text-white">{child.title || 'Untitled'}</h3>
             {#if child.content}
-              <p class="text-xs text-black/60 dark:text-white/60 line-clamp-2">{child.content}</p>
+              <p class="text-xs text-black/70 dark:text-white/60 line-clamp-2">{child.content}</p>
             {/if}
             <div class="text-xs text-black/40 dark:text-white/40 mt-2">
               {new Date(child.createdAt).toLocaleDateString()}
@@ -172,11 +172,11 @@
       <RouterLink to={child.slug || `/${child.id}`} className="hover:underline">
         <div class="flex items-baseline gap-2">
           <span class="text-xs text-black/60 dark:text-white/60">[{child.type}]</span>
-          <span class="text-sm font-medium">{child.title || child.slug || 'Untitled'}</span>
+          <span class="text-sm font-medium text-black dark:text-white">{child.title || child.slug || 'Untitled'}</span>
         </div>
       </RouterLink>
       {#if child.content}
-        <p class="text-xs text-black/60 dark:text-white/60 mt-1 line-clamp-2">{child.content}</p>
+        <p class="text-xs text-black/70 dark:text-white/60 mt-1 line-clamp-2">{child.content}</p>
       {/if}
     </div>
   {/if}
