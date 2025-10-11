@@ -661,33 +661,6 @@
           class="absolute -top-3 w-6 h-6 bg-gray-600 border-2 border-white rounded-full hover:bg-gray-500 transition-colors shadow-lg"
           aria-label="Toggle drawer"
         ></button>
-        {#if drawerMode === 'minimized'}
-          <!--
-          <span class="text-xs text-white/60">Tap to view places</span>
-          -->
-        {:else if drawerMode === 'places'}
-          <!--
-          <div class="flex items-center justify-between w-full">
-            <h3 class="text-sm font-semibold">Places ({locatedChildren.length})</h3>
-            <div class="flex gap-1">
-              {#each ['post', 'party', 'group', 'place', 'event'] as filterType}
-                {@const count = children.filter(c => c.type === filterType && c.latitude != null && c.longitude != null).length}
-                {#if count > 0}
-                  <button
-                    onclick={() => toggleFilter(filterType)}
-                    class={getFilterButtonClass(filterType)}
-                    aria-label="Filter by {filterType}"
-                  >
-                    {filterType}
-                  </button>
-                {/if}
-              {/each}
-            </div>
-          </div>
-          -->
-        {:else if drawerMode === 'preview'}
-          <span class="text-xs text-white/60">Preview</span>
-        {/if}
       </div>
 
       <!-- Drawer Content -->
@@ -726,27 +699,12 @@
           <div class="p-4 overflow-y-auto h-full">
             <div class="max-w-2xl mx-auto">
               <!-- Action buttons at top -->
-              <div class="flex gap-2 mb-4">
+              <div class="flex justify-end gap-2 mb-4">
                 <button
                   onclick={() => navigateTo(selectedMarker!.slug || `/${selectedMarker!.id}`)}
-                  class="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-medium rounded"
-                >
-                  View Full Details →
-                </button>
-                <button
-                  onclick={() => drawerMode = 'places'}
-                  class="px-4 py-2 border border-white/20 hover:bg-white/10 transition-colors text-sm rounded"
-                >
-                  Back to Places
-                </button>
-                <button
-                  onclick={() => drawerMode = 'places'}
                   class="px-3 py-2 border border-white/20 hover:bg-white/10 transition-colors text-sm rounded"
                   aria-label="Close preview"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                > > Details
                 </button>
               </div>
 
