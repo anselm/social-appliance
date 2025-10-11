@@ -27,7 +27,7 @@
     recentPosts: entity.metadata?.recentPosts ?? 0,
     isPublic: entity.metadata?.isPublic ?? true,
     createdAt: entity.createdAt,
-    createdBy: entity.auth ? `${entity.auth.substring(0, 6)}...${entity.auth.substring(entity.auth.length - 4)}` : 'Unknown'
+    createdBy: entity.auth ? `${entity.auth.substring(0, 6)}...${entity.auth.substring(entity.auth.length - 4)}` : null
   })
   
   // Check if entity is favorited when component mounts or auth changes
@@ -116,7 +116,7 @@
   </div>
   
   {#if showStats && entity.type === 'group'}
-    <div class="flex flex-wrap gap-3 mb-4 text-xs text-white/60">
+    <div class="flex flex-wrap gap-3 mb-4 text-xs text-black/60 dark:text-white/60">
       {#if stats.memberCount > 0}
         <span class="flex items-center gap-1">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,17 +145,19 @@
         </svg>
         Created {new Date(stats.createdAt).toLocaleDateString()}
       </span>
-      <span class="flex items-center gap-1">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-        By {stats.createdBy}
-      </span>
+      {#if stats.createdBy}
+        <span class="flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+            By {stats.createdBy}
+        </span>
+      {/if}
     </div>
   {/if}
   
   {#if showContent && entity.content}
-    <div class="text-sm text-white/60 prose-content">
+    <div class="text-sm text-black/60 dark:text-white/60 prose-content">
       {@html renderMarkdown(entity.content)}
     </div>
   {/if}
