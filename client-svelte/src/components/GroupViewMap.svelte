@@ -463,7 +463,7 @@
       // Add navigation controls
       map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
-      map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'top-right');
+      map.addControl(new mapboxgl.AttributionControl({ compact: true }),  'top-right');
 
       map.on('load', () => {
         // Enable 3D buildings for dramatic effect
@@ -511,6 +511,13 @@
 
         mapReady = true
         addMarkers()
+        
+        // Force resize after a short delay to ensure proper rendering
+        setTimeout(() => {
+          if (map) {
+            map.resize()
+          }
+        }, 100)
       })
 
       map.on('error', (e: any) => {
@@ -605,6 +612,13 @@
 
       mapReady = true
       addMarkers()
+      
+      // Force another resize after markers are added
+      setTimeout(() => {
+        if (map) {
+          map.invalidateSize()
+        }
+      }, 200)
       
     } catch (error) {
       console.error('GroupViewMap error:', error)
