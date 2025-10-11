@@ -7,8 +7,8 @@ import { themeStore } from './stores/theme'
 
 const log = loggers.app
 
-console.log('[Main] Application starting')
-console.log('[Main] Theme store imported:', themeStore)
+// Initialize theme store
+themeStore
 
 async function initApp() {
   log.info('Initializing application...')
@@ -22,7 +22,6 @@ async function initApp() {
       throw new Error('App target element not found')
     }
     
-    // Use proper Svelte 5 mount API
     const app = mount(App, {
       target,
       props: {
