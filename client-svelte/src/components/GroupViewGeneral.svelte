@@ -62,6 +62,24 @@
     const [a, b] = str.split(',')
     return b + ' ' + a
   }
+
+  function getMetadataText(child: Entity): string {
+    const parts: string[] = []
+    
+    if (child.type === 'group' && child.metadata) {
+      if (child.metadata.memberCount > 0) {
+        parts.push(`${child.metadata.memberCount} members`)
+      }
+      if (child.metadata.recentPosts > 0) {
+        parts.push(`${child.metadata.recentPosts} posts`)
+      }
+      if (child.metadata.isPublic !== undefined) {
+        parts.push(child.metadata.isPublic ? 'Public' : 'Private')
+      }
+    }
+    
+    return parts.join(' • ')
+  }
 </script>
 
 {#snippet emptyState()}
@@ -129,14 +147,21 @@
     {#each children as child}
       <RouterLink to={child.slug || `/${child.id}`} className="block pb-2 hover:opacity-80 transition-opacity">
         <div class="flex items-baseline gap-3">
-          <span class="text-xs text-black/40 dark:text-white/40">[{child.type}]</span>
           <div class="flex-grow">
             <h3 class="text-sm font-medium inline text-black dark:text-white">{child.title || child.slug || 'Untitled'}</h3>
             {#if child.content}
               <span class="text-xs text-black/70 dark:text-white/60 ml-2">{getPreview(child.content, 100)}</span>
             {/if}
           </div>
-          <span class="text-xs text-black/40 dark:text-white/40 whitespace-nowrap">{fixDate(child.updatedAt)}</span>
+          <div class="flex items-baseline gap-2 whitespace-nowrap">
+            {#if getMetadataText(child)}
+              <span class="text-xs text-black/40 dark:text-white/40">{getMetadataText(child)}</span>
+              <span class="text-xs text-black/30 dark:text-white/30">•</span>
+            {/if}
+            <span class="text-xs text-black/40 dark:text-white/40">[{child.type}]</span>
+            <span class="text-xs text-black/30 dark:text-white/30">•</span>
+            <span class="text-xs text-black/40 dark:text-white/40">{fixDate(child.updatedAt)}</span>
+          </div>
         </div>
       </RouterLink>
     {/each}
@@ -156,13 +181,17 @@
             />
           {/if}
           <div class="flex-1">
-            <h3 class="text-sm font-medium mb-1 text-black dark:text-white">{child.title || 'Untitled'}</h3>
+            <div class="flex items-baseline justify-between gap-4 mb-1">
+              <h3 class="text-sm font-medium text-black dark:text-white">{child.title || 'Untitled'}</h3>
+              <div class="flex items-baseline gap-2 whitespace-nowrap">
+                <span class="text-xs text-black/40 dark:text-white/40">[{child.type}]</span>
+                <span class="text-xs text-black/30 dark:text-white/30">•</span>
+                <span class="text-xs text-black/40 dark:text-white/40">{new Date(child.createdAt).toLocaleDateString()}</span>
+              </div>
+            </div>
             {#if child.content}
               <p class="text-xs text-black/70 dark:text-white/60 line-clamp-2">{child.content}</p>
             {/if}
-            <div class="text-xs text-black/40 dark:text-white/40 mt-2">
-              {new Date(child.createdAt).toLocaleDateString()}
-            </div>
           </div>
         </div>
       </RouterLink>
@@ -170,14 +199,22 @@
   {:else}
     <div class="pb-4">
       <RouterLink to={child.slug || `/${child.id}`} className="hover:underline">
-        <div class="flex items-baseline gap-2">
-          <span class="text-xs text-black/60 dark:text-white/60">[{child.type}]</span>
-          <span class="text-sm font-medium text-black dark:text-white">{child.title || child.slug || 'Untitled'}</span>
+        <div class="flex items-baseline justify-between gap-4">
+          <div class="flex-1">
+            <span class="text-sm font-medium text-black dark:text-white">{child.title || child.slug || 'Untitled'}</span>
+            {#if child.content}
+              <p class="text-xs text-black/70 dark:text-white/60 mt-1 line-clamp-2">{child.content}</p>
+            {/if}
+          </div>
+          <div class="flex items-baseline gap-2 whitespace-nowrap">
+            {#if getMetadataText(child)}
+              <span class="text-xs text-black/40 dark:text-white/40">{getMetadataText(child)}</span>
+              <span class="text-xs text-black/30 dark:text-white/30">•</span>
+            {/if}
+            <span class="text-xs text-black/60 dark:text-white/60">[{child.type}]</span>
+          </div>
         </div>
       </RouterLink>
-      {#if child.content}
-        <p class="text-xs text-black/70 dark:text-white/60 mt-1 line-clamp-2">{child.content}</p>
-      {/if}
     </div>
   {/if}
 {/snippet}
