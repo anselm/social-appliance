@@ -11,7 +11,7 @@ function createThemeStore() {
   // Always start with system preference
   const systemTheme = getSystemTheme()
   
-  const { subscribe, set, update } = writable<Theme>(systemTheme)
+  const { subscribe, set } = writable<Theme>(systemTheme)
 
   // Apply theme to document
   function applyTheme(theme: Theme) {
@@ -31,8 +31,7 @@ function createThemeStore() {
   if (typeof window !== 'undefined') {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     
-    const handleChange = (e: MediaQueryListEvent) => {
-      // Always follow system preference changes
+    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
       const newTheme = e.matches ? 'dark' : 'light'
       set(newTheme)
       applyTheme(newTheme)
@@ -48,18 +47,7 @@ function createThemeStore() {
   }
 
   return {
-    subscribe,
-    set: (theme: Theme) => {
-      set(theme)
-      applyTheme(theme)
-    },
-    toggle: () => {
-      update(current => {
-        const newTheme = current === 'light' ? 'dark' : 'light'
-        applyTheme(newTheme)
-        return newTheme
-      })
-    }
+    subscribe
   }
 }
 
