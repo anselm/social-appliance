@@ -1,8 +1,8 @@
 // Bali community group and content
 export const baliGroup = {
-  id: 'group-bali-001',
+  id: '/bali',
   slug: '/bali',
-  parentId: 'root-group',  
+  parentId: '/',  
   type: 'group',
   title: 'Bali Community',
   content: 'Connect with people interested in Bali - travel, culture, and living',
@@ -23,9 +23,9 @@ export const baliGroup = {
 
 // Bali posts
 export const baliPost1 = {
-  id: 'post-bali-001',
+  id: '/bali/canggu-cafes',
   slug: '/bali/canggu-cafes',
-  parentId: 'group-bali-001',
+  parentId: '/bali',
   type: 'post',
   title: 'Best cafes in Canggu for digital nomads',
   content: 'Here are my top 5 cafes with good wifi and great coffee in Canggu area. Each offers a unique atmosphere and reliable internet for remote work.',
@@ -40,9 +40,9 @@ export const baliPost1 = {
 };
 
 export const baliPost2 = {
-  id: 'post-bali-002',
+  id: '/bali/visa-guide',
   slug: '/bali/visa-guide',
-  parentId: 'group-bali-001',
+  parentId: '/bali',
   type: 'post',
   title: 'Complete Visa Guide for Bali 2024',
   content: 'Everything you need to know about visa options for Bali, including the new digital nomad visa, tourist visas, and business visas.',
@@ -53,9 +53,9 @@ export const baliPost2 = {
 };
 
 export const baliPost3 = {
-  id: 'post-bali-003',
+  id: '/bali/temple-etiquette',
   slug: '/bali/temple-etiquette',
-  parentId: 'group-bali-001',
+  parentId: '/bali',
   type: 'post',
   title: 'Temple Etiquette in Bali',
   content: 'Visiting Balinese temples? Here is what you need to know about proper dress code, behavior, and cultural sensitivity.',

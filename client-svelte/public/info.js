@@ -1,6 +1,6 @@
 
 export const rootGroup = {
-  id: 'root-group',
+  id: '/',
   slug: '/',
   type: 'group',
   title: '/Home',
@@ -20,8 +20,8 @@ export const rootGroup = {
 // Portland community group and content
 export const portlandGroup = {
   id: 'group-portland-001',
-  slug: '/portland',
-  parentId: 'root-group',  
+  slug: '/pdx',
+  parentId: '/',  
   type: 'group',
   title: 'Portland Community',
   content: 'Connect with locals and visitors in Portland, Oregon - food, culture, and city life',
@@ -42,9 +42,9 @@ export const portlandGroup = {
 
 // Portland posts with specific locations
 export const portlandPost1 = {
-  id: 'post-portland-001',
-  slug: '/portland/powells-books',
-  parentId: 'group-portland-001',
+  id: '/pdx/powells-books',
+  slug: '/pdx/powells-books',
+  parentId: '/pdx',
   type: 'post',
   title: 'Powell\'s City of Books - A Book Lover\'s Paradise',
   content: 'Powell\'s is the largest independent bookstore in the world, occupying an entire city block. Get lost in the color-coded rooms and discover rare finds.',
@@ -59,9 +59,9 @@ export const portlandPost1 = {
 };
 
 export const hikingGroup = {
-  id: 'group-hiking-001',
+  id: '/hiking',
   slug: '/hiking',
-  parentId: 'root-group',  
+  parentId: '/',  
   type: 'group',
   title: 'Hiking Enthusiasts',
   content: 'A community for people who love hiking and outdoor adventures',
@@ -79,9 +79,9 @@ export const hikingGroup = {
 
 // Hiking posts
 export const hikingPost1 = {
-  id: 'post-hike-001',
+  id: '/hiking/weekend-tamalpais',
   slug: '/hiking/weekend-tamalpais',
-  parentId: 'group-hiking-001',
+  parentId: '/hiking',
   type: 'post',
   title: 'Weekend hike to Mount Tamalpais',
   content: 'Planning a group hike this Saturday morning. Who wants to join? We will meet at the Pantoll parking lot at 8 AM and take the Steep Ravine trail.',

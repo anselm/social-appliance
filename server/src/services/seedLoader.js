@@ -3,11 +3,70 @@ import { join, extname } from 'path';
 import { pathToFileURL } from 'url';
 import { API } from '../api/index.js';
 import { Logger } from '../utils/logger.js';
+import fs from 'fs'
 
 export class SeedLoader {
   constructor() {
     this.api = new API();
     this.loadedEntities = [];
+  }
+
+  async loadSeedDataRecurse(seedDataPath) {
+
+    if (!fs.existsSync(seedDataPath)) {
+      Logger.error(`Seed data directory NOT found at: ${seedDataPath}`);
+      Logger.info('Current directory contents:');
+      try {
+        const cwdFiles = await readdir(process.cwd());
+        Logger.info(`  ${cwdFiles.join(', ')}`);
+      } catch (e) {
+        Logger.error('Could not read current directory');
+      }
+      return
+    }
+
+    Logger.success('Seed data directory found!');
+
+    const db = await this.api.entityService.getDB();
+
+    try {
+      const files = await readdir(seedDataPath);
+      Logger.info(`Seed data directory contains ${files.length} files/folders: ${files.join(', ')}`);
+      
+      // Look for info.js files recursively
+      const infoFiles = [];
+      async function findInfoFiles(dir) {
+        const entries = await readdir(dir, { withFileTypes: true });
+        for (const entry of entries) {
+          const fullPath = join(dir, entry.name);
+          if (entry.isDirectory()) {
+            await findInfoFiles(fullPath);
+          } else if (entry.name === 'info.js') {
+            infoFiles.push(fullPath);
+          }
+        }
+      }
+      await findInfoFiles(seedDataPath);
+      Logger.info(`Found ${infoFiles.length} .info.js files`);
+      
+      if (infoFiles.length > 0) {
+        await this.loadSeedData(seedDataPath);
+        Logger.success('Seed data loaded successfully');
+        
+        // Verify root entity was created
+        const rootEntity = await db.collection('entities').findOne({ slug: '/' });
+        if (rootEntity) {
+          Logger.success(`Root entity created: ${rootEntity.id}`);
+        } else {
+          Logger.error('Root entity still not found after seed data load!');
+        }
+      } else {
+        Logger.warn('No .info.js files found in seed data directory');
+      }
+    } catch (seedError) {
+      Logger.error('Failed to load seed data:', seedError);
+      Logger.error('Stack trace:', seedError.stack);
+    }
   }
 
   async loadSeedData(folderPath) {
@@ -17,7 +76,7 @@ export class SeedLoader {
       const files = await this.scanForInfoFiles(folderPath);
       
       if (files.length === 0) {
-        Logger.warn('No .info.js files found in seed data folder');
+        Logger.warn('No info.js files found in seed data folder');
         return;
       }
       
@@ -44,7 +103,7 @@ export class SeedLoader {
         
         if (stats.isDirectory()) {
           await this.scanForInfoFiles(fullPath, files);
-        } else if (stats.isFile() && entry.endsWith('.info.js')) {
+        } else if (stats.isFile() && entry === 'info.js') {
           files.push(fullPath);
         }
       }
@@ -248,3 +307,5 @@ export class SeedLoader {
     console.log(`\nTotal entities processed: ${this.loadedEntities.length}`);
   }
 }
+
+

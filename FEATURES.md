@@ -1,5 +1,9 @@
 # FEATURES - Oct 10 2025
 
+## Mission statement / Core Value Prop:
+
+"Help individuals and groups connect over shared passions - in person - in the real world."
+
 ## Fundamentals:
 
 - **Social Network** - conventional social network patterns (join groups, post messages, sort posts by value to user...)

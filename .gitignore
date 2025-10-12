@@ -47,6 +47,3 @@ coverage/
 .tmp/
 .temp/
 
-# Seed data (allow custom local seed data)
-seed-data/*
-!seed-data/*.info.js

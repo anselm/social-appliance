@@ -2,7 +2,7 @@
 
 Open source social network with an emphasis on sharing places.
 
-See FEATURES.md for more.
+See [FEATURES](FEATURES.md) for current feature list breakdown.
 
 ## Getting Started
 

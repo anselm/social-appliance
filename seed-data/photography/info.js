@@ -1,8 +1,8 @@
 // Photography club group and content
 export const photographyGroup = {
-  id: 'group-photo-001',
+  id: '/photography',
   slug: '/photography',
-  parentId: 'root-group',  
+  parentId: '/',  
   type: 'group',
   title: 'Photography Club',
   content: 'Share your photos, get feedback, and learn photography techniques',
@@ -20,9 +20,9 @@ export const photographyGroup = {
 
 // Photography posts
 export const photoPost1 = {
-  id: 'post-photo-001',
+  id: '/photography/golden-hour-tips',
   slug: '/photography/golden-hour-tips',
-  parentId: 'group-photo-001',
+  parentId: '/photography',
   type: 'post',
   title: 'Golden hour photography tips',
   content: 'The golden hour is the best time for photography. Here are some tips to make the most of it: use manual mode, shoot in RAW, and experiment with backlighting.',
@@ -34,22 +34,22 @@ export const photoPost1 = {
 };
 
 export const photoPost2 = {
-  id: 'post-photo-002',
+  id: '/photography/street-photography',
   slug: '/photography/street-photography',
+  parentId: '/photography',
   type: 'post',
   title: 'Street Photography Essentials',
   content: 'Capturing life on the streets requires quick reflexes and an eye for moments. Learn about camera settings, composition, and the ethics of street photography.',
   depiction: 'https://images.unsplash.com/photo-1514214246283-d427a95c5d2f?w=800&h=600&fit=crop',
-  parentId: 'group-photo-001',
   tags: ['street-photography', 'urban', 'candid'],
   createdAt: '2024-03-11T10:00:00.000Z',
   updatedAt: '2024-03-11T10:00:00.000Z'
 };
 
 export const photoPost3 = {
-  id: 'post-photo-003',
+  id: '/photography/editing-workflow',
   slug: '/photography/editing-workflow',
-  parentId: 'group-photo-001',
+  parentId: '/photography',
   type: 'post',
   title: 'My Photo Editing Workflow',
   content: 'A step-by-step guide to my photo editing process using Lightroom and Photoshop. From RAW processing to final touches.',
@@ -60,9 +60,9 @@ export const photoPost3 = {
 };
 
 export const photoPost4 = {
-  id: 'post-photo-004',
+  id: '/photography/portrait-lighting',
   slug: '/photography/portrait-lighting',
-  parentId: 'group-photo-001',
+  parentId: '/photography',
   type: 'post',
   title: 'Portrait Lighting Techniques',
   content: 'Master the art of portrait lighting with these fundamental techniques: Rembrandt, butterfly, split, and loop lighting explained.',

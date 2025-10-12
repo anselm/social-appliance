@@ -1,10 +1,8 @@
-// Root group entity - the top-level container for all entities
 export default {
-  id: 'root-group',
+  id: '/',
   slug: '/',
   type: 'group',
   title: 'Home',
-  //content: 'Welcome',
   view: 'list',
   createdAt: '2024-01-20T08:00:00.000Z',
   updatedAt: '2024-01-20T08:00:00.000Z',

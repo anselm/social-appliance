@@ -1,0 +1,82 @@
+{
+  "users": [
+    {
+      "id": "admin-user-id",
+      "email": "admin@nightcity.com",
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "posts": [
+    {
+      "id": "9636ed2c-0302-4af1-8005-5339ef712a80",
+      "slug": "night-city",
+      "title": "Night City",
+      "content": "This is the beginning of our journey into Night City. A place where stories unfold and mysteries await.",
+      "type": "zone",
+      "tags": ["welcome", "introduction"],
+      "latitude": 45.5152,
+      "longitude": -122.6784,
+      "radius": 1000,
+      "sponsorId": "admin-user-id",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "9636ed2c-0302-4af1-8005-5339ef712a81",
+      "slug": "inner-ne-pdx",
+      "title": "Inner NE PDX",
+      "content": "Inner NE PDX Events, News and People",
+      "type": "zone",
+      "tags": ["welcome", "introduction"],
+      "latitude": 45.5152,
+      "longitude": -122.6784,
+      "radius": 1000,
+      "sponsorId": "admin-user-id",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "9636ed2c-0302-4af1-8005-5339ef712a82",
+      "slug": "outdoors-pdx",
+      "title": "Outdoors PDX",
+      "content": "When it's not raining Portland is actually ok.",
+      "type": "zone",
+      "tags": ["welcome", "introduction"],
+      "latitude": 45.5152,
+      "longitude": -122.6784,
+      "radius": 1000,
+      "sponsorId": "admin-user-id",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "9636ed2c-0302-4af1-8005-5339ef712a83",
+      "slug": "kids-pdx",
+      "title": "Kid Friendly PDX",
+      "content": "What should we do with the kids today?",
+      "type": "zone",
+      "tags": ["welcome", "introduction"],
+      "latitude": 45.5152,
+      "longitude": -122.6784,
+      "radius": 1000,
+      "sponsorId": "admin-user-id",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "9636ed2c-0302-4af1-8005-5339ef712a84",
+      "slug": "hotsprings-oregon",
+      "title": "Hotsprings around Oregon",
+      "content": "Always a good excuse for a hike.",
+      "type": "zone",
+      "tags": ["welcome", "introduction"],
+      "latitude": 45.5152,
+      "longitude": -122.6784,
+      "radius": 1000,
+      "sponsorId": "admin-user-id",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
+

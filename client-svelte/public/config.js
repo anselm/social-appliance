@@ -5,7 +5,7 @@ window.APP_CONFIG = {
   header: {
 
     // title if any
-    title: 'Locale.ai',
+    title: 'hyperlocal.ai',
 
     // Whether to show the header
     enabled: true,
@@ -23,13 +23,13 @@ window.APP_CONFIG = {
     baseUrl: '/api',
     
     // Serverless mode - use only cached/static data
-    serverless: true,
+    serverless: false,
     
     // Enable client-side caching with IndexedDB (@todo bug! this must be set the same as serverless for now!)
-    enableCache: true,
+    enableCache: false,
     
     // Load root info.js on startup
-    loadStaticData: true,
+    loadStaticData: false,
     
     // Flush cache on startup (useful for development)
     flushCacheOnStartup: true,
@@ -45,16 +45,16 @@ window.APP_CONFIG = {
   // Feature flags
   features: {
     // Enable user authentication
-    authentication: false,
+    authentication: true,
     
     // Enable content creation
-    allowCreate: false,
+    allowCreate: true,
     
     // Enable content editing
-    allowEdit: false,
+    allowEdit: true,
     
     // Enable content deletion
-    allowDelete: false 
+    allowDelete: true 
   },
   
   // Routing configuration

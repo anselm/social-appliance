@@ -1,8 +1,8 @@
 // Hiking enthusiasts group and content
 export const hikingGroup = {
-  id: 'group-hiking-001',
+  id: '/hiking',
   slug: '/hiking',
-  parentId: 'root-group',  
+  parentId: '/',  
   type: 'group',
   title: 'Hiking Enthusiasts',
   content: 'A community for people who love hiking and outdoor adventures',
@@ -20,9 +20,9 @@ export const hikingGroup = {
 
 // Hiking posts
 export const hikingPost1 = {
-  id: 'post-hike-001',
+  id: '/hiking/weekend-tamalpais',
   slug: '/hiking/weekend-tamalpais',
-  parentId: 'group-hiking-001',
+  parentId: '/hiking',
   type: 'post',
   title: 'Weekend hike to Mount Tamalpais',
   content: 'Planning a group hike this Saturday morning. Who wants to join? We will meet at the Pantoll parking lot at 8 AM and take the Steep Ravine trail.',
@@ -37,9 +37,9 @@ export const hikingPost1 = {
 };
 
 export const hikingPost2 = {
-  id: 'post-hike-002',
+  id: '/hiking/gear-recommendations',
   slug: '/hiking/gear-recommendations',
-  parentId: 'group-hiking-001',
+  parentId: '/hiking',
   type: 'post',
   title: 'Essential Hiking Gear for Beginners',
   content: 'Starting your hiking journey? Here is a comprehensive list of essential gear you will need for safe and enjoyable hikes.',
@@ -50,9 +50,9 @@ export const hikingPost2 = {
 };
 
 export const hikingPost3 = {
-  id: 'post-hike-003',
+  id: '/hiking/trail-conditions',
   slug: '/hiking/trail-conditions',
-  parentId: 'group-hiking-001',
+  parentId: '/hiking',
   type: 'post',
   title: 'Trail Conditions Update - Bay Area',
   content: 'Recent rain has made some trails muddy and slippery. Please be careful and wear appropriate footwear. Avoid steep trails until they dry out.',
