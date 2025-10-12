@@ -1,14 +1,20 @@
 <script lang="ts">
-  import { router } from './lib/router'
-  import { config } from './stores/appConfig'
-  import { authStore } from './stores/auth'
-  import Layout from './components/Layout.svelte'
-  import InstallPrompt from './components/InstallPrompt.svelte'
-  import EntityView from './pages/EntityView.svelte'
-  import Admin from './admin/Admin.svelte'
-  import Login from './pages/Login.svelte'
-  import SiweMagicLogin from './pages/siwe-magic-login.svelte'
-  import Profile from './pages/Profile.svelte'
+
+  import { config } from '@/stores/appConfig'
+
+  import { router } from '@/lib/router'
+  import { authStore } from '@/stores/auth'
+
+  import Layout from '@/pages-main/components/Layout.svelte'
+  import InstallPrompt from '@/pages-main/components/InstallPrompt.svelte'
+
+  import Admin from '@/pages-admin/Admin.svelte'
+  import Login from '@/pages-main/Login.svelte'
+  import Profile from '@/pages-main/Profile.svelte'
+  import EntityView from '@/pages-main/EntityView.svelte'
+  import SiweMagicLogin from '@/pages-main/siwe-magic-login.svelte'
+  import Landing from '@/pages-splash-home/LandingPage.svelte'
+  import HomePage from '@/pages-splash-home/HomePage.svelte'
   
   let { url = "" }: { url?: string } = $props()
   
@@ -47,6 +53,8 @@
     
     console.log('App: Determining page for path:', path)
     
+    if (path === '/landing') return 'landing'
+    if (path === '/home') return 'home'
     if (path === '/admin') return 'admin'
     if (path === '/login') return 'login'
     if (path === '/profile') return 'profile'
@@ -61,7 +69,11 @@
 <Layout {currentPath} {currentEntity}>
   {#snippet children()}
     {#key currentPath}
-      {#if currentPage === 'admin'}
+      {#if currentPage === 'landing'}
+        <Landing />
+      {:else if currentPage === 'home'}
+        <HomePage />
+      {:else if currentPage === 'admin'}
         <Admin />
       {:else if currentPage === 'login'}
         <SiweMagicLogin />

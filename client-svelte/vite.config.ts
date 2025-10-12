@@ -2,6 +2,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import path from 'path';
 
 function buildInfoPlugin() {
   return {
@@ -51,6 +52,7 @@ export default defineConfig(({ mode }) => {
     },
 
     build: {
+      chunkSizeWarningLimit: 1000,
       outDir: 'dist',
       assetsDir: 'assets',
       sourcemap: false,
@@ -67,7 +69,10 @@ export default defineConfig(({ mode }) => {
     },
 
     resolve: {
-      conditions: ['browser', 'default']
+      conditions: ['browser', 'default'],
+      alias: {
+        '@': path.resolve(__dirname, './src')
+      }
     },
 
     optimizeDeps: {

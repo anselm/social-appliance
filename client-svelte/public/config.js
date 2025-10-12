@@ -4,8 +4,8 @@ window.APP_CONFIG = {
   // Header configuration
   header: {
 
-    // title if any
-    title: 'hyperlocal.ai',
+    // title? thevibe, thedirt, hyperlocal, locavore? still exploring
+    title: 'vibe.ai',
 
     // Whether to show the header
     enabled: true,
